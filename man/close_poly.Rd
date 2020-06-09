@@ -7,7 +7,7 @@
 close_poly(open.poly, close.line = NULL)
 }
 \arguments{
-\item{open.poly}{A data frame of 2 columns (x,y) representing the vertexes of an open polygon. E. g. an output of \emph{split_poly} function}
+\item{open.poly}{A data frame of 2 columns (x,y) representing the verteces of an open polygon. E. g. an output of \emph{split_poly} function}
 
 \item{close.line}{A data frame of 2 columns (x,y) representing the coordinates of a line to be used to close a given polygon.
 First coordinates of a line must correspond to the first point of the polygon, while the last coordinates - to the last point
