@@ -28,7 +28,7 @@ c(-0.12,-0.31,-2.73,-3.22,-3.29,-2.19,-1.62,0.94,3.10,3.00,2.91,2.49,2.20,-0.12)
 
 #Creating a dataset of points
 data<-data.frame(X=runif(250,-4,4),Y=runif(250,-4,4))
-plot(poly,type='l')
+plot(poly,type='l',xlab="X",ylab="Y")
 points(data)
 
 #Extracting points that lie inside a polygon
