@@ -13,12 +13,12 @@
 #' plot(open.pol,type="l")
 #'
 #' #closing the open polygon with its first point
-#' poly<-close.poly(open.pol)
+#' poly<-close_poly(open.pol)
 #' plot(poly,type="l")
 #'
 #' #closing the open polygon with a line
 #' line <- data.frame(x=seq(0,1,length.out=10),y=c(0,.2,.1,.3,.6,.5,.3,.4,.2,0))
-#' poly<-close.poly(open.pol,line)
+#' poly<-close_poly(open.pol,line)
 #' plot(poly,type="l")
 #' @export
 
@@ -30,3 +30,4 @@ close_poly<-function(open.poly, close.line=NULL){
   }
 }
 
+example(close_poly)
