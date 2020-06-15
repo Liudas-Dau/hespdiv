@@ -273,18 +273,16 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
 
             return(gogolis)} else{
               print("pasiekta nebesiskaidymo riba, grazinami updatinti duomenis, be nauju ribiniu")
-              return(list(splits,rims,blokai,split.reliability,split.performance,original.quality,split.reliability2,checks,n.splits,ave.split.abE))
+              return(list(splits,rims,blokai,split.reliability,split.performance,1,split.reliability2,checks,n.splits,ave.split.abE))
             }
         }
     } else{
       #Jei tinkamo padalino nerasta, grizta tuscias masyvas
       if (testid>1){
         print("tinkamo padalinimo nerasta, grizta tuscias masyvas NULL")
-        original.qual<<-original.qual[-length(original.qual)]
         return(list(blokai,rims))
       } else{
         print("nebuvo skaldomu bloku")
-        original.qual<<-original.qual[-length(original.qual)]
         return(list(blokai,rims))}
     }
   }
@@ -317,8 +315,8 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
       z.score = round(rezas[[4]],2),
       ave.abE = round(-rezas[[10]],2),
       split.abE = round(-rezas[[5]],2),
-      parent.2E = round(-rezas[[6]],2),
-      delta.E = round(rezas[[5]] -  rezas[[6]],2),
+      parent.2E = round(-original.quality,2),
+      delta.E = round(rezas[[5]] -  original.quality,2),
       p_value = rezas[[7]],
       signif. = format(Signif)
     ),
