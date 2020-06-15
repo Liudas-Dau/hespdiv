@@ -36,7 +36,7 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
   #motinine rekursyvine funkcija
   spatial_div<-function(data,origins=NA,method,variation,
                         metric,criteria,C.cond=0,E.cond=0,N.cond=0,S.cond=0,
-                        blokai,root=2,iteracija=2,divisions=NULL,rims,knot.density.X=knot.density.X,
+                        root=2,iteracija=2,divisions=NULL,rims,knot.density.X=knot.density.X,
                         knot.density.Y=knot.density.Y,curve.iterations=curve.iterations,correction.term,split.reliability,
                         splits,split.performance,split.reliability2,checks,null.models=null.models,n.splits=n.splits,seed.t=seed.t,
                         ave.split.abE=ave.split.abE,test.n=test.n){
@@ -110,7 +110,7 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
         performance<-original.qual # negalejom ivertinti ne vieno padalinimo, taigi performance lygu max.
       }
 
-      blokai<-rbind(blokai,data.frame(performance=1-performance/original.qual,
+      blokai<<-rbind(blokai,data.frame(performance=1-performance/original.qual,
                                       iteracija=iteracija,saknis=root))
       print(c("blokai: ", blokai))
       print(c("performance: ", performance))
@@ -195,7 +195,7 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
       gogolis<-spatial_div(O,origins = origins,
                            rims = rims,divisions = divisions,
                            method=method,variation=variation,metric=metric,criteria=criteria,
-                           C.cond=C.cond,E.cond=E.cond,N.cond=N.cond,S.cond=S.cond,blokai=blokai,
+                           C.cond=C.cond,E.cond=E.cond,N.cond=N.cond,S.cond=S.cond,
                            root = iteracija, iteracija = iteracija+1,knot.density.X = knot.density.X,
                            knot.density.Y = knot.density.Y,curve.iterations = curve.iterations,correction.term=correction.term,
                            split.reliability = split.reliability,splits=splits,
@@ -222,7 +222,7 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
                              origins = origins,rims = gogolis[[2]],
                              method=method,variation=variation,metric=metric,criteria=criteria,
                              C.cond=C.cond,E.cond=E.cond,N.cond=N.cond,S.cond=S.cond,
-                             blokai = gogolis[[3]],root=iteracija,iteracija = gogolis[[3]][nrow(gogolis[[3]]),2]+1,
+                             root=iteracija,iteracija = blokai[nrow(blokai),2]+1,
                              knot.density.X = knot.density.X,knot.density.Y = knot.density.Y,curve.iterations = curve.iterations,
                              correction.term=correction.term,
                              split.reliability = gogolis[[4]],null.models = null.models,
@@ -247,7 +247,7 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
                              rims = rims,divisions = divisions,
                              method=method,variation=variation,metric=metric,criteria=criteria,
                              C.cond=C.cond,E.cond=E.cond,N.cond=N.cond,S.cond=S.cond,
-                             blokai=blokai,root = iteracija,iteracija = iteracija+2,knot.density.X = knot.density.X,
+                             root = iteracija,iteracija = iteracija+2,knot.density.X = knot.density.X,
                              knot.density.Y = knot.density.Y,curve.iterations = curve.iterations,correction.term=correction.term,
                              split.reliability = split.reliability,splits=
                                splits,split.performance=split.performance,split.reliability2=split.reliability2,checks=checks,
@@ -273,24 +273,24 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
 
             return(gogolis)} else{
               print("pasiekta nebesiskaidymo riba, grazinami updatinti duomenis, be nauju ribiniu")
-              return(list(splits,rims,blokai,split.reliability,split.performance,1,split.reliability2,checks,n.splits,ave.split.abE))
+              return(list(splits,rims,1,split.reliability,split.performance,1,split.reliability2,checks,n.splits,ave.split.abE))
             }
         }
     } else{
       #Jei tinkamo padalino nerasta, grizta tuscias masyvas
       if (testid>1){
         print("tinkamo padalinimo nerasta, grizta tuscias masyvas NULL")
-        return(list(blokai,rims))
+        return(list(1,rims))
       } else{
         print("nebuvo skaldomu bloku")
-        return(list(blokai,rims))}
+        return(list(1,rims))}
     }
   }
   environment(spatial_div) <- environment()
 
   rezas<-spatial_div(data,method=method,variation=variation,metric=metric,criteria=criteria,origins = origins,
                      C.cond=C.cond,E.cond=E.cond,N.cond=N.cond,S.cond=S.cond,rims = rims,divisions = divisions,
-                     blokai=blokai,root=2,knot.density.X=knot.density.X,
+                     root=2,knot.density.X=knot.density.X,
                      knot.density.Y=knot.density.Y,curve.iterations=curve.iterations,correction.term=correction.term,
                      split.reliability = split.reliability,splits=splits,split.performance = split.performance,
                      split.reliability2=split.reliability2,checks=checks,null.models = null.models,n.splits = n.splits,seed.t=seed.t,
@@ -309,7 +309,7 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
   rezas <- structure(list(
     split.lines = rezas[[1]],
     boundaries = rezas[[2]],
-    block.stats = rezas[[3]][-1,],
+    block.stats = blokai[-1,],
     split.stats = data.frame(
       n.splits = rezas[[9]],
       z.score = round(rezas[[4]],2),
@@ -336,3 +336,6 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
 o<-spatial.analysis(data = data,C.cond = 0.05,N.cond = 1000*n/n.si,S.cond = 0.1,E.cond = 0,divisions = 15,knot.density.X = 6,
                     knot.density.Y = 30,curve.iterations = 3,correction.term=0.1,null.models = F,seed.t = 2,test.n = 100)
 plot(o,data)
+o$block.stats
+performance	iteracija	saknis
+
