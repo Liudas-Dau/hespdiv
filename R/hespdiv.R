@@ -36,7 +36,7 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
   #motinine rekursyvine funkcija
   spatial_div<-function(samp.dat,method,variation,
                         metric,criteria,C.cond=0,E.cond=0,N.cond=0,S.cond=0,
-                        root=2,divisions=NULL,rims,knot.density.X=knot.density.X,
+                        root=2,knot.density.X=knot.density.X,
                         knot.density.Y=knot.density.Y,curve.iterations=curve.iterations,correction.term,split.reliability,
                         splits,split.performance,split.reliability2,checks,null.models=null.models,n.splits=n.splits,seed.t=seed.t,
                         ave.split.abE=ave.split.abE,test.n=test.n){
@@ -187,14 +187,13 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
         checks<-do.call(c,list(checks,list(pseudo.kokybe)))
         split.reliability2<-c(split.reliability2,sum(last(split.performance)<pseudo.kokybe)/test.n)
       }
-      n.splits<-c(n.splits,length(any.split))
-      ave.split.abE<-c(ave.split.abE,performance)
-      original.quality<<-c(original.quality,original.qual)
+      n.splits<-do.call(c,list(n.splits,length(any.split)))
+      ave.split.abE<-do.call(c,list(ave.split.abE,performance))
+      original.quality<<-do.call(c,list(original.quality,original.qual))
       #
-      rims<-do.call(c,list(rims,ribs[1]))
+      rims<<-do.call(c,list(rims,ribs[1]))
       lines(ribs[[1]],col="purple")
       gogolis<-spatial_div(O,
-                           rims = rims,divisions = divisions,
                            method=method,variation=variation,metric=metric,criteria=criteria,
                            C.cond=C.cond,E.cond=E.cond,N.cond=N.cond,S.cond=S.cond,
                            root = iteration,knot.density.X = knot.density.X,
@@ -205,9 +204,6 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
       print(paste("griztam i", testid, "padalinima [po mazu koord bloko]", sep=" "))
 
       if (length(gogolis)==2){
-
-        blokai<-gogolis[[1]]
-        rims<-gogolis[[2]]
         rm(gogolis)
       }
 
@@ -219,8 +215,7 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
       if (exists("gogolis")){
         gogolis[[2]]<-do.call(c,list(gogolis[[2]],ribs[2]))
         lines(ribs[[2]],col=2)
-        bobolis<-spatial_div(OO,divisions = divisions,
-                             rims = gogolis[[2]],
+        bobolis<-spatial_div(OO,
                              method=method,variation=variation,metric=metric,criteria=criteria,
                              C.cond=C.cond,E.cond=E.cond,N.cond=N.cond,S.cond=S.cond,
                              root=iteration,
@@ -232,20 +227,16 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
         print(paste("griztam i", testid, "padalinima [po aukstu koord bloko (gogolis exists)]", sep=" "))
 
         if (length(bobolis)==2){
-
-          gogolis[[3]]<-bobolis[[1]]
-          gogolis[[2]]<-bobolis[[2]]
           rm(bobolis)
         }
 
       } else{
         #jei pirmo bloko skaidymas nebuvo sekmingas, sukuriam ribines koordinates naujam pjuviui
         # ir bandom skaidyti.
-        rims<-do.call(c,list(rims,ribs[2]))
+        rims<<-do.call(c,list(rims,ribs[2]))
         lines(ribs[[2]],col=2)
 
         bobolis<-spatial_div(OO,
-                             rims = rims,divisions = divisions,
                              method=method,variation=variation,metric=metric,criteria=criteria,
                              C.cond=C.cond,E.cond=E.cond,N.cond=N.cond,S.cond=S.cond,
                              root = iteration,knot.density.X = knot.density.X,
@@ -257,8 +248,6 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
         # Jei bobolis updatino duomenis ji paliekam, jei ne istrinam, kartu pasalindami koordinates
 
         if (length(bobolis)==2){
-          blokai<-bobolis[[1]]
-          rims<-bobolis[[2]]
           rm(bobolis)
         }
 
@@ -274,23 +263,23 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
 
             return(gogolis)} else{
               print("pasiekta nebesiskaidymo riba, grazinami updatinti duomenis, be nauju ribiniu")
-              return(list(splits,rims,1,split.reliability,split.performance,1,split.reliability2,checks,n.splits,ave.split.abE))
+              return(list(splits,1,1,split.reliability,split.performance,1,split.reliability2,checks,n.splits,ave.split.abE))
             }
         }
     } else{
       #Jei tinkamo padalino nerasta, grizta tuscias masyvas
       if (testid>1){
         print("tinkamo padalinimo nerasta, grizta tuscias masyvas NULL")
-        return(list(1,rims))
+        return(list(1,1))
       } else{
         print("nebuvo skaldomu bloku")
-        return(list(1,rims))}
+        return(list(1,1))}
     }
   }
   environment(spatial_div) <- environment()
 
   rezas<-spatial_div(data,method=method,variation=variation,metric=metric,criteria=criteria,
-                     C.cond=C.cond,E.cond=E.cond,N.cond=N.cond,S.cond=S.cond,rims = rims,divisions = divisions,
+                     C.cond=C.cond,E.cond=E.cond,N.cond=N.cond,S.cond=S.cond,
                      root=2,knot.density.X=knot.density.X,
                      knot.density.Y=knot.density.Y,curve.iterations=curve.iterations,correction.term=correction.term,
                      split.reliability = split.reliability,splits=splits,split.performance = split.performance,
@@ -309,7 +298,7 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
 
   rezas <- structure(list(
     split.lines = rezas[[1]],
-    boundaries = rezas[[2]],
+    boundaries = rims,
     block.stats = blokai[-1,],
     split.stats = data.frame(
       n.splits = rezas[[9]],
