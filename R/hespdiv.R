@@ -34,12 +34,7 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
   original.quality<-numeric()
   iteration<-1
   #motinine rekursyvine funkcija
-  spatial_div<-function(samp.dat,method,variation,
-                        metric,criteria,C.cond=0,E.cond=0,N.cond=0,S.cond=0,
-                        root=2,knot.density.X=knot.density.X,
-                        knot.density.Y=knot.density.Y,curve.iterations=curve.iterations,correction.term,split.reliability,
-                        splits,split.performance,split.reliability2,checks,null.models=null.models,n.splits=n.splits,seed.t=seed.t,
-                        ave.split.abE=ave.split.abE,test.n=test.n){
+  spatial_div<-function(samp.dat, root=2){
     #testuojamas plotas
     testid<-length(rims)
     margins<-rims[[testid]]
@@ -128,9 +123,9 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
         maxid<-0}}
     if (maxid>0){
       if(best.curve[[2]]>maxdif) {
-        splits<-do.call(c,list(splits,list(data.frame(x=best.curve[[1]]$x,y=best.curve[[1]]$y))))
-        split.performance<-c(split.performance,best.curve[[2]])
-        split.reliability<-c(split.reliability,(best.curve[[2]]-performance)/sd(any.split))
+        splits<<-do.call(c,list(splits,list(data.frame(x=best.curve[[1]]$x,y=best.curve[[1]]$y))))
+        split.performance<<-do.call(c,list(split.performance,best.curve[[2]]))
+        split.reliability<<-do.call(c,list(split.reliability,(best.curve[[2]]-performance)/sd(any.split)))
         #dalinam duomenis padalinimo kreive
         #reikia sukurti poligonus du ir nufiltruoti duomenis  - galima padaryti geriau
         virsus.h<-filter.reorg.poly(polygon = data.frame(xp=t[[3]][,1][-nrow(t[[3]])],yp=t[[3]][,2][-nrow(t[[3]])]),min.x.id =linijos[maxid,6],
@@ -149,9 +144,9 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
         ribs<-list(O.poli,OO.poli)
       } else {
         #issaugom duomenis padalinimo
-        splits<-do.call(c,list(splits,list(data.frame(x=as.numeric(c(linijos[maxid,c(1,3)])),y=as.numeric(c(linijos[maxid,c(2,4)]))))))
-        split.performance<-c(split.performance,maxdif)
-        split.reliability<-c(split.reliability,(maxdif-performance)/sd(any.split))
+        splits<<-do.call(c,list(splits,list(data.frame(x=as.numeric(c(linijos[maxid,c(1,3)])),y=as.numeric(c(linijos[maxid,c(2,4)]))))))
+        split.performance<<-do.call(c,list(split.performance,maxdif))
+        split.reliability<<-do.call(c,list(split.reliability,(maxdif-performance)/sd(any.split)))
         #padalinam duomenis pagal pjuvi
         virs<-close.poly(split.line.x = as.numeric(linijos[maxid,c(1,3)]),split.line.y = as.numeric(linijos[maxid,c(2,4)]),
                          split.poly =filter.reorg.poly(polygon = data.frame(xp=t[[3]][,1][-nrow(t[[3]])],yp=t[[3]][,2][-nrow(t[[3]])]),
@@ -184,133 +179,68 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
           II.dat<-get.data(ribs[[2]],test.samp.dat[[a]])
           pseudo.kokybe[a]<-alfa(I.dat[,1],II.dat[,1])
         }
-        checks<-do.call(c,list(checks,list(pseudo.kokybe)))
-        split.reliability2<-c(split.reliability2,sum(last(split.performance)<pseudo.kokybe)/test.n)
+        checks<<-do.call(c,list(checks,list(pseudo.kokybe)))
+        split.reliability2<<-do.call(c,list(split.reliability2,sum(last(split.performance)<pseudo.kokybe)/test.n))
       }
-      n.splits<-do.call(c,list(n.splits,length(any.split)))
-      ave.split.abE<-do.call(c,list(ave.split.abE,performance))
+      n.splits<<-do.call(c,list(n.splits,length(any.split)))
+      ave.split.abE<<-do.call(c,list(ave.split.abE,performance))
       original.quality<<-do.call(c,list(original.quality,original.qual))
       #
       rims<<-do.call(c,list(rims,ribs[1]))
       lines(ribs[[1]],col="purple")
-      gogolis<-spatial_div(O,
-                           method=method,variation=variation,metric=metric,criteria=criteria,
-                           C.cond=C.cond,E.cond=E.cond,N.cond=N.cond,S.cond=S.cond,
-                           root = iteration,knot.density.X = knot.density.X,
-                           knot.density.Y = knot.density.Y,curve.iterations = curve.iterations,correction.term=correction.term,
-                           split.reliability = split.reliability,splits=splits,
-                           split.performance = split.performance,split.reliability2=split.reliability2,checks=checks,
-                           null.models=null.models,n.splits = n.splits,seed.t=seed.t,ave.split.abE = ave.split.abE,test.n = test.n)
+      spatial_div(O,root = iteration)
       print(paste("griztam i", testid, "padalinima [po mazu koord bloko]", sep=" "))
 
-      if (length(gogolis)==2){
-        rm(gogolis)
-      }
 
       # Skaidom antra bloka
       #jei egzistuoja gogolis (updatinti duomenys) tuomet sukuriam ribines koordinates ir lipdom prie
       #gogolis masyvo. Duotu koordinaciu ribose ir bandom ieskoti pjuvio bei toliau updatinti duomenis.
       #Jei pavyksta rasti pjuvi, updatinam duomenis, jei ne trinam null bobolis ir priklijuotas koo-
       #rdinates.
-      if (exists("gogolis")){
-        gogolis[[2]]<-do.call(c,list(gogolis[[2]],ribs[2]))
-        lines(ribs[[2]],col=2)
-        bobolis<-spatial_div(OO,
-                             method=method,variation=variation,metric=metric,criteria=criteria,
-                             C.cond=C.cond,E.cond=E.cond,N.cond=N.cond,S.cond=S.cond,
-                             root=iteration,
-                             knot.density.X = knot.density.X,knot.density.Y = knot.density.Y,curve.iterations = curve.iterations,
-                             correction.term=correction.term,
-                             split.reliability = gogolis[[4]],null.models = null.models,
-                             splits = gogolis[[1]],split.performance=gogolis[[5]],split.reliability2=gogolis[[7]],
-                             checks=gogolis[[8]],n.splits = gogolis[[9]],seed.t=seed.t,ave.split.abE = gogolis[[10]],test.n = test.n)
-        print(paste("griztam i", testid, "padalinima [po aukstu koord bloko (gogolis exists)]", sep=" "))
 
-        if (length(bobolis)==2){
-          rm(bobolis)
-        }
-
-      } else{
-        #jei pirmo bloko skaidymas nebuvo sekmingas, sukuriam ribines koordinates naujam pjuviui
-        # ir bandom skaidyti.
         rims<<-do.call(c,list(rims,ribs[2]))
         lines(ribs[[2]],col=2)
+        spatial_div(OO,root=iteration)
+        print(paste("griztam i", testid, "padalinima [po aukstu koord bloko (gogolis exists)]", sep=" "))
 
-        bobolis<-spatial_div(OO,
-                             method=method,variation=variation,metric=metric,criteria=criteria,
-                             C.cond=C.cond,E.cond=E.cond,N.cond=N.cond,S.cond=S.cond,
-                             root = iteration,knot.density.X = knot.density.X,
-                             knot.density.Y = knot.density.Y,curve.iterations = curve.iterations,correction.term=correction.term,
-                             split.reliability = split.reliability,splits=
-                               splits,split.performance=split.performance,split.reliability2=split.reliability2,checks=checks,
-                             null.models = null.models,n.splits = n.splits,seed.t=seed.t,ave.split.abE = ave.split.abE,test.n = test.n)
-        print(paste("griztam i", testid, "padalinima [po aukstu koord bloko (no gogolis)]", sep=" "))
-        # Jei bobolis updatino duomenis ji paliekam, jei ne istrinam, kartu pasalindami koordinates
-
-        if (length(bobolis)==2){
-          rm(bobolis)
-        }
-
-      }
-      #jei duomenys buvo sukurti - siunciami nauji, jei ne - siunciami su naujo padalinimo info,
-      # be koordinaciu nauju plotu skaidymui
-      if (exists("bobolis")){
-        print("grazinami updatinti duomenis po antro skaidymo su naujom ribom [?+-pirmas]")
-
-        return(bobolis)} else{
-          if (exists("gogolis")) {
-            print("grazinami updatinti duomenis po pirmo skaidymo su naujom ribom, antras nesekmingas")
-
-            return(gogolis)} else{
-              print("pasiekta nebesiskaidymo riba, grazinami updatinti duomenis, be nauju ribiniu")
-              return(list(splits,1,1,split.reliability,split.performance,1,split.reliability2,checks,n.splits,ave.split.abE))
-            }
-        }
     } else{
       #Jei tinkamo padalino nerasta, grizta tuscias masyvas
       if (testid>1){
         print("tinkamo padalinimo nerasta, grizta tuscias masyvas NULL")
-        return(list(1,1))
       } else{
         print("nebuvo skaldomu bloku")
-        return(list(1,1))}
+}
     }
   }
   environment(spatial_div) <- environment()
 
-  rezas<-spatial_div(data,method=method,variation=variation,metric=metric,criteria=criteria,
-                     C.cond=C.cond,E.cond=E.cond,N.cond=N.cond,S.cond=S.cond,
-                     root=2,knot.density.X=knot.density.X,
-                     knot.density.Y=knot.density.Y,curve.iterations=curve.iterations,correction.term=correction.term,
-                     split.reliability = split.reliability,splits=splits,split.performance = split.performance,
-                     split.reliability2=split.reliability2,checks=checks,null.models = null.models,n.splits = n.splits,seed.t=seed.t,
-                     ave.split.abE = ave.split.abE,test.n = test.n)
+  spatial_div(data,root=2)
 
 
   if (null.models==F){
-    rezas[[7]]<-rep(NaN,length(rezas[[4]]))
+    split.reliability2<-rep(NaN,length(n.splits))
   }
 
-  Signif <- symnum(rezas[[7]], corr = FALSE, na = FALSE,
+  Signif <- symnum(split.reliability2, corr = FALSE, na = FALSE,
                    cutpoints = c(0 ,0.001,0.01, 0.05, 0.1, 1),
                    symbols = c("***", "**", "*", ".", " "))
 
 
   rezas <- structure(list(
-    split.lines = rezas[[1]],
+    split.lines = splits,
     boundaries = rims,
     block.stats = blokai[-1,],
     split.stats = data.frame(
-      n.splits = rezas[[9]],
-      z.score = round(rezas[[4]],2),
-      ave.abE = round(-rezas[[10]],2),
-      split.abE = round(-rezas[[5]],2),
+      n.splits = n.splits,
+      z.score = round(split.reliability,2),
+      ave.abE = round(-ave.split.abE,2),
+      split.abE = round(-split.performance,2),
       parent.2E = round(-original.quality,2),
-      delta.E = round(rezas[[5]] -  original.quality,2),
-      p_value = rezas[[7]],
+      delta.E = round(split.performance -  original.quality,2),
+      p_value = split.reliability2,
       signif. = format(Signif)
     ),
-    null.m.st= rezas[[8]]
+    null.m.st= checks
   ),
   class = "spdiv"
   )
