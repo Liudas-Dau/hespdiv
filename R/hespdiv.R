@@ -22,7 +22,7 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
     lines(origins.chull)
     rims<-list(origins.chull)
     blokai<-data.frame(performance=0,iteracija=0,saknis=0)
-    original.quality<- -2*entropija(data[,1])
+
     split.reliability<-numeric()
     split.performance<-numeric()
     split.reliability2<-numeric()
@@ -32,16 +32,18 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
   S.cond<-abs(polyarea(x,y))*S.cond
   splits<-numeric()
   checks<-list()
+  original.quality<-numeric()
   #motinine rekursyvine funkcija
   spatial_div<-function(data,origins=NA,method,variation,
                         metric,criteria,C.cond=0,E.cond=0,N.cond=0,S.cond=0,
                         blokai,root=2,iteracija=2,divisions=NULL,rims,knot.density.X=knot.density.X,
-                        knot.density.Y=knot.density.Y,curve.iterations=curve.iterations,correction.term,original.quality,split.reliability,
+                        knot.density.Y=knot.density.Y,curve.iterations=curve.iterations,correction.term,split.reliability,
                         splits,split.performance,split.reliability2,checks,null.models=null.models,n.splits=n.splits,seed.t=seed.t,
                         ave.split.abE=ave.split.abE,test.n=test.n){
     #testuojamas plotas
     testid<-length(rims)
     margins<-rims[[testid]]
+    original.qual<- -2*entropija(data[,1])
     #grafikas pirminis nupaisomas
     {
       plot(origins$X,origins$Y,col=origins$rusis)
@@ -61,7 +63,7 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
     t<-per.taskai(margins,n=divisions)
     points(t[[3]],pch=19,col="purple")
     linijos<-line2(t[[1]],t[[2]],polygon = margins)
-    maxdif<- last(original.quality)
+    maxdif<- original.qual
     print(maxdif)
     any.split<-numeric()
     maxid<-0
@@ -105,10 +107,10 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
           maxid<-0
         }
       } else {
-        performance<-last(original.quality) # negalejom ivertinti ne vieno padalinimo, taigi performance lygu max.
+        performance<-original.qual # negalejom ivertinti ne vieno padalinimo, taigi performance lygu max.
       }
 
-      blokai<-rbind(blokai,data.frame(performance=1-performance/last(original.quality),
+      blokai<-rbind(blokai,data.frame(performance=1-performance/original.qual,
                                       iteracija=iteracija,saknis=root))
       print(c("blokai: ", blokai))
       print(c("performance: ", performance))
@@ -119,9 +121,9 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
     if (maxid>0){
       best.curve<-curvial.split(poly.x=t[[3]]$x.polio,poly.y=t[[3]]$y.polio,
                                 min.x.id = linijos[maxid,6],max.x.id = linijos[maxid,7],b=linijos[maxid,5],data,knot.density.X=knot.density.X,
-                                knot.density.Y=knot.density.Y,N.cond,S.cond,iteracija=curve.iterations,correction.term=correction.term,last(original.quality))
+                                knot.density.Y=knot.density.Y,N.cond,S.cond,iteracija=curve.iterations,correction.term=correction.term,original.qual)
       lines(best.curve[[1]],col=2,lwd=3)
-      if ((1-(max(best.curve[[2]],maxdif)/last(original.quality)))<C.cond ){
+      if ((1-(max(best.curve[[2]],maxdif)/original.qual))<C.cond ){
         maxid<-0}}
     if (maxid>0){
       if(best.curve[[2]]>maxdif) {
@@ -186,6 +188,7 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
       }
       n.splits<-c(n.splits,length(any.split))
       ave.split.abE<-c(ave.split.abE,performance)
+      original.quality<<-c(original.quality,original.qual)
       #
       rims<-do.call(c,list(rims,ribs[1]))
       lines(ribs[[1]],col="purple")
@@ -195,7 +198,7 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
                            C.cond=C.cond,E.cond=E.cond,N.cond=N.cond,S.cond=S.cond,blokai=blokai,
                            root = iteracija, iteracija = iteracija+1,knot.density.X = knot.density.X,
                            knot.density.Y = knot.density.Y,curve.iterations = curve.iterations,correction.term=correction.term,
-                           original.quality = c(original.quality,-2*entropija(O[,1])),split.reliability = split.reliability,splits=splits,
+                           split.reliability = split.reliability,splits=splits,
                            split.performance = split.performance,split.reliability2=split.reliability2,checks=checks,
                            null.models=null.models,n.splits = n.splits,seed.t=seed.t,ave.split.abE = ave.split.abE,test.n = test.n)
       print(paste("griztam i", testid, "padalinima [po mazu koord bloko]", sep=" "))
@@ -221,7 +224,7 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
                              C.cond=C.cond,E.cond=E.cond,N.cond=N.cond,S.cond=S.cond,
                              blokai = gogolis[[3]],root=iteracija,iteracija = gogolis[[3]][nrow(gogolis[[3]]),2]+1,
                              knot.density.X = knot.density.X,knot.density.Y = knot.density.Y,curve.iterations = curve.iterations,
-                             correction.term=correction.term,original.quality = c(gogolis[[6]],-2*entropija(OO[,1])),
+                             correction.term=correction.term,
                              split.reliability = gogolis[[4]],null.models = null.models,
                              splits = gogolis[[1]],split.performance=gogolis[[5]],split.reliability2=gogolis[[7]],
                              checks=gogolis[[8]],n.splits = gogolis[[9]],seed.t=seed.t,ave.split.abE = gogolis[[10]],test.n = test.n)
@@ -246,7 +249,7 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
                              C.cond=C.cond,E.cond=E.cond,N.cond=N.cond,S.cond=S.cond,
                              blokai=blokai,root = iteracija,iteracija = iteracija+2,knot.density.X = knot.density.X,
                              knot.density.Y = knot.density.Y,curve.iterations = curve.iterations,correction.term=correction.term,
-                             original.quality = c(original.quality,-2*entropija(OO[,1])),split.reliability = split.reliability,splits=
+                             split.reliability = split.reliability,splits=
                                splits,split.performance=split.performance,split.reliability2=split.reliability2,checks=checks,
                              null.models = null.models,n.splits = n.splits,seed.t=seed.t,ave.split.abE = ave.split.abE,test.n = test.n)
         print(paste("griztam i", testid, "padalinima [po aukstu koord bloko (no gogolis)]", sep=" "))
@@ -270,7 +273,6 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
 
             return(gogolis)} else{
               print("pasiekta nebesiskaidymo riba, grazinami updatinti duomenis, be nauju ribiniu")
-
               return(list(splits,rims,blokai,split.reliability,split.performance,original.quality,split.reliability2,checks,n.splits,ave.split.abE))
             }
         }
@@ -278,18 +280,20 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
       #Jei tinkamo padalino nerasta, grizta tuscias masyvas
       if (testid>1){
         print("tinkamo padalinimo nerasta, grizta tuscias masyvas NULL")
-
+        original.qual<<-original.qual[-length(original.qual)]
         return(list(blokai,rims))
       } else{
         print("nebuvo skaldomu bloku")
+        original.qual<<-original.qual[-length(original.qual)]
         return(list(blokai,rims))}
     }
   }
+  environment(spatial_div) <- environment()
 
   rezas<-spatial_div(data,method=method,variation=variation,metric=metric,criteria=criteria,origins = origins,
                      C.cond=C.cond,E.cond=E.cond,N.cond=N.cond,S.cond=S.cond,rims = rims,divisions = divisions,
                      blokai=blokai,root=2,knot.density.X=knot.density.X,
-                     knot.density.Y=knot.density.Y,curve.iterations=curve.iterations,correction.term=correction.term,original.quality = original.quality,
+                     knot.density.Y=knot.density.Y,curve.iterations=curve.iterations,correction.term=correction.term,
                      split.reliability = split.reliability,splits=splits,split.performance = split.performance,
                      split.reliability2=split.reliability2,checks=checks,null.models = null.models,n.splits = n.splits,seed.t=seed.t,
                      ave.split.abE = ave.split.abE,test.n = test.n)
@@ -330,3 +334,7 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
   }
   return(print.spdiv(rezas))
 }
+
+o<-spatial.analysis(data = data,C.cond = 0.05,N.cond = 1000*n/n.si,S.cond = 0.1,E.cond = 0,divisions = 15,knot.density.X = 6,
+                    knot.density.Y = 30,curve.iterations = 3,correction.term=0.1,null.models = F,seed.t = 2,test.n = 100)
+plot(o,data)
