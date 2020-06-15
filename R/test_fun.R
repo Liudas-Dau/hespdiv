@@ -21,6 +21,20 @@ f1()
 ?assign
 
 ?last
+
+teest<-function(){
+  f1=function(){
+    a<-y
+    x<<-(x-a)^2
+  }
+  x<-1:5
+  y<-1
+  environment(f1) <- environment()
+  f1()
+  return(x)
+}
+rm(f1)
+teest()
 test.fun<-function(data){
   puzzle<-list(data)
   info<-list(length(data))
