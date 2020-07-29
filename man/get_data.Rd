@@ -33,9 +33,6 @@ points(data)
 #Extracting points that lie inside a polygon
 points(get_data(poly,data),pch=19,col=2)
 }
-\references{
-Uses the C function InPoly(). InPoly is Copyright (c) 1998 by Joseph O'Rourke. It may be freely redistributed in its entirety provided that this copyright notice is not removed.
-}
 \author{
 Liudas Daumantas
 }

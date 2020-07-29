@@ -56,7 +56,7 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
         lines(x=rims[[i]][,1],y=rims[[i]][,2],col=1,lwd=2)
       }}
     #testavimui pjuviai paruosiami
-    t<-per.taskai(margins,n=divisions)
+    t<-perimeter_pts(polygon = margins,n.pts = divisions)
     points(t[[3]],pch=19,col="purple")
     linijos<-line2(t[[1]],t[[2]],polygon = margins)
     maxdif<- original.qual
@@ -252,18 +252,5 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
   }
   return(print.spdiv(rezas))
 }
-
-o<-spatial.analysis(data = data,C.cond = 0.05,N.cond = 1000*n/n.si,S.cond = 0.1,E.cond = 0,divisions = 15,knot.density.X = 6,
-                    knot.density.Y = 30,curve.iterations = 3,correction.term=0.1,null.models = F,seed.t = 2,test.n = 100)
-plot(o,data)
-o$block.stats
-performance	iteracija	saknis
-2	0.152951876163506	2	2
-3	0	                3	2
-4	0.175787975012891	4	2
-5	0.172868580412207	5	4
-6	0	               	6	5
-7	0	               	7	5
-8	0	               	8	4
 
 

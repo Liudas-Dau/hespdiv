@@ -3,3 +3,4 @@
 .RData
 .Ruserdata
 R/darbinis.R
+R/test_fun.R
