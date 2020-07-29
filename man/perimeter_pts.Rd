@@ -14,14 +14,18 @@ perimeter_pts(polygon, n.pts = NULL, dst.pts = NULL)
 \item{dst.pts}{A distance along a polygon perimeter between adjecent points to be generated on a perimeter of a polygon. If dst.pts is not specified, then it is calculated according to the argument n.pts.}
 }
 \value{
-A list of 3 elements:
-\itemize{
-  \item coords - a data.frame that provides coordinates of generated points and their ID.
-This ID reflects the relative location of a point along a perimeter of a polygon in relation to other generated points and polygon vertices.
-  \item segment.no - a vector indicating the ID of a polygon segment on which a generated point is located. It helps to indentify points located on the same
+A list of 2 elements:
+\describe{
+  \item{\code{per_pts}}{A data.frame of 4 columns, providing the information about the generated points on a perimeter of a polygon. This data.frame is used as an input in \code{\link{pair_pts}} function.}
+  \itemize{
+  \item \code{x} - X coordinates of generated points.
+  \item \code{y} - Y coordinates of generated points.
+  \item \code{ID} - An ID that reflects the relative location of a point along a perimeter of a polygon in relation to other generated points and polygon vertices.
+  \item \code{segment.no} = A vector indicating the ID of a polygon segment on which a generated point is located. It helps to indentify points located on the same
 polygon segment.
-  \item full.poly - a data.frame that contains coordinates of the provided polygon vertices and generated points. coords[,"ID"] can be used to
-extract rows of generated points.
+  }
+  \item{\code{full.poly}}{ A data.frame that contains coordinates of the provided polygon vertices and generated points. \code{coords[,"ID"]} can be used to
+extract rows of generated points.This data.frame is used as an input in \code{\link{curvial.split}} function.}
 }
 }
 \description{

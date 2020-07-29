@@ -2,4 +2,5 @@
 
 export(close_poly)
 export(get_data)
+export(pair_pts)
 export(perimeter_pts)

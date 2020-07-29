@@ -4,14 +4,18 @@
 #' @param polygon A data frame of 2 columns (x,y) that contain coordinates of polygon vertices. Both, closed and open polygons, are accepted.
 #' @param n.pts A number of regularly spaced points to be generated on a perimeter of a polygon. If n.pts is not specified, then it is calculated according to the argument dst.pts.
 #' @param dst.pts A distance along a polygon perimeter between adjecent points to be generated on a perimeter of a polygon. If dst.pts is not specified, then it is calculated according to the argument n.pts.
-#' @return A list of 3 elements:
-#' \itemize{
-#'   \item coords - a data.frame that provides coordinates of generated points and their ID.
-#' This ID reflects the relative location of a point along a perimeter of a polygon in relation to other generated points and polygon vertices.
-#'   \item segment.no - a vector indicating the ID of a polygon segment on which a generated point is located. It helps to indentify points located on the same
+#' @return A list of 2 elements:
+#' \describe{
+#'   \item{\code{per_pts}}{A data.frame of 4 columns, providing the information about the generated points on a perimeter of a polygon. This data.frame is used as an input in \code{\link{pair_pts}} function.}
+#'   \itemize{
+#'   \item \code{x} - X coordinates of generated points.
+#'   \item \code{y} - Y coordinates of generated points.
+#'   \item \code{ID} - An ID that reflects the relative location of a point along a perimeter of a polygon in relation to other generated points and polygon vertices.
+#'   \item \code{segment.no} = A vector indicating the ID of a polygon segment on which a generated point is located. It helps to indentify points located on the same
 #' polygon segment.
-#'   \item full.poly - a data.frame that contains coordinates of the provided polygon vertices and generated points. coords[,"ID"] can be used to
-#' extract rows of generated points.
+#'   }
+#'   \item{\code{full.poly}}{ A data.frame that contains coordinates of the provided polygon vertices and generated points. \code{coords[,"ID"]} can be used to
+#' extract rows of generated points.This data.frame is used as an input in \code{\link{curvial.split}} function.}
 #' }
 #' @note If both, n.pts and dst.pts, are specified, then points are generated according to n.pts.
 #' @author Liudas Daumantas
@@ -28,7 +32,7 @@
 #' #ID of points
 #' text(x=a[[1]][,1],y=a[[1]][,2],a[[1]][,3],-0.3)
 #' @export
-#'
+
 
 perimeter_pts<-function (polygon,n.pts=NULL,dst.pts=NULL){
   if (all(polygon[1,]!=polygon[nrow(polygon),])){
@@ -92,7 +96,7 @@ perimeter_pts<-function (polygon,n.pts=NULL,dst.pts=NULL){
     }
   }
 
-  coords<-data.frame(generated_x_pt,generated_y_pt,ID)
+  coords<-data.frame(x=generated_x_pt,y=generated_y_pt,ID,segment.no)
   full.poly<-rbind(data.frame(x.poly,y.poly),data.frame(x.poly=x[i:length(x)],y.poly=y[i:length(x)]))
-  return(list(coords,segment.no,full.poly))
+  return(list(per_pts=coords,full.poly))
 }

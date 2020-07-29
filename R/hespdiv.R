@@ -56,24 +56,24 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
         lines(x=rims[[i]][,1],y=rims[[i]][,2],col=1,lwd=2)
       }}
     #testavimui pjuviai paruosiami
-    t<-perimeter_pts(polygon = margins,n.pts = divisions)
-    points(t[[3]],pch=19,col="purple")
-    linijos<-line2(t[[1]],t[[2]],polygon = margins)
+    perim_pts<-perimeter_pts(polygon = margins,n.pts = divisions)
+    points(perim_pts[[2]],pch=19,col="purple")
+    pairs_pts<-pair_pts(perim_pts[[1]],polygon = margins)
     maxdif<- original.qual
     print(maxdif)
     any.split<-numeric()
     maxid<-0
-    if (nrow(linijos)!=0){
-      points(linijos[,c(1:2)],col="yellow",pch=19)
-      points(linijos[,c(3:4)],col="red",pch=19)
+    if (nrow(pairs_pts)!=0){
+      points(pairs_pts[,c(1:2)],col="yellow",pch=19)
+      points(pairs_pts[,c(3:4)],col="red",pch=19)
       #pjaustymo ir testavimo ciklas
       {
-        for (i in 1:nrow(linijos)){
+        for (i in 1:nrow(pairs_pts)){
           print('testuojamas padalinimas Nr.:')
           print(i)
-          virs.h<-filter.reorg.poly(polygon = t[[3]][-nrow(t[[3]]),],poli.side = T, min.x.id=linijos[i,6],max.x.id=linijos[i,7],b=linijos[i,5])
+          virs.h<-filter.reorg.poly(polygon = perim_pts[[2]][-nrow(perim_pts[[2]]),],poli.side = T, min.x.id=pairs_pts[i,6],max.x.id=pairs_pts[i,7],b=pairs_pts[i,5])
           virs<-close.poly(virs.h)
-          po.h<-filter.reorg.poly(polygon = t[[3]][-nrow(t[[3]]),],poli.side = F, min.x.id=linijos[i,6],max.x.id=linijos[i,7],b=linijos[i,5])
+          po.h<-filter.reorg.poly(polygon = perim_pts[[2]][-nrow(perim_pts[[2]]),],poli.side = F, min.x.id=pairs_pts[i,6],max.x.id=pairs_pts[i,7],b=pairs_pts[i,5])
           po<-close.poly(po.h)
 
           # padalinami duomenys i dvi dalis pagal pjuvio koordinates
@@ -115,8 +115,8 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
     #Jei rastas tinkamas padalinimas - ieskom geriausios padalinimo kreives,
     #issaugom duomenis ir ziurim ar galima skaidyti toliau
     if (maxid>0){
-      best.curve<-curvial.split(poly.x=t[[3]]$x.polio,poly.y=t[[3]]$y.polio,
-                                min.x.id = linijos[maxid,6],max.x.id = linijos[maxid,7],b=linijos[maxid,5],samp.dat,knot.density.X=knot.density.X,
+      best.curve<-curvial.split(poly.x=perim_pts[[2]]$x.polio,poly.y=perim_pts[[2]]$y.polio,
+                                min.x.id = pairs_pts[maxid,6],max.x.id = pairs_pts[maxid,7],b=pairs_pts[maxid,5],samp.dat,knot.density.X=knot.density.X,
                                 knot.density.Y=knot.density.Y,N.cond,S.cond,iteracija=curve.iterations,correction.term=correction.term,original.qual)
       lines(best.curve[[1]],col=2,lwd=3)
       if ((1-(max(best.curve[[2]],maxdif)/original.qual))<C.cond ){
@@ -128,13 +128,13 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
         split.reliability<<-do.call(c,list(split.reliability,(best.curve[[2]]-performance)/sd(any.split)))
         #dalinam duomenis padalinimo kreive
         #reikia sukurti poligonus du ir nufiltruoti duomenis  - galima padaryti geriau
-        virsus.h<-filter.reorg.poly(polygon = data.frame(xp=t[[3]][,1][-nrow(t[[3]])],yp=t[[3]][,2][-nrow(t[[3]])]),min.x.id =linijos[maxid,6],
-                                    max.x.id =linijos[maxid,7],poli.side = T,b= linijos[maxid,5])
+        virsus.h<-filter.reorg.poly(polygon = data.frame(xp=perim_pts[[2]][,1][-nrow(perim_pts[[2]])],yp=perim_pts[[2]][,2][-nrow(perim_pts[[2]])]),min.x.id =pairs_pts[maxid,6],
+                                    max.x.id =pairs_pts[maxid,7],poli.side = T,b= pairs_pts[maxid,5])
         O.poli<-close.poly(split.poly = virsus.h,split.line.x = best.curve[[1]]$x, split.line.y = best.curve[[1]]$y)
         O<-get.data(O.poli,samp.dat)
         lines(O.poli,col=5,lwd=4)
 
-        apacia.h<-filter.reorg.poly(polygon = data.frame(xp=t[[3]][,1][-nrow(t[[3]])],yp=t[[3]][,2][-nrow(t[[3]])]),min.x.id =linijos[maxid,6],max.x.id =linijos[maxid,7],poli.side = F,b=linijos[maxid,5])
+        apacia.h<-filter.reorg.poly(polygon = data.frame(xp=perim_pts[[2]][,1][-nrow(perim_pts[[2]])],yp=perim_pts[[2]][,2][-nrow(perim_pts[[2]])]),min.x.id =pairs_pts[maxid,6],max.x.id =pairs_pts[maxid,7],poli.side = F,b=pairs_pts[maxid,5])
         OO.poli<-close.poly(split.poly = apacia.h,split.line.x = best.curve[[1]]$x, split.line.y = best.curve[[1]]$y)
         lines(OO.poli,col=5,lwd=4)
 
@@ -144,17 +144,17 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
         ribs<-list(O.poli,OO.poli)
       } else {
         #issaugom duomenis padalinimo
-        splits<<-do.call(c,list(splits,list(data.frame(x=as.numeric(c(linijos[maxid,c(1,3)])),y=as.numeric(c(linijos[maxid,c(2,4)]))))))
+        splits<<-do.call(c,list(splits,list(data.frame(x=as.numeric(c(pairs_pts[maxid,c(1,3)])),y=as.numeric(c(pairs_pts[maxid,c(2,4)]))))))
         split.performance<<-do.call(c,list(split.performance,maxdif))
         split.reliability<<-do.call(c,list(split.reliability,(maxdif-performance)/sd(any.split)))
         #padalinam duomenis pagal pjuvi
-        virs<-close.poly(split.line.x = as.numeric(linijos[maxid,c(1,3)]),split.line.y = as.numeric(linijos[maxid,c(2,4)]),
-                         split.poly =filter.reorg.poly(polygon = data.frame(xp=t[[3]][,1][-nrow(t[[3]])],yp=t[[3]][,2][-nrow(t[[3]])]),
-                                                       min.x.id =linijos[maxid,6],max.x.id =linijos[maxid,7],poli.side = T,b=linijos[maxid,5]))
+        virs<-close.poly(split.line.x = as.numeric(pairs_pts[maxid,c(1,3)]),split.line.y = as.numeric(pairs_pts[maxid,c(2,4)]),
+                         split.poly =filter.reorg.poly(polygon = data.frame(xp=perim_pts[[2]][,1][-nrow(perim_pts[[2]])],yp=perim_pts[[2]][,2][-nrow(perim_pts[[2]])]),
+                                                       min.x.id =pairs_pts[maxid,6],max.x.id =pairs_pts[maxid,7],poli.side = T,b=pairs_pts[maxid,5]))
 
-        po<-close.poly(split.line.x = as.numeric(linijos[maxid,c(1,3)]),split.line.y = as.numeric(linijos[maxid,c(2,4)]),
-                       split.poly =filter.reorg.poly(polygon = data.frame(xp=t[[3]][,1][-nrow(t[[3]])],yp=t[[3]][,2][-nrow(t[[3]])]),
-                                                     min.x.id =linijos[maxid,6],max.x.id =linijos[maxid,7],poli.side = F,b=linijos[maxid,5]))
+        po<-close.poly(split.line.x = as.numeric(pairs_pts[maxid,c(1,3)]),split.line.y = as.numeric(pairs_pts[maxid,c(2,4)]),
+                       split.poly =filter.reorg.poly(polygon = data.frame(xp=perim_pts[[2]][,1][-nrow(perim_pts[[2]])],yp=perim_pts[[2]][,2][-nrow(perim_pts[[2]])]),
+                                                     min.x.id =pairs_pts[maxid,6],max.x.id =pairs_pts[maxid,7],poli.side = F,b=pairs_pts[maxid,5]))
 
         O<-get.data(virs,samp.dat)
         OO<-get.data(po,samp.dat)
@@ -162,7 +162,7 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
         #paryskinam atrinkta pjuvi
         print(c('total max Skirtumas =', maxdif))
 
-        lines(linijos[maxid,c(1,3)],linijos[maxid,c(2,4)],col=2)
+        lines(pairs_pts[maxid,c(1,3)],pairs_pts[maxid,c(2,4)],col=2)
 
         # sukuriam koordinates ribines zemu koordinaciu plotui ir
         # bandom skaidyti ji. Jei pavyksta suskaidyti issaugom updatintus rezus, jei ne istrinam gogolis
