@@ -1,4 +1,4 @@
-#' Generate a specified number of regularly spaced points on a perimeter of a polygon
+#' Generate points on a perimeter
 #'
 #' This function generates regularly spaced points on a perimeter of a polygon. Their number is specified by arguments n.pts or dst.pts.
 #' @param polygon A data frame of 2 columns (x,y) that contain coordinates of polygon vertices. Both, closed and open polygons are accepted.

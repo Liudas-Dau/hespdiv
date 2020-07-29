@@ -2,7 +2,7 @@
 % Please edit documentation in R/perimeter_pts.R
 \name{perimeter_pts}
 \alias{perimeter_pts}
-\title{Generate a specified number of regularly spaced points on a perimeter of a polygon}
+\title{Generate points on a perimeter}
 \usage{
 perimeter_pts(polygon, n.pts = NULL, dst.pts = NULL)
 }
