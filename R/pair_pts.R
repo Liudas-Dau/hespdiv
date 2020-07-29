@@ -34,13 +34,14 @@
 #' @export
 
 pair_pts<-function(per_pts,polygon){
+  library(sp)
   pairs_pts<-data.frame(numeric())
-  for (a in 1:c(nrow(per_pts)-1)){
+  for (a in 1:(nrow(per_pts)-1)){
     k<-1
     while(per_pts[a+k,4]==per_pts[a,4] &(a+k)<nrow(per_pts)){
       k=k+1
     }
-    if(c(a+k)<=c(nrow(per_pts))){
+    if(c(a+k)<=c(nrow(per_pts))&per_pts[a+k,4]!=per_pts[a,4]){
       for (o in c(a+k):c(nrow(per_pts))){
         x<-per_pts[c(a,o),1]
         y<-per_pts[c(a,o),2]

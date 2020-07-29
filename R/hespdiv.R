@@ -115,7 +115,9 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
     #Jei rastas tinkamas padalinimas - ieskom geriausios padalinimo kreives,
     #issaugom duomenis ir ziurim ar galima skaidyti toliau
     if (maxid>0){
-      best.curve<-curvial.split(poly.x=perim_pts[[2]]$x.polio,poly.y=perim_pts[[2]]$y.polio,
+      print(perim_pts)
+      print(pairs_pts)
+      best.curve<-curvial.split(poly.x=perim_pts[[2]]$x.poly,poly.y=perim_pts[[2]]$y.poly,
                                 min.x.id = pairs_pts[maxid,6],max.x.id = pairs_pts[maxid,7],b=pairs_pts[maxid,5],samp.dat,knot.density.X=knot.density.X,
                                 knot.density.Y=knot.density.Y,N.cond,S.cond,iteracija=curve.iterations,correction.term=correction.term,original.qual)
       lines(best.curve[[1]],col=2,lwd=3)
