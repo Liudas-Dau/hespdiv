@@ -1,20 +1,25 @@
 #' Generate points on a perimeter
 #'
 #' This function generates regularly spaced points on a perimeter of a polygon. Their number is specified by arguments n.pts or dst.pts.
-#' @param polygon A data frame of 2 columns (x,y) that contain coordinates of polygon vertices. Both, closed and open polygons are accepted.
-#' @param n.pts A number of regularly spaced points to be generated on a perimeter of a polygon. If n.pts is not specified, then it is calculated according to argument dst.pts.
-#' @param dst.pts A distance along a polygon perimeter between adjecent points to be generated on a perimeter of a polygon. If dist is not specified, then it is calculated according to argument n.pts.
-#' @return A list of 3 elements. coords data.frame provides coordinates of generated points (X,Y - columns 1, 2) and their ID (column 3).
+#' @param polygon A data frame of 2 columns (x,y) that contain coordinates of polygon vertices. Both, closed and open polygons, are accepted.
+#' @param n.pts A number of regularly spaced points to be generated on a perimeter of a polygon. If n.pts is not specified, then it is calculated according to the argument dst.pts.
+#' @param dst.pts A distance along a polygon perimeter between adjecent points to be generated on a perimeter of a polygon. If dst.pts is not specified, then it is calculated according to the argument n.pts.
+#' @return A list of 3 elements.
+#' \itemize{
+#'   \item coords - a data.frame that provides coordinates of generated points and their ID.
 #' This ID reflects the relative location of a point along a perimeter of a polygon in relation to other generated points and polygon vertices.
-#' segment.no indicates the ID of a polygon segment on which a generated point is located. It helps to indentify points located on the same
-#' polygon segment. full.poly data.frame contains coordinates of the provided polygon vertices and generated points. coords[,"ID"] can be used to
+#'   \item segment.no - a vector indicating the ID of a polygon segment on which a generated point is located. It helps to indentify points located on the same
+#' polygon segment.
+#'   \item full.poly - a data.frame that contains coordinates of the provided polygon vertices and generated points. coords[,"ID"] can be used to
 #' extract rows of generated points.
-#'
+#' }
 #' @note If both, n.pts and dst.pts, are specified, then points are generated according to n.pts.
 #' @author Liudas Daumantas
 #' @examples #Creating data.frame of a polygon
-#' poly<- data.frame(X=c(3.38,3.30,1.70,0.78,-0.06,-2.30,-2.94,-3.97,-1.61,-0.39,0.68,1.28,1.60,3.38),
-#'                   Y=c(-0.12,-0.31,-2.73,-3.22,-3.29,-2.19,-1.62,0.94,3.10,3.00,2.91,2.49,2.20,-0.12))
+#' poly<- data.frame(X=c(3.38,3.30,1.70,0.78,-0.06,-2.30,-2.94,-3.97,-1.61,
+#' -0.39,0.68,1.28,1.60,3.38),
+#'                   Y=c(-0.12,-0.31,-2.73,-3.22,-3.29,-2.19,-1.62,0.94,3.10,
+#'                   3.00,2.91,2.49,2.20,-0.12))
 #' plot(poly,type='o')
 #' #Generating 10 points on a polygon perimeter
 #' a<-perimeter_pts(poly,n.pts = 10)
