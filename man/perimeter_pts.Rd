@@ -15,13 +15,13 @@ perimeter_pts(polygon, n.pts = NULL, dst.pts = NULL)
 }
 \value{
 A list of 3 elements.
-\itemize{
-  \item coords - a data.frame that provides coordinates of generated points and their ID.
-This ID reflects the relative location of a point along a perimeter of a polygon in relation to other generated points and polygon vertices.
-  \item segment.no - a vector indicating the ID of a polygon segment on which a generated point is located. It helps to indentify points located on the same
-polygon segment.
-  \item full.poly - a data.frame that contains coordinates of the provided polygon vertices and generated points. coords[,"ID"] can be used to
-extract rows of generated points.
+\describe{
+  \item{coords}{A data.frame that provides coordinates of generated points and their ID.
+This ID reflects the relative location of a point along a perimeter of a polygon in relation to other generated points and polygon vertices.}
+  \item{segment.no}{A vector indicating the ID of a polygon segment on which a generated point is located. It helps to indentify points located on the same
+polygon segment.}
+  \item{full.poly}{A data.frame that contains coordinates of the provided polygon vertices and generated points. coords[,"ID"] can be used to
+extract rows of generated points.}
 }
 }
 \description{

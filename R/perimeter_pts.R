@@ -5,13 +5,13 @@
 #' @param n.pts A number of regularly spaced points to be generated on a perimeter of a polygon. If n.pts is not specified, then it is calculated according to the argument dst.pts.
 #' @param dst.pts A distance along a polygon perimeter between adjecent points to be generated on a perimeter of a polygon. If dst.pts is not specified, then it is calculated according to the argument n.pts.
 #' @return A list of 3 elements.
-#' \itemize{
-#'   \item coords - a data.frame that provides coordinates of generated points and their ID.
-#' This ID reflects the relative location of a point along a perimeter of a polygon in relation to other generated points and polygon vertices.
-#'   \item segment.no - a vector indicating the ID of a polygon segment on which a generated point is located. It helps to indentify points located on the same
-#' polygon segment.
-#'   \item full.poly - a data.frame that contains coordinates of the provided polygon vertices and generated points. coords[,"ID"] can be used to
-#' extract rows of generated points.
+#' \describe{
+#'   \item{coords}{A data.frame that provides coordinates of generated points and their ID.
+#' This ID reflects the relative location of a point along a perimeter of a polygon in relation to other generated points and polygon vertices.}
+#'   \item{segment.no}{A vector indicating the ID of a polygon segment on which a generated point is located. It helps to indentify points located on the same
+#' polygon segment.}
+#'   \item{full.poly}{A data.frame that contains coordinates of the provided polygon vertices and generated points. coords[,"ID"] can be used to
+#' extract rows of generated points.}
 #' }
 #' @note If both, n.pts and dst.pts, are specified, then points are generated according to n.pts.
 #' @author Liudas Daumantas
