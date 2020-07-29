@@ -71,3 +71,26 @@ tt()
 b<-c(a,list(1:5000000000000))
 
 test.fun(1:100)
+
+
+install.packages("timeR")
+library(timeR)
+
+
+
+timer <- createTimer()
+timer$start("event1")
+a<-list()
+for( i in 1:10000){
+  a<-c(a,list(rnorm(10000)))
+}
+timer$stop("event1")
+timer$start("event2")
+a<-list()
+for( i in 1:10000){
+  a<-do.call(c,list(a,list(rnorm(10000))))
+}
+timer$stop("event2",comment = "event 2 completed")
+table1 <- getTimer(timer)
+timer$toggleVerbose() # set verbose to FALSE as default is TRUE
+table1 # print all records in a tibble(data frame)
