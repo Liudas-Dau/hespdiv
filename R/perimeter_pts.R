@@ -44,53 +44,50 @@ perimeter_pts<-function (polygon,n.pts=NULL,dst.pts=NULL){
     return(print("Specify either n.pts or dst.pts"))
     }
   }
-  praeiti<-0
-  gaubx_pt<-x[1]
-  gauby_pt<-y[1]
+  passed<-0
+  generated_x_pt<-x[1]
+  generated_y_pt<-y[1]
   ID<-1
   i=2
   segment.no<-i
-  x.polio<-x[1]
-  y.polio<-y[1]
-  lastx<-gaubx_pt
-  lasty<-gauby_pt
-  while (length(gaubx_pt)<n.pts){
-    #linijinis atstumas tarp dvieju poligono tasku
+  x.poly<-x[1]
+  y.poly<-y[1]
+  lastx<-generated_x_pt
+  lasty<-generated_y_pt
+  while (length(generated_x_pt)<n.pts){
     m<-sqrt((lastx-x[i])^2+(lasty-y[i])^2)
-    if (m+praeiti>=dst.pts){ #jei nueito atstumo palei poligono krastine ilgis ilgesnis nei turetu buti,
-      #pasiziurim kokia dali atstumo tarp analizuojamu dvieju tasku  sudaro, sudaro atstumo palei poligono
-      #krastine trukumas - si dalis - objektas kof
-      kof<-(dst.pts-praeiti)/m
-      if (lastx > x[i]) { #jei poligonas suka i kaire, X koordinate yra apibreziama viena formule:
+    if (m+passed>=dst.pts){
+      kof<-(dst.pts-passed)/m
+      if (lastx > x[i]) {
         X<-lastx-(lastx-x[i])*kof
-      } else { # jei i desine - kita
+      } else {
         X<-lastx+(x[i]-lastx)*kof
       }
-      if (lasty > y[i]){ #tas pats galioja ir Y koordinatei
+      if (lasty > y[i]){
         Y<-lasty-(lasty-y[i])*kof
       } else {
         Y<-lasty+(y[i]-lasty)*kof
       }
-      gaubx_pt<-c(gaubx_pt,X)
-      gauby_pt<-c(gauby_pt,Y)
-      x.polio<-c(x.polio,X)
-      y.polio<-c(y.polio,Y)
-      ID<-c(ID,length(x.polio))
+      generated_x_pt<-c(generated_x_pt,X)
+      generated_y_pt<-c(generated_y_pt,Y)
+      x.poly<-c(x.poly,X)
+      y.poly<-c(y.poly,Y)
+      ID<-c(ID,length(x.poly))
       lasty<-Y
       lastx<-X
       segment.no<-c(segment.no,i)
-      praeiti<-0
+      passed<-0
     } else {
-      praeiti<-praeiti+m
-      x.polio<-c(x.polio,x[i])
-      y.polio<-c(y.polio,y[i])
+      passed<-passed+m
+      x.poly<-c(x.poly,x[i])
+      y.poly<-c(y.poly,y[i])
       lasty<-y[i]
       lastx<-x[i]
       i<-i+1
     }
   }
 
-  coords<-data.frame(gaubx_pt,gauby_pt,ID)
-  full.poly<-rbind(data.frame(x.polio,y.polio),data.frame(x.polio=x[i:length(x)],y.polio=y[i:length(x)]))
+  coords<-data.frame(generated_x_pt,generated_y_pt,ID)
+  full.poly<-rbind(data.frame(x.poly,y.poly),data.frame(x.poly=x[i:length(x)],y.poly=y[i:length(x)]))
   return(list(coords,segment.no,full.poly))
 }
