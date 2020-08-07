@@ -1,9 +1,9 @@
 #' Pairing connectable polygon points
 #'
 #' This function pairs points that are located on a perimeter of a polygon and can be joined by a straight line that is strictly contained within the polygon.
-#' @param per_pts a data.frame of 4 columns, first item of list output of \code{\link{perimeter_pts}} function.
-#' @param polygon A data.frame containing coordinates of a polygon. The polygon can be either closed or open.
-#' @return A data.frame with 7 columns. Each row represents a connectable pair of points located on a perimeter of a polygon.
+#' @param per_pts a data frame of 4 columns, first item of list output of \code{\link{perimeter_pts}} function.
+#' @param polygon A data frame containing coordinates of a polygon. The polygon can be either closed or open.
+#' @return A data frame with 7 columns. Each row represents a connectable pair of points located on a perimeter of a polygon.
 #' \itemize{
 #'   \item \code{x1} - x coordinate of a point that has lower x coordinate.
 #'   \item \code{y1} - y coordinate of a point that has lower x coordinate.

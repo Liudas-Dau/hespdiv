@@ -6,7 +6,7 @@
 #' @param dst.pts A distance along a polygon perimeter between adjecent points to be generated on a perimeter of a polygon. If dst.pts is not specified, then it is calculated according to the argument n.pts.
 #' @return A list of 2 elements:
 #' \describe{
-#'   \item{\code{per_pts}}{A data.frame of 4 columns, providing the information about the generated points on a perimeter of a polygon. This data.frame is used as an input in \code{\link{pair_pts}} function.}
+#'   \item{\code{per_pts}}{A data frame of 4 columns, providing the information about the generated points on a perimeter of a polygon. This data frame is used as an input in \code{\link{pair_pts}} function.}
 #'   \itemize{
 #'   \item \code{x} - X coordinates of generated points.
 #'   \item \code{y} - Y coordinates of generated points.
@@ -14,12 +14,12 @@
 #'   \item \code{segment.no} = A vector indicating the ID of a polygon segment on which a generated point is located. It helps to indentify points located on the same
 #' polygon segment.
 #'   }
-#'   \item{\code{full.poly}}{ A data.frame that contains coordinates of the provided polygon vertices and generated points. \code{coords[,"ID"]} can be used to
-#' extract rows of generated points.This data.frame is used as an input in \code{\link{curvial.split}} function.}
+#'   \item{\code{full.poly}}{ A data frame that contains coordinates of the provided polygon vertices and generated points. \code{coords[,"ID"]} can be used to
+#' extract rows of generated points.This data frame is used as an input in \code{\link{curvial.split}} function.}
 #' }
 #' @note If both, n.pts and dst.pts, are specified, then points are generated according to n.pts.
 #' @author Liudas Daumantas
-#' @examples #Creating data.frame of a polygon
+#' @examples #Creating data frame of a polygon
 #' poly<- data.frame(X=c(3.38,3.30,1.70,0.78,-0.06,-2.30,-2.94,-3.97,-1.61,
 #' -0.39,0.68,1.28,1.60,3.38),
 #'                   Y=c(-0.12,-0.31,-2.73,-3.22,-3.29,-2.19,-1.62,0.94,3.10,
