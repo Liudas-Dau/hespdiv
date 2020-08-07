@@ -7,12 +7,12 @@
 pair_pts(per_pts, polygon)
 }
 \arguments{
-\item{per_pts}{a data.frame of 4 columns, first item of list output of \code{\link{perimeter_pts}} function.}
+\item{per_pts}{a data frame of 4 columns, first item of list output of \code{\link{perimeter_pts}} function.}
 
-\item{polygon}{A data.frame containing coordinates of a polygon. The polygon can be either closed or open.}
+\item{polygon}{A data frame containing coordinates of a polygon. The polygon can be either closed or open.}
 }
 \value{
-A data.frame with 7 columns. Each row represents a connectable pair of points located on a perimeter of a polygon.
+A data frame with 7 columns. Each row represents a connectable pair of points located on a perimeter of a polygon.
 \itemize{
   \item \code{x1} - x coordinate of a point that has lower x coordinate.
   \item \code{y1} - y coordinate of a point that has lower x coordinate.
