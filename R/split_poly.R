@@ -243,8 +243,8 @@ split_poly<-function(polygon,split_ids,min_id=NULL, trivial_side=T, poli_side){
     }
   }
   if (min_x_id<max_x_id){
-    return(polygon[match(c(min_x_id:1,last(polygon[,3]):max_x_id),polygon[,3]),1:2])
+    return(polygon[match(c(min_x_id:1,polygon[nrow(polygon),3]:max_x_id),polygon[,3]),1:2])
   } else {
-    return(polygon[match(c(min_x_id:last(polygon[,3]),1:max_x_id),polygon[,3]),1:2])
+    return(polygon[match(c(min_x_id:polygon[nrow(polygon),3],1:max_x_id),polygon[,3]),1:2])
   }
 }
