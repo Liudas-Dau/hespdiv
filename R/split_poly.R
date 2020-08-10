@@ -100,7 +100,7 @@ split_poly<-function(polygon,split_ids,min_id=NULL, trivial_side=T, poli_side){
           } else {
             if ((pol[i,1]<=polygon[min_x_id,1] | pol[i+1,1]<=polygon[min_x_id,1]) &
                 (pol[i,1]>=polygon[max_x_id,1] | pol[i+1,1]>=polygon[max_x_id,1])){
-              side <- c(side,pt_on_line(X=c(pol[i,1],pol[i+1,1]),Y=c(pol[i,2],pol[i+1,2]),x3=mid_x,ind = c(1,2))>zero)
+              side <- c(side,pt_on_line(x1=pol[i,1],x2=pol[i+1,1],y1=pol[i,2],y2=pol[i+1,2],x3=mid_x)>zero)
               if (pol[i,1]<pol[i+1,1]){
                 direction<-c(direction, 1)
               } else{
@@ -127,12 +127,10 @@ split_poly<-function(polygon,split_ids,min_id=NULL, trivial_side=T, poli_side){
           pol<-polygon[ids,]
           direction<-numeric()
           side<-numeric()
-          inds<-numeric()
           mid_y<-max(polygon[c(max_x_id,min_x_id),2])/2
           i=1
           while (i < nrow(pol)){
             if (pol[i,2]>polygon[min_x_id,2] & pol[i,2] < polygon[max_x_id,2] & i>1){
-              inds<-c(inds,i)
               start=i-1
               i=i+1
               while (pol[i,2]>polygon[min_x_id,2] & pol[i,2] < polygon[max_x_id,2]){
@@ -153,8 +151,7 @@ split_poly<-function(polygon,split_ids,min_id=NULL, trivial_side=T, poli_side){
             } else {
               if ((pol[i,2]<=polygon[min_x_id,2] | pol[i+1,2]<=polygon[min_x_id,2]) &
                   (pol[i,2]>=polygon[max_x_id,2] | pol[i+1,2]>=polygon[max_x_id,2])){
-                inds<-c(inds,i)
-                side <- c(side,pt_on_line(X=c(pol[i,1],pol[i+1,1]),Y=c(pol[i,2],pol[i+1,2]),y3=mid_y,ind = c(1,2))<zero)
+                side <- c(side,pt_on_line(x1=pol[i,1],x2=pol[i+1,1],y1=pol[i,2],y2=pol[i+1,2],y3=mid_y)<zero)
                 if (pol[i,2]<pol[i+1,2]){
                   direction<-c(direction, 1)
                 } else{
@@ -211,7 +208,7 @@ split_poly<-function(polygon,split_ids,min_id=NULL, trivial_side=T, poli_side){
             } else {
               if ((pol[i,2]<=y_b1_pts[i] | pol[i+1,2]<=y_b1_pts[i+1]) &
                   (pol[i,2]>=y_b2_pts[i] | pol[i+1,2]>=y_b2_pts[i+1])){
-                side <- c(side,pt_on_line(X=c(pol[i,1],pol[i+1,1]),Y=c(pol[i,2],pol[i+1,2]),x3=mid_x,ind = c(1,2))>mid_y)
+                side <- c(side,pt_on_line(x1=pol[i,1],x2=pol[i+1,1],y1=pol[i,2],y2=pol[i+1,2],x3=mid_x)>mid_y)
                 if (pol[i,2]<=y_b1_pts[i]){
                   direction<-c(direction, 1)
                 } else{
