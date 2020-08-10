@@ -7,14 +7,13 @@
 #' of vertices that are used to split a polygon.
 #' @param min_id (Optional) Integer (1 or 2) showing which of the polygon vertices indicated by the \code{split_ids} has lower x coordinate
 #' (or lower y coordinate, if split line is vertical).
-#' @param trivial_side A logical argument indicating whether it matters which side of the divided polygon will be obtained.
+#' @param trivial_side A logical argument indicating whether it matters which side of the divided polygon will be returned.
 #' @param poli_side A logical argument. When \code{trivial_side} is \code{FALSE}, \code{poli_side = TRUE} returns the upper half
 #' (or the left half, if split line is vertical) of a divided polygon and \code{poli_side = FALSE} returns the lower (the right) half.
 #' @return A data frame containing coordinates of one half of a polygon divided by the split line. The resulting polygon is open.
 #' @details  When \code{trivial_side = TRUE}, computations are much faster. The duration of computations also depend on the complexity of
 #' polygons - they are longer when none of the sides of the divided polygon has all vertices on one side of the split line. The computations
-#' are also faster, when split line is horizontal or vertical. The use of \code{min_id} only infinitesimally reduces the amount of calculations.
-#' Therefore the use of \code{min_id} is optional.
+#' are also faster, when split line is horizontal or vertical. The use of \code{min_id} only marginally reduces the amount of calculations.
 #' @author Liudas Daumantas
 #' @examples #Creating a data.frame of an irregular polygon
 #' poly<-data.frame(X=c(0,-1,12,0,5,12,12,7,-5,
