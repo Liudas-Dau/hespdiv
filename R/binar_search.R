@@ -5,10 +5,15 @@
 #' @param x3 A value of interest.
 #' @param l The highest possible lower index that surrounds a value of interest from left (bottom). Default value 1.
 #' @param h The lowest possible higher index that surrounds a value of interest from right (top).Default value is the length of X.
-#' @return A filtered data frame.
-#' @note This function drops points that lie strictly outside of a given polygon. If a point lies on a relative interior of an edge of the polygon (provided that polygon is open) or point is a vertex of the polygon, then it will be retained.
+#' @return Two adjacent X vector indeces of values that surrounds a value of interest.
+#' @note If the value of interest (\code{x3}) is equal to some value of X, than the index of this value will be returned as a higher index.
+#' Function is not intended to be used in cases of duplicated values.
 #' @author Liudas Daumantas
-#' @examples binar_search(X=1:100,x3=55.5)
+#' @examples # simple case
+#' binar_search(X=1:100,x3=55.5)
+#' #when x3 is equal to some value of X, index with x3 value in the returned vector will be the higher one.
+#' binar_search(X=1:100,x3=50)
+#'
 #' @export
 
 binar_search<-function(X,x3,l=1,h=length(X)){
