@@ -37,7 +37,7 @@
 #' right_half <- split_poly(polygon = poly, split_ids = c(1,4), min_id = 1, trivial_side = FALSE, poli_side = FALSE)
 #' lines(left_half,col=4)
 #' lines(right_half,col=2)
-#'
+#' print(TRUE)
 #' plot(poly,type='o',main='Inclined Split Line')
 #' #Inclined Split Line
 #' lines(poly[c(1,6),1],poly[c(1,6),2],lty='dotted')
