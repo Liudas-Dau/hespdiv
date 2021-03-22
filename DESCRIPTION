@@ -8,4 +8,5 @@ Description: Provides functions for hierarchical data subdivision in space, usin
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
+Imports: sp, dplyr, pracma, gstat, spatstat
 RoxygenNote: 7.1.1
