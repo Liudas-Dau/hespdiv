@@ -16,20 +16,22 @@
 #' @export
 
 binar_search<-function(X,x3,l=1,h=length(X)){
-  if (is.unsorted(X)){
+  if (is.unsorted(X[l:h])){
     return(print("A numeric vector X must be sorted in increasing order"))
   }
-  if (X[l]>=x3 | X[h]<=x3){
+  if (X[l] >= x3 | X[h] <= x3){
     return(print("x3 is not between provided numbers"))
   }
   recurs<-function(X,l,h,x3){
-    mid_id<-round(l+(h-l)/2,0)
+    mid_id <- round(l+(h-l)/2,0)
     if (mid_id==l|mid_id==h){
       return(c(l,h))
     }
     if (X[mid_id]>=x3){
-      h<-mid_id
-    } else {l<-mid_id}
+      h <- mid_id
+    } else {
+      l <- mid_id
+      }
     return(recurs(X,l,h,x3))
   }
   return(recurs(X,l,h,x3))
