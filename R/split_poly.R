@@ -28,6 +28,7 @@
 #' lines(upper_half,col=4)
 #' lines(lower_half,col=2)
 #'
+#'
 #' plot(poly,type='o',main='Vertical Split Line')
 #' #Vertical Split Line
 #' lines(poly[c(1,4),1],poly[c(1,4),2],lty='dotted')
