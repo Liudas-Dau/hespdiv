@@ -36,3 +36,4 @@ binar_search<-function(X,x3,l=1,h=length(X)){
   }
   return(recurs(X,l,h,x3))
 }
+
