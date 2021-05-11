@@ -19,7 +19,7 @@ binar_search<-function(X,x3,l=1,h=length(X)){
   if (is.unsorted(X[l:h])){
     return(print("A numeric vector X must be sorted in increasing order"))
   }
-  if (X[l] >= x3 | X[h] <= x3){
+  if ( x3 < X[l]| x3 > X[h]){
     return(print("x3 is not between provided numbers"))
   }
   recurs<-function(X,l,h,x3){
