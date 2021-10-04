@@ -17,10 +17,10 @@
 
 .binar_search <- function(X,x3,l=1,h=length(X)){
   if (is.unsorted(X[l:h])){
-    return(print("A numeric vector X must be sorted in increasing order"))
+    stop(print("A numeric vector X must be sorted in increasing order"))
   }
   if ( x3 < X[l]| x3 > X[h]){
-    return(print("x3 is not between provided numbers"))
+    stop(print("x3 is not between provided numbers"))
   }
   recurs<-function(X,l,h,x3){
     mid_id <- round(l+(h-l)/2,0)

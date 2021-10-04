@@ -50,7 +50,7 @@
     if (!is.null(dst.pts)) {
     n.pts<-round(perimetras/dst.pts,0)
   } else {
-    return(print("Specify either n.pts or dst.pts"))
+    stop(print("Specify either n.pts or dst.pts"))
     }
   }
   passed<-0

@@ -19,7 +19,6 @@
 #' points(get_data(poly,data),pch=19,col=2)
 #' @export
 .get_data<-function(polygon, data){
-  library(sp)
   data.frame(data[point.in.polygon(pol.x = polygon[,1],pol.y = polygon[,2],point.x = data$X,point.y = data$Y)!=0,])
 }
 

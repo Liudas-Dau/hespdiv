@@ -34,7 +34,6 @@
 #' @export
 
 .pair_pts<-function(per_pts,polygon){
-  library(sp)
   pairs_pts<-data.frame(numeric())
   for (a in 1:(nrow(per_pts)-1)){
     k<-1
