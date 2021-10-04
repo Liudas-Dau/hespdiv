@@ -56,7 +56,7 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
         lines(x=rims[[i]][,1],y=rims[[i]][,2],col=1,lwd=2)
       }}
     #testavimui pjuviai paruosiami
-    perim_pts<-perimeter_pts(polygon = margins,n.pts = divisions)
+    perim_pts<-.perimeter_pts(polygon = margins,n.pts = divisions)
     points(perim_pts[[2]],pch=19,col="purple")
     pairs_pts<-pair_pts(perim_pts[[1]],polygon = margins)
     maxdif<- original.qual
