@@ -26,7 +26,7 @@
 #'                   3.00,2.91,2.49,2.20,-0.12))
 #' plot(poly,type='o')
 #' #Generating 10 points on a polygon perimeter
-#' a<-perimeter_pts(poly,n.pts = 10)
+#' a <- .perimeter_pts(poly,n.pts = 10)
 #' #location of points
 #' points(a[[1]][,-3],col=2,pch=19)
 #' #ID of points
