@@ -22,19 +22,19 @@
   if ( x3 < X[l]| x3 > X[h]){
     stop(print("x3 is not between provided numbers"))
   }
-  recurs<-function(X,l,h,x3){
-    mid_id <- round(l+(h-l)/2,0)
-    if (mid_id==l|mid_id==h){
-      return(c(l,h))
-    }
-    if (X[mid_id]>=x3){
-      h <- mid_id
-    } else {
-      l <- mid_id
-      }
-    return(recurs(X,l,h,x3))
-  }
-  return(recurs(X,l,h,x3))
+  return(.recurs(X,l,h,x3))
 }
 
 
+.recurs<-function(X,l,h,x3){
+  mid_id <- round(l+(h-l)/2,0)
+  if (mid_id==l|mid_id==h){
+    return(c(l,h))
+  }
+  if (X[mid_id]>=x3){
+    h <- mid_id
+  } else {
+    l <- mid_id
+  }
+  return(.recurs(X,l,h,x3))
+}
