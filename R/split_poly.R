@@ -23,8 +23,8 @@
 #' #Horizontal Split Line
 #' lines(poly[c(1,12),1],poly[c(1,12),2],lty='dotted')
 #' #Dividing a polygon
-#' upper_half <- split_poly(polygon = poly, split_ids = c(1,12), min_id = 1, trivial_side = FALSE, poli_side = TRUE)
-#' lower_half <- split_poly(polygon = poly, split_ids = c(1,12), min_id = 1, trivial_side = FALSE, poli_side = FALSE)
+#' upper_half <- .split_poly(polygon = poly, split_ids = c(1,12), min_id = 1, trivial_side = FALSE, poli_side = TRUE)
+#' lower_half <- .split_poly(polygon = poly, split_ids = c(1,12), min_id = 1, trivial_side = FALSE, poli_side = FALSE)
 #' lines(upper_half,col=4)
 #' lines(lower_half,col=2)
 #'
@@ -33,8 +33,8 @@
 #' #Vertical Split Line
 #' lines(poly[c(1,4),1],poly[c(1,4),2],lty='dotted')
 #' #Dividing a polygon
-#' left_half <- split_poly(polygon = poly, split_ids = c(1,4), min_id = 1, trivial_side = FALSE, poli_side = TRUE)
-#' right_half <- split_poly(polygon = poly, split_ids = c(1,4), min_id = 1, trivial_side = FALSE, poli_side = FALSE)
+#' left_half <- .split_poly(polygon = poly, split_ids = c(1,4), min_id = 1, trivial_side = FALSE, poli_side = TRUE)
+#' right_half <- .split_poly(polygon = poly, split_ids = c(1,4), min_id = 1, trivial_side = FALSE, poli_side = FALSE)
 #' lines(left_half,col=4)
 #' lines(right_half,col=2)
 #'
@@ -42,8 +42,8 @@
 #' #Inclined Split Line
 #' lines(poly[c(1,6),1],poly[c(1,6),2],lty='dotted')
 #' #Dividing a polygon
-#' upper_half <- split_poly(polygon = poly, split_ids = c(1,6), min_id = 1, trivial_side = FALSE, poli_side = TRUE)
-#' lower_half <- split_poly(polygon = poly, split_ids = c(1,6), min_id = 1, trivial_side = FALSE, poli_side = FALSE)
+#' upper_half <- .split_poly(polygon = poly, split_ids = c(1,6), min_id = 1, trivial_side = FALSE, poli_side = TRUE)
+#' lower_half <- .split_poly(polygon = poly, split_ids = c(1,6), min_id = 1, trivial_side = FALSE, poli_side = FALSE)
 #' lines(upper_half,col=4)
 #' lines(lower_half,col=2)
 #' @export
