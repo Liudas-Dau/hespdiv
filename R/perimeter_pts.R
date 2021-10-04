@@ -36,7 +36,7 @@
 
 .perimeter_pts<-function (polygon,n.pts=NULL,dst.pts=NULL){
   if (all(polygon[1,]!=polygon[nrow(polygon),])){
-    polygon<-close_poly(polygon)
+    polygon<-.close_poly(polygon)
   }
   x<-polygon[,1]
   y<-polygon[,2]
