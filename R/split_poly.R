@@ -37,7 +37,7 @@
 #' right_half <- split_poly(polygon = poly, split_ids = c(1,4), min_id = 1, trivial_side = FALSE, poli_side = FALSE)
 #' lines(left_half,col=4)
 #' lines(right_half,col=2)
-#' print(FALSE)
+#'
 #' plot(poly,type='o',main='Inclined Split Line')
 #' #Inclined Split Line
 #' lines(poly[c(1,6),1],poly[c(1,6),2],lty='dotted')
@@ -101,7 +101,8 @@ split_poly<-function(polygon,split_ids,min_id=NULL, trivial_side=TRUE, poli_side
           } else {
             if ((pol[i,1]<=polygon[min_x_id,1] | pol[i+1,1]<=polygon[min_x_id,1]) &
                 (pol[i,1]>=polygon[max_x_id,1] | pol[i+1,1]>=polygon[max_x_id,1])){
-              side <- c(side,pt_on_line(x1=pol[i,1],x2=pol[i+1,1],y1=pol[i,2],y2=pol[i+1,2],x3=mid_x)>zero)
+              side <- c(side,pt_on_line(x1=pol[i,1],x2=pol[i+1,1],y1=pol[i,2],
+                                        y2=pol[i+1,2],x3=mid_x)>zero)
               if (pol[i,1]<pol[i+1,1]){
                 direction<-c(direction, 1)
               } else{
