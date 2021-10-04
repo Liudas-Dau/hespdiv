@@ -25,7 +25,7 @@
   return(.recurs(X,l,h,x3))
 }
 
-
+# helper function to perform recursive binary search
 .recurs<-function(X,l,h,x3){
   mid_id <- round(l+(h-l)/2,0)
   if (mid_id==l|mid_id==h){

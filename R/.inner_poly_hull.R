@@ -15,6 +15,7 @@
 #' nearest to the y axis.
 #' @param polygon data frame of a polygon
 #' @author Liudas Daumantas
+#' @import sp
 #' @NoRd
 .is_pol_up <- function(lowest_up_intervals,polygon) {
   point.in.polygon(point.x = lowest_up_intervals[2,1],
