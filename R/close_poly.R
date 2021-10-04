@@ -19,7 +19,7 @@
 #' plot(poly,type="l")
 #' @export
 
-close_poly<-function(open.poly, close.line=NULL){
+.close_poly<-function(open.poly, close.line=NULL){
   if (is.null(close.line)){
     return(rbind(open.poly,open.poly[1,]))
   } else {

@@ -33,7 +33,7 @@
 #' arrows(x0=b[,1],y0=b[,2],x1=b[,3],y1=b[,4],length = 0.15,col=2)
 #' @export
 
-pair_pts<-function(per_pts,polygon){
+.pair_pts<-function(per_pts,polygon){
   library(sp)
   pairs_pts<-data.frame(numeric())
   for (a in 1:(nrow(per_pts)-1)){

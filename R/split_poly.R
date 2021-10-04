@@ -48,7 +48,7 @@
 #' lines(lower_half,col=2)
 #' @export
 
-split_poly<-function(polygon,split_ids,min_id=NULL, trivial_side=TRUE, poli_side){
+.split_poly <- function(polygon,split_ids,min_id=NULL, trivial_side=TRUE, poli_side){
   if (is.null(min_id)){
     if (polygon[split_ids[1],1]==polygon[split_ids[2],1]){
       min_id<-which.min(c(polygon[split_ids[1],2],polygon[split_ids[2],2]))

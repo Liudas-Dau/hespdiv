@@ -15,7 +15,7 @@
 #' binar_search(X=1:100,x3=50)
 #' @export
 
-binar_search<-function(X,x3,l=1,h=length(X)){
+.binar_search <- function(X,x3,l=1,h=length(X)){
   if (is.unsorted(X[l:h])){
     return(print("A numeric vector X must be sorted in increasing order"))
   }

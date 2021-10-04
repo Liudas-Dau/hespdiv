@@ -34,7 +34,7 @@
 #' @export
 
 
-perimeter_pts<-function (polygon,n.pts=NULL,dst.pts=NULL){
+.perimeter_pts<-function (polygon,n.pts=NULL,dst.pts=NULL){
   if (all(polygon[1,]!=polygon[nrow(polygon),])){
     polygon<-close_poly(polygon)
   }
