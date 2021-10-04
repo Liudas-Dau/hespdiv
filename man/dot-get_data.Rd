@@ -31,7 +31,7 @@ plot(poly,type='l',xlab="X",ylab="Y")
 points(data)
 
 #Extracting points that lie inside a polygon
-points(get_data(poly,data),pch=19,col=2)
+points(.get_data(poly,data),pch=19,col=2)
 }
 \author{
 Liudas Daumantas

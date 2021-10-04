@@ -42,7 +42,7 @@ poly<- data.frame(X=c(3.38,3.30,1.70,0.78,-0.06,-2.30,-2.94,-3.97,-1.61,
                   3.00,2.91,2.49,2.20,-0.12))
 plot(poly,type='o')
 #Generating 10 points on a polygon perimeter
-a<-perimeter_pts(poly,n.pts = 10)
+a <- .perimeter_pts(poly,n.pts = 10)
 #location of points
 points(a[[1]][,-3],col=2,pch=19)
 #ID of points

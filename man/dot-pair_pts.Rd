@@ -37,13 +37,13 @@ poly<-data.frame(X=c(3.38,3.30,1.70,0.78,-0.06,-2.30,-2.94,-3.97,-1.61,
                 3.00,2.91,2.49,2.20,-0.12))
 plot(poly,type='o')
 #Generating 10 points on a polygon perimeter
-a<-perimeter_pts(poly,n.pts = 15)
+a <- .perimeter_pts(poly,n.pts = 15)
 #location of points
 points(a[[1]][,-3],col=2,pch=19)
 #ID of points
 text(x=a[[1]][,1],y=a[[1]][,2],a[[1]][,3],-0.3)
 #pairing points
-b<-pair_pts(a[[1]],poly)
+b <- .pair_pts(a[[1]],poly)
 #all arrows point to the right and all lines are within the polygon.
 arrows(x0=b[,1],y0=b[,2],x1=b[,3],y1=b[,4],length = 0.15,col=2)
 }

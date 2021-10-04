@@ -23,12 +23,12 @@ open.pol <- data.frame(x=c(0,0,1,1),y=c(0,1,1,0))
 plot(open.pol,type="l")
 
 #Closing the open polygon with its first point
-poly<-close_poly(open.pol)
+poly <- .close_poly(open.pol)
 plot(poly,type="l")
 
 #Closing the open polygon with a line
 line <- data.frame(x=seq(0,1,length.out=10),y=c(0,.2,.1,.3,.6,.5,.3,.4,.2,0))
-poly<-close_poly(open.pol,line)
+poly <- .close_poly(open.pol,line)
 plot(poly,type="l")
 }
 \author{
