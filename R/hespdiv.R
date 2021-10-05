@@ -58,7 +58,7 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
     #testavimui pjuviai paruosiami
     perim_pts<-.perimeter_pts(polygon = margins,n.pts = divisions)
     points(perim_pts[[2]],pch=19,col="purple")
-    pairs_pts<-pair_pts(perim_pts[[1]],polygon = margins)
+    pairs_pts<-.pair_pts(perim_pts[[1]],polygon = margins)
     maxdif<- original.qual
     print(maxdif)
     any.split<-numeric()
@@ -71,13 +71,16 @@ spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
         for (i in 1:nrow(pairs_pts)){
           print('testuojamas padalinimas Nr.:')
           print(i)
-          virs.h<-filter.reorg.poly(polygon = perim_pts[[2]][-nrow(perim_pts[[2]]),],poli.side = T, min.x.id=pairs_pts[i,6],max.x.id=pairs_pts[i,7],b=pairs_pts[i,5])
-          virs<-close.poly(virs.h)
-          po.h<-filter.reorg.poly(polygon = perim_pts[[2]][-nrow(perim_pts[[2]]),],poli.side = F, min.x.id=pairs_pts[i,6],max.x.id=pairs_pts[i,7],b=pairs_pts[i,5])
-          po<-close.poly(po.h)
+
+          virs <- .close_poly(.split_poly(polygon = perim_pts[[2]], min_id = 1,
+                              split_ids = pairs_pts[i,c(6:7)],
+                              trivial_side = TRUE,poli_side = TRUE))
+          po <- .close_poly(.split_poly(polygon = perim_pts[[2]], min_id = 1,
+                            split_ids = pairs_pts[i,c(6:7)],
+                            trivial_side = TRUE,poli_side = FALSE))
 
           # padalinami duomenys i dvi dalis pagal pjuvio koordinates
-          Puses<-list(get.data(po,samp.dat),get.data(virs,samp.dat))
+          Puses <- list(.get_data(po,samp.dat),.get_data(virs,samp.dat))
           if (all(c(length(Puses[[1]]$rusis),length(Puses[[2]]$rusis))>N.cond)){
             SpjuvioI<-abs(polyarea(x=virs[,1],y=virs[,2]))
             SpjuvioII<-abs(polyarea(x=po[,1],y=po[,2]))

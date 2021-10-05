@@ -28,7 +28,8 @@ Function is not intended to be used in cases of duplicated values.
 \examples{
 # simple case
 .binar_search(X=1:100,x3=55.5)
-#when x3 is equal to some value of X, index with x3 value in the returned vector will be the higher one.
+#when x3 is equal to some value of X,
+#index with x3 value in the returned vector will be the higher one.
 .binar_search(X=1:100,x3=50)
 }
 \author{
