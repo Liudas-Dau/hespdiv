@@ -1,4 +1,158 @@
-spatial.analysis<-function(data,method=NA,variation=NA,metric=NA,criteria=NA,
+#' Hierarchically subdivide spatial data
+#'
+#' This is the main function of HespDiv package that performs hierarchical
+#' spatial data subdivision. It recursively divides the data in space using
+#' random split-lines and evaluates their performance by estimating how well
+#' have they separated the data in space in terms of the magnitude of difference
+#' in emergent data qualities of interest. The best performing straight
+#' split-line is then used as an axis around which various shape curves are
+#' created and tested in a similar manner. Thus, each recursive iteration can
+#' produce either a straight or curvi-linear split-line that divides the study
+#' area and data into two parts. Each part can be further subdivided in
+#' the subsequent iterations to ultimately produce a hierarchical subdivision of
+#' space and data.
+#'
+#' Two main functions must be provided to estimate the separation of data in
+#' space. First one (argument = \code{generalize.f}) is needed to calculate some
+#' emergent data quality (eg. some model, summary statistic, etc.).
+#' The second one (argument = \code{compare.f}) defines how the difference between
+#' emergent data qualities estimated from different areas should be
+#' quantified (e.g. prediction error, change in model structure, absolute
+#' difference in statistic, etc).
+#'
+#' In some sense, data generalization functions similar to the distance
+#' calculation method and comparison function - to the linkage function of
+#' cluster analysis. The difference is, that the top-down approach used here
+#' allows to quantify the distance between groups of data in ways that require
+#' certain amount of data points. As bottom-up approaches proceed from
+#' comparing and first grouping single data points, they cannot use more
+#' emergent data qualities (whose estimation requires certain amount of points
+#' distributed in space) to calculate distance between clusters.
+#'
+#' @param data a data frame with columns containing the variables analyzed and
+#' rows - observations, potentially from different locations.
+#' @param xy.data a data frame with coordinate information (x,y columns in this
+#' order). \code{xy.data} rows correspond to rows (observations) of the
+#' \code{data} data frame.
+#' @param n.split.pts number of points that are used in creation of split-lines
+#' since these points serve as endings / origins of straight, as well as
+#' curvi-linear split-lines. Thus, the bigger this number, the more split-lines
+#' will be created and tested. Higher values of this parameter greatly
+#' increase the computation time dedicated to the search of straight
+#' split-lines, but increase the fit to the data.
+#' @param generalize.f a function used to estimate some emergent data quality.
+#' As an input it  should use a subset of \code{data}, though it can also use
+#' the values of other \code{hespidv} arguments. As an output, it should produce
+#' an R object, that is recognized and used by \code{compare.f} function to
+#' estimate the difference between two data groups separated in space by a
+#' split-line.
+#' @param compare.f a function used to quantify the difference between two data
+#' groups separated in space by a split-line. This function should have
+#' arguments \code{plot.1} and \code{plot.2}, since these are the outputs of
+#' \code{generalize.f} function applied to the data sets from different areas
+#' that were separated by a split-line. Arguments of \code{hespidv} function
+#' can also be used as arguments in \code{compare.f} function. The output of
+#' \code{compare.f} should be a single numerical value that represents the
+#' difference between two data sets (\code{plot.1} and \code{plot.2} objects).
+#' The higher this number, the greater the difference will be recognized.
+#' @param method A pre-set combination of \code{generalize.f} and
+#' \code{compare.f} that serve some distinct purpose. Available methods:
+#'  "Pielou_biozonation" (distinguishes paleoprovinces by reductions in Pielou
+#'  entropy after data sets of two paleoprovinces are divided).
+#' @param N.crit Algorithm stopping criteria - number of observations.
+#' Minimum number of observations (rows in data) that should
+#' be present in areas separated by a split-line in order to establish the
+#' split-line. Default is 1.
+#' @param S.crit Algorithm stopping criteria - size of plots.
+#' Minimum area in squared coordinate units that plots separated by a
+#' split-line should have in order to establish the split-line. Default is 0.
+#' @param P.crit Algorithm stopping criteria - magnitude of difference.
+#' Minimum difference as estimated by \code{compare.f} function that plots
+#' should have in order to establish the split-line. Default is -Inf.
+#' @param c.splits Logical (default TRUE).
+#' Should curvi-linear split-lines be estimated?
+#' @param c.axis.knots Curve parameter. The number of columns in the net of
+#' spline knots. These columns are distributed regularly along to the straight
+#' split-line. This parameter controls wiggliness (wave length) of the
+#' curvi-linear split-lines. Higher values allow  wigglier curves, thus
+#' inceasing the fit to the data, but increases the optimization time of
+#' curvi-linear split-lines. Default value is 5.
+#' @param c.ort.knots Curve parameter. The number of rows in the net of
+#' spline knots. These rows are distributed regularly orthogonal to the straight
+#' split-line. This parameter controls wiggliness (resolution of tested wave
+#' amplitudes) of the curvi-linear split-lines. Higher values allow higher
+#' variety of wave amplitudes to be tested, when optimizing the shape of
+#' curvi-linear split-lines. Thus higher values increase the fit to the data at
+#' the cost of optimization time. Default value is 10.
+#' @param c.iter.no number of times the algorithm iterates through the net of
+#' spline knots (default 2). Odd number iterations iterate through the net
+#' of spline knots along the split-line in eastward direction, while even number
+#' iterations - in westward direction. Thus, it is recommended to
+#' set an even number for this parameter, in order to keep the balance between
+#' eastward and westward iteration biases. Higher values should increase the
+#' fit to the data, at the cost of optimization time.
+#' @param c.corr.term The term that defines the correction size of problematic
+#' curvi-linear split-lines which intersect the boundary of the polygon.
+#' Possible values are between 0 and 1, though small values are recommended
+#' (default is 0.05). These values define how much the interval of a generated
+#' spline, that crosses the boundary of polygon, should be shifted away from the
+#' boundary, inside the polygon, in direction orthogonal to the straight
+#' split-line, in  terms of proportion of polygon width where spline intersects
+#' the polygon boundary.
+#' @param n.m.test Logical (default is FALSE). Should the established
+#' split-lines be tested with null models? These test are made by counting the
+#' proportion of how many times the established boundaries worked better with
+#' the same data that were randomly shifted in space. The used spatial
+#' randomization method (toroidal shift) quite well preserves the
+#' spatial relationship between points (this relationship can be driven by
+#' ecological, geological, oceanographic or other natural physical processes
+#' and laws that produce predictable spatial changes in environmental and
+#' ecological features), but changes their over-all configuration and
+#' density distribution (this configuration is idiosyncratic feature since it
+#' can depend on a particular instance of environment (e.g. the same
+#' environemnt in a different region) or spatial perspective of the same area).
+#' Thus, it allows to check whether the same entities gowevern by the same
+#' physical laws would be clustered similarly given different instances of
+#' "worlds". If considerable proportion of runs (e. g. > %5) produces better
+#' boundary performance scores, then it may be either that clustering of data
+#' qualities is quite poor or that spatial autocorrelation structure caused by
+#' all these physical proccesses is responsible for the observed clusterization.
+#' TWO models (toroidal and totally random).
+#' @param n.m.N number of spatial simulations in null models. Default is
+#' 1000.
+#' @param n.m.seed randomization seed that is set before analysis (default 1).
+#' The use of the same seed allows to obtain the same stochastic process
+#' simulation results (e. g. p values calculated from null model simulations).
+#' @param study.pol A polygon of study area (optional). It should be data.frame
+#' with two columns containing coordinates (x and y, respectively) of vertixes
+#' of a polygon that encompasses the locations of \code{xy.data}. If not
+#' provided (default is NULL), convex hull of \code{xy.data} will be used a
+#' study area polygon.
+#' @param trace.level Integer from 0 to 7, indicates how much information should
+#' the algorithm communicate during computations. 0 (default) - no algorithm
+#' tracing; 1 - only selected split-splits are reported; 2 - best
+#' intermediate straight split-lines are reported; 3 - best intermediate
+#' curvi-linear split-lines are reported; 4 - best intermediate split-lines are
+#' reported; 5 - all straight split lines are reported; 6 - all curvi-linear
+#' split lines are reported; 7 - all split-lines are reported.
+#' @return A list of 2 elements:
+#' \describe{
+#'   \item{\code{per_pts}}{A data frame of 4 columns, providing the information about the generated points on a perimeter of a polygon. This data frame is used as an input in \code{\link{pair_pts}} function.}
+#'   \itemize{
+#'   \item \code{x} - X coordinates of generated points.
+#'   \item \code{y} - Y coordinates of generated points.
+#'   \item \code{ID} - An ID that reflects the relative location of a point along a perimeter of a polygon in relation to other generated points and polygon vertices.
+#'   \item \code{segment.no} = A vector indicating the ID of a polygon segment on which a generated point is located. It helps to indentify points located on the same
+#' polygon segment.
+#'   }
+#'   \item{\code{full.poly}}{ A data frame that contains coordinates of the provided polygon vertices and generated points. \code{coords[,"ID"]} can be used to
+#' extract rows of generated points.This data frame is used as an input in \code{\link{curvial.split}} function.}
+#' }
+#' @note If both, n.pts and dst.pts, are specified, then points are generated according to n.pts.
+#' @author Liudas Daumantas
+#' @export
+
+hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA,
                            C.cond=0,E.cond=0,N.cond=0,S.cond=0,divisions=NULL,lim=NULL,
                            knot.density.X=knot.density.X,knot.density.Y=knot.density.Y,curve.iterations,
                            correction.term=0.05,null.models=T,seed.t=round(runif(1,0,9999),0),test.n) {
