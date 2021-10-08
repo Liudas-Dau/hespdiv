@@ -112,10 +112,10 @@
 
 #' Find the curve that divides the polygon best (recursive function)
 #'
-#' @description At this stage of an algorithm polygon is rotated so that the split line is horizontal and positioned along X axis (at Y = 0), and split line starts at X = 0.
-#' function iterates trough knot matrix several times (number of times is defined by n.curve.iter argument) and tries different splines to seperate data in space.
+#' @description At this stage of an algorithm, polygon is rotated so that the split line is horizontal and positioned along X axis (at Y = 0), and split line starts at X = 0.
+#' Function iterates trough knot matrix several times (number of times is defined by n.curve.iter argument) and tries different splines to seperate data in space.
 #' Iteration through knots starts from left to right along the split line. For each position along the split line several positions orthogonal to the split line are tried.
-#' The best orthogonal position is estimated by spline interpolation from a spline model (Split Quality ~ Y coordinate of a knot for a given X coordinate)
+#' The best orthogonal positions are estimated from a spline model (Split Quality ~ Y coordinate of a knot for a given X coordinate)
 #' So the best Y knot coordinate is provided for each knot along X. Thus, knots along the split line are fixated, but along Y are not. When one iteration is complete, the next
 #' one starts in different direction (e.g. from right to left along the split line).
 #'
@@ -148,7 +148,7 @@ curvi.split<-function(knot.y.matrix,split.line.x,Xup,Xdown,Yup,Ydown,N.cond,
   SSk<-numeric(knot.density.Y-2)
   SSks<-numeric(knot.density.X-2)
   knot.y.matrix<-knot.y.matrix[-c(1,knot.density.Y),-c(1,knot.density.X)]
-  for (it in seq(iterations)){
+  for (it in seq(n.curve.iter)){
     if(it%%2==1){
       if(it==1){
         seq.of.x.knots <- 1:(knot.density.X-2)
@@ -210,7 +210,8 @@ curvi.split<-function(knot.y.matrix,split.line.x,Xup,Xdown,Yup,Ydown,N.cond,
 
 #' Evaluate the quality of curve in terms of data spatial separation
 #'
-#' @description function forms two polygons from a provided curve (upper and lower), filters data using each polygon and compares them.
+#' @description function forms two polygons from a provided curve (upper and lower),
+#' filters data using each polygon and compares them.
 #'
 #' @param curve a matrix with Y coordinates in columns for each knot along the split line
 #' @param rot.poli.up rotated, but not standartized, full upper polygon
@@ -344,7 +345,7 @@ spline.corrections<-function(curve,Xup,Xdown,Yup,Ydown,best.y.knots,
 #' at X coordinate (distance in Y coord. between upper and lower boundaries of the
 #' standartized polygon at X coord.); 2) the correction.term is then multiplied by the calculated width
 #' to get the correction size in Y units; 3) correction is then added to the Y of lower polygon boundary
-#' if curve crosses boundary there, or is subtracted from the upper boundary Y if else.
+#' if curve crosses the boundary there, or is subtracted from the upper boundary Y if else.
 #'
 #' @param spline.x x coordinates of a curve
 #' @param spline.y y coordinates of a curve
