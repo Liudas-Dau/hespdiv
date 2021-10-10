@@ -135,6 +135,16 @@
 #' curvi-linear split-lines are reported; 4 - best intermediate split-lines are
 #' reported; 5 - all straight split lines are reported; 6 - all curvi-linear
 #' split lines are reported; 7 - all split-lines are reported.
+#' @param pnts.col Color of data points. Argument is when \code{trace.level} > 0
+#' @param inherit.f A function whose output is saved internally
+#' as \code{inher_dat} variable. \code{inher_dat} can be used as an argument in
+#' \code{generalize.f} or \code{compare.f} functions. Thus, \code{inherit.f} can
+#' be used to extract some information from parent plots and data, and pass it
+#' to other recursive iterations to be used when dividing offspring plots and
+#' data.
+#' @param root.heritage The assumed \code{inher_dat} variable, used in the first
+#' iteration.
+#'
 #' @return A list of 2 elements:
 #' \describe{
 #'   \item{\code{per_pts}}{A data frame of 4 columns, providing the information about the generated points on a perimeter of a polygon. This data frame is used as an input in \code{\link{pair_pts}} function.}
@@ -150,6 +160,7 @@
 #' }
 #' @note If both, n.pts and dst.pts, are specified, then points are generated according to n.pts.
 #' @author Liudas Daumantas
+#' @importFrom grDevices chull
 #' @export
 
 hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA,
@@ -165,22 +176,31 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
   library(spatstat)
   #duomenys pirminiai
   {
-    plot(data$X,data$Y,col=as.numeric(data$rusis))
-    ch<-chull(data$X, data$Y)
-    ids<-c(ch,ch[1])
-    x<-data$X[ids]
-    y<-data$Y[ids]
-    lines(x,y)
-    origins.chull<-data.frame(X=x,Y=y)
-    lines(origins.chull)
-    rims<-list(origins.chull)
-    blokai<-data.frame(performance=0,iteration=0,saknis=0)
+    if(names(xy.data)!= c("x","y")){
+      stop("xy.data should contain columns named \"x\" and \"y\"")
+    }
 
-    split.reliability<-numeric()
-    split.performance<-numeric()
-    split.reliability2<-numeric()
-    n.splits<-numeric()
-    ave.split.abE<-numeric()
+    ch <- chull(xy.data$x, xy.data$y)
+    ids <- c(ch,ch[1])
+    x <- xy.data$x[ids]
+    y <- xy.data$y[ids]
+    origins.chull <- data.frame(X=x,Y=y)
+
+    if (trace.level > 0 ) {
+      if(!is.null(pnts.col)){
+        plot(xy.data$x, xy.data$y, col=pnts.col )
+      } else { plot(xy.data$x,xy.data$y) }
+
+      lines(x,y)
+      lines(origins.chull)
+    }
+    rims <- list(origins.chull)
+    blokai <- data.frame(performance=0,iteration=0,saknis=0)
+    split.reliability <- numeric()
+    split.performance <- numeric()
+    split.reliability2 <- numeric()
+    n.splits <- numeric()
+    ave.split.abE <- numeric()
   }
   S.cond<-abs(polyarea(x,y))*S.cond
   splits<-numeric()
