@@ -11,7 +11,6 @@
 #' area and data into two parts. Each part can be further subdivided in
 #' the subsequent iterations to ultimately produce a hierarchical subdivision of
 #' space and data.
-#'
 #' Two main functions must be provided to estimate the separation of data in
 #' space. First one (argument = \code{generalize.f}) is needed to calculate some
 #' emergent data quality (eg. some model, summary statistic, etc.).
@@ -19,7 +18,6 @@
 #' emergent data qualities estimated from different areas should be
 #' quantified (e.g. prediction error, change in model structure, absolute
 #' difference in statistic, etc).
-#'
 #' In some sense, data generalization functions similar to the distance
 #' calculation method and comparison function - to the linkage function of
 #' cluster analysis. The difference is, that the top-down approach used here
@@ -64,8 +62,10 @@
 #' be present in areas separated by a split-line in order to establish the
 #' split-line. Default is 1.
 #' @param S.crit Algorithm stopping criteria - size of plots.
-#' Minimum area in squared coordinate units that plots separated by a
-#' split-line should have in order to establish the split-line. Default is 0.
+#' Minimum area expressed as a proportion of original study area
+#' (provided polygon or estimated as convex hull of \code{xy_dat}) that plots
+#' separated by a split-line should have so that the split-line could be
+#' established. Default is 0.
 #' @param P.crit Algorithm stopping criteria - magnitude of difference.
 #' Minimum difference as estimated by \code{compare.f} function that plots
 #' should have in order to establish the split-line. Default is -Inf.
@@ -135,15 +135,16 @@
 #' curvi-linear split-lines are reported; 4 - best intermediate split-lines are
 #' reported; 5 - all straight split lines are reported; 6 - all curvi-linear
 #' split lines are reported; 7 - all split-lines are reported.
-#' @param pnts.col Color of data points. Argument is when \code{trace.level} > 0
+#' @param pnts.col Color of data points, default is 1. Argument is used when
+#' \code{trace.level} > 0. If set to NULL, data points will not be displayed.
 #' @param inherit.f A function whose output is saved internally
-#' as \code{inher_dat} variable. \code{inher_dat} can be used as an argument in
+#' as \code{inher.dat} variable. \code{inher.dat} can be used as an argument in
 #' \code{generalize.f} or \code{compare.f} functions. Thus, \code{inherit.f} can
 #' be used to extract some information from parent plots and data, and pass it
 #' to other recursive iterations to be used when dividing offspring plots and
 #' data.
-#' @param root.heritage The assumed \code{inher_dat} variable, used in the first
-#' iteration.
+#' @param root.heritage The assumed \code{inher.dat} variable, used in the first
+#' iteration, where there are no inherited information from parent plots.
 #'
 #' @return A list of 2 elements:
 #' \describe{
@@ -161,6 +162,7 @@
 #' @note If both, n.pts and dst.pts, are specified, then points are generated according to n.pts.
 #' @author Liudas Daumantas
 #' @importFrom grDevices chull
+#' @importFrom pracma polyarea
 #' @export
 
 hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA,
@@ -170,7 +172,6 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
   ##### pirmas data stulpelis turi buti rusis - faktorius, antras X, trecias Y., dependencies = dplyr
   #S.cond pateikti kaip proporcija ploto
   require(dplyr)
-  require(pracma)
   library(gstat)
   library(sp)
   library(spatstat)
@@ -189,215 +190,34 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
     if (trace.level > 0 ) {
       if(!is.null(pnts.col)){
         plot(xy.data$x, xy.data$y, col=pnts.col )
-      } else { plot(xy.data$x,xy.data$y) }
+      } else {
+        plot(0,0,xlim = range(xy.data$x),ylim = range(xy.data$y),col=0)
+        }
 
       lines(x,y)
       lines(origins.chull)
     }
     rims <- list(origins.chull)
-    blokai <- data.frame(performance=0,iteration=0,saknis=0)
+    blocks <- data.frame(performance=0,iteration=0,saknis=0)
     split.reliability <- numeric()
     split.performance <- numeric()
     split.reliability2 <- numeric()
     n.splits <- numeric()
     ave.split.abE <- numeric()
   }
-  S.cond<-abs(polyarea(x,y))*S.cond
-  splits<-numeric()
-  checks<-list()
-  original.quality<-numeric()
-  iteration<-1
-  #motinine rekursyvine funkcija
-  spatial_div<-function(samp.dat, root=2){
-    #testuojamas plotas
-    testid<-length(rims)
-    margins<-rims[[testid]]
-    original.qual<- -2*entropija(samp.dat[,1])
-    iteration<<- iteration +1
-    #grafikas pirminis nupaisomas
-    {
-      plot(data$X,data$Y,col=data$rusis)
-      points(samp.dat$X,samp.dat$Y,pch=19)
-      centras<-poly_center(margins[,1],margins[,1])
-      points(centras[1],centras[2],col=3,pch=19)
-      lines(rims[[1]])
-    }
-    print(c("testid: ", testid))
-    # padalinimai savo ribose nupaisomi
-    if (testid>1) {
-      for (i in 2:c(testid)){
-        print(c("brai?om r?m?", i-1))
-        lines(x=rims[[i]][,1],y=rims[[i]][,2],col=1,lwd=2)
-      }}
-    #testavimui pjuviai paruosiami
-    perim_pts<-.perimeter_pts(polygon = margins,n.pts = divisions)
-    points(perim_pts[[2]],pch=19,col="purple")
-    pairs_pts<-.pair_pts(perim_pts[[1]],polygon = margins)
-    maxdif<- original.qual
-    print(maxdif)
-    any.split<-numeric()
-    maxid<-0
-    if (nrow(pairs_pts)!=0){
-      points(pairs_pts[,c(1:2)],col="yellow",pch=19)
-      points(pairs_pts[,c(3:4)],col="red",pch=19)
-      #pjaustymo ir testavimo ciklas
-      {
-        for (i in 1:nrow(pairs_pts)){
-          print('testuojamas padalinimas Nr.:')
-          print(i)
+  S.cond <- abs(polyarea(x,y)) * S.crit
+  splits <- numeric()
+  checks <- list()
+  original.quality <- numeric()
+  iteration <- 1
 
-          virs <- .close_poly(.split_poly(polygon = perim_pts[[2]], min_id = 1,
-                              split_ids = pairs_pts[i,c(6:7)],
-                              trivial_side = TRUE,poli_side = TRUE))
-          po <- .close_poly(.split_poly(polygon = perim_pts[[2]], min_id = 1,
-                            split_ids = pairs_pts[i,c(6:7)],
-                            trivial_side = TRUE,poli_side = FALSE))
-
-          # padalinami duomenys i dvi dalis pagal pjuvio koordinates
-          Puses <- list(.get_data(po,samp.dat),.get_data(virs,samp.dat))
-          if (all(c(length(Puses[[1]]$rusis),length(Puses[[2]]$rusis))>N.cond)){
-            SpjuvioI<-abs(polyarea(x=virs[,1],y=virs[,2]))
-            SpjuvioII<-abs(polyarea(x=po[,1],y=po[,2]))
-            if (SpjuvioI>S.cond&SpjuvioII>S.cond){
-              #nupiesiam padalinima ir paskaiciuojam kokybe
-              Skirtumas<-alfa(Puses[[1]]$rusis,Puses[[2]]$rusis)
-              any.split<-c(any.split,Skirtumas)
-              #Paskaiciuojam plotus padalintu bloku
-              if (Skirtumas > maxdif){
-                #Jei padalinimas patenkina minimalias saligas ir yra geresnis nei pries tai - pasizymim ir issisaugom ji
-                maxdif<-Skirtumas
-                maxid<-i
-                print(c('max Skirtumas=',Skirtumas))
-              }
-            }
-          }
-        }
-      }
-      if(length(any.split)>0){
-        performance<-mean(any.split)
-        #jei performance 0 ir visu padalinimu performance 0, tai padalinimo nera - idealiai atskirtas plotas
-        if(all(any.split==0)){
-          maxid<-0
-        }
-      } else {
-        performance<-original.qual # negalejom ivertinti ne vieno padalinimo, taigi performance lygu max.
-      }
-
-      blokai<<-rbind(blokai,data.frame(performance=1-performance/original.qual,
-                                      iteration=iteration,saknis=root))
-      print(c("blokai: ", blokai))
-      print(c("performance: ", performance))
-    }
-    # duomenu saugojimas
-    #Jei rastas tinkamas padalinimas - ieskom geriausios padalinimo kreives,
-    #issaugom duomenis ir ziurim ar galima skaidyti toliau
-    if (maxid>0){
-      print(perim_pts)
-      print(pairs_pts)
-      best.curve<-curvial.split(poly.x=perim_pts[[2]]$x.poly,poly.y=perim_pts[[2]]$y.poly,
-                                min.x.id = pairs_pts[maxid,6],max.x.id = pairs_pts[maxid,7],b=pairs_pts[maxid,5],samp.dat,knot.density.X=knot.density.X,
-                                knot.density.Y=knot.density.Y,N.cond,S.cond,iteracija=curve.iterations,correction.term=correction.term,original.qual)
-      lines(best.curve[[1]],col=2,lwd=3)
-      if ((1-(max(best.curve[[2]],maxdif)/original.qual))<C.cond ){
-        maxid<-0}}
-    if (maxid>0){
-      if(best.curve[[2]]>maxdif) {
-        splits<<-do.call(c,list(splits,list(data.frame(x=best.curve[[1]]$x,y=best.curve[[1]]$y))))
-        split.performance<<-do.call(c,list(split.performance,best.curve[[2]]))
-        split.reliability<<-do.call(c,list(split.reliability,(best.curve[[2]]-performance)/sd(any.split)))
-        #dalinam duomenis padalinimo kreive
-        #reikia sukurti poligonus du ir nufiltruoti duomenis  - galima padaryti geriau
-        virsus.h<-filter.reorg.poly(polygon = data.frame(xp=perim_pts[[2]][,1][-nrow(perim_pts[[2]])],yp=perim_pts[[2]][,2][-nrow(perim_pts[[2]])]),min.x.id =pairs_pts[maxid,6],
-                                    max.x.id =pairs_pts[maxid,7],poli.side = T,b= pairs_pts[maxid,5])
-        O.poli<-close.poly(split.poly = virsus.h,split.line.x = best.curve[[1]]$x, split.line.y = best.curve[[1]]$y)
-        O<-get.data(O.poli,samp.dat)
-        lines(O.poli,col=5,lwd=4)
-
-        apacia.h<-filter.reorg.poly(polygon = data.frame(xp=perim_pts[[2]][,1][-nrow(perim_pts[[2]])],yp=perim_pts[[2]][,2][-nrow(perim_pts[[2]])]),min.x.id =pairs_pts[maxid,6],max.x.id =pairs_pts[maxid,7],poli.side = F,b=pairs_pts[maxid,5])
-        OO.poli<-close.poly(split.poly = apacia.h,split.line.x = best.curve[[1]]$x, split.line.y = best.curve[[1]]$y)
-        lines(OO.poli,col=5,lwd=4)
-
-        OO<-get.data(OO.poli,samp.dat)
-
-        #issaugom duomenis padalinimo
-        ribs<-list(O.poli,OO.poli)
-      } else {
-        #issaugom duomenis padalinimo
-        splits<<-do.call(c,list(splits,list(data.frame(x=as.numeric(c(pairs_pts[maxid,c(1,3)])),y=as.numeric(c(pairs_pts[maxid,c(2,4)]))))))
-        split.performance<<-do.call(c,list(split.performance,maxdif))
-        split.reliability<<-do.call(c,list(split.reliability,(maxdif-performance)/sd(any.split)))
-        #padalinam duomenis pagal pjuvi
-        virs<-close.poly(split.line.x = as.numeric(pairs_pts[maxid,c(1,3)]),split.line.y = as.numeric(pairs_pts[maxid,c(2,4)]),
-                         split.poly =filter.reorg.poly(polygon = data.frame(xp=perim_pts[[2]][,1][-nrow(perim_pts[[2]])],yp=perim_pts[[2]][,2][-nrow(perim_pts[[2]])]),
-                                                       min.x.id =pairs_pts[maxid,6],max.x.id =pairs_pts[maxid,7],poli.side = T,b=pairs_pts[maxid,5]))
-
-        po<-close.poly(split.line.x = as.numeric(pairs_pts[maxid,c(1,3)]),split.line.y = as.numeric(pairs_pts[maxid,c(2,4)]),
-                       split.poly =filter.reorg.poly(polygon = data.frame(xp=perim_pts[[2]][,1][-nrow(perim_pts[[2]])],yp=perim_pts[[2]][,2][-nrow(perim_pts[[2]])]),
-                                                     min.x.id =pairs_pts[maxid,6],max.x.id =pairs_pts[maxid,7],poli.side = F,b=pairs_pts[maxid,5]))
-
-        O<-get.data(virs,samp.dat)
-        OO<-get.data(po,samp.dat)
-
-        #paryskinam atrinkta pjuvi
-        print(c('total max Skirtumas =', maxdif))
-
-        lines(pairs_pts[maxid,c(1,3)],pairs_pts[maxid,c(2,4)],col=2)
-
-        # sukuriam koordinates ribines zemu koordinaciu plotui ir
-        # bandom skaidyti ji. Jei pavyksta suskaidyti issaugom updatintus rezus, jei ne istrinam gogolis
-        # ir ribines koordinates neegzistuojancio pjuvio
-        ribs<-list(virs,po)
-      }
-      #maisom duomenis ir vertinam aptiktu erdviniu strukturu patimuma
-      if (null.models){
-        set.seed(seed.t)
-        test.samp.dat<-sim.testdat(samp.dat,test.n)
-        pseudo.kokybe<-numeric(test.n)
-        for (a in 1:test.n){
-          I.dat<-get.data(ribs[[1]],test.samp.dat[[a]])
-          II.dat<-get.data(ribs[[2]],test.samp.dat[[a]])
-          pseudo.kokybe[a]<-alfa(I.dat[,1],II.dat[,1])
-        }
-        checks<<-do.call(c,list(checks,list(pseudo.kokybe)))
-        split.reliability2<<-do.call(c,list(split.reliability2,sum(last(split.performance)<pseudo.kokybe)/test.n))
-      }
-      n.splits<<-do.call(c,list(n.splits,length(any.split)))
-      ave.split.abE<<-do.call(c,list(ave.split.abE,performance))
-      original.quality<<-do.call(c,list(original.quality,original.qual))
-      #
-      rims<<-do.call(c,list(rims,ribs[1]))
-      lines(ribs[[1]],col="purple")
-      spatial_div(O,root = iteration)
-      print(paste("griztam i", testid, "padalinima [po mazu koord bloko]", sep=" "))
-
-
-      # Skaidom antra bloka
-      #jei egzistuoja gogolis (updatinti duomenys) tuomet sukuriam ribines koordinates ir lipdom prie
-      #gogolis masyvo. Duotu koordinaciu ribose ir bandom ieskoti pjuvio bei toliau updatinti duomenis.
-      #Jei pavyksta rasti pjuvi, updatinam duomenis, jei ne trinam null bobolis ir priklijuotas koo-
-      #rdinates.
-
-        rims<<-do.call(c,list(rims,ribs[2]))
-        lines(ribs[[2]],col=2)
-        spatial_div(OO,root=iteration)
-        print(paste("griztam i", testid, "padalinima [po aukstu koord bloko (gogolis exists)]", sep=" "))
-
-    } else{
-      #Jei tinkamo padalino nerasta, grizta tuscias masyvas
-      if (testid>1){
-        print("tinkamo padalinimo nerasta, grizta tuscias masyvas NULL")
-      } else{
-        print("nebuvo skaldomu bloku")
-}
-    }
-  }
   environment(spatial_div) <- environment()
 
   spatial_div(data,root=2)
 
 
   if (null.models==F){
-    split.reliability2<-rep(NaN,length(n.splits))
+    split.reliability2 <- rep(NaN,length(n.splits))
   }
 
   Signif <- symnum(split.reliability2, corr = FALSE, na = FALSE,
@@ -408,7 +228,7 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
   rezas <- structure(list(
     split.lines = splits,
     boundaries = rims,
-    block.stats = blokai[-1,],
+    block.stats = blocks[-1,],
     split.stats = data.frame(
       n.splits = n.splits,
       z.score = round(split.reliability,2),
@@ -421,15 +241,233 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
     ),
     null.m.st= checks
   ),
-  class = "spdiv"
+  class = "hespdiv"
   )
-  print.spdiv <- function(x){
-    cat("\n","Information about splits:", "\n","\n")
-    print(x[[4]])
-    cat("\n", "Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1")
-    invisible(x)
+
+  return(print.hespdiv(rezas))
+}
+#' Main recursive HespDiv function
+#'
+#' @description function prepares the data to start the searching procedure of the curve that provides the best spatial separation.
+#' As curve are generated using splines, matrix of knot coordinates are prepared. Also, polygon is rotated so that split line would be horizontal and at Y = 0, and start at X = 0.
+#' @param poly.x a vector of x coordinates of a polygon perimeter points
+#' @param poly.y a vector of y coordinates of a polygon perimeter points
+#' @param min.x.id index of split line vertex in poly.x and poly.y objects that has lower x coordinate
+#' @param max.x.id index of split line vertex in poly.x and poly.y objects that has lower y coordinate
+#' @param b slope of a split line
+#' @param data data frame of data being analized
+#' @param knot.density.X number of spline knots along the split line
+#' @param knot.density.Y number of spline knots orthogonal to the split line
+#' @param N.condminimum minimum number of fossils required to establish subdivision of a plot
+#' @param S.cond minimum area required to establish subdivision of a plot
+#' @param n.curve.iter number of curve iterations
+#' @param correction.term term that defines how much the a problematic spline
+#' will be corrected (in terms of proportion of polygon width where spline
+#' intersects the polygon boundary) if the spline is not contained within the
+#' plot. Small values recommended (default is 0.05).
+#' @return A list of two elements: 1) curve in shape of a spline that produces the best data separation; 2) quality of the division
+#' @author Liudas Daumantas
+#' @importFrom DescTools Rotate
+#' @importFrom pracma poly_center
+#' @noRd
+
+spatial_div<-function(samp.dat,samp_xy, root=2){
+  #testuojamas plotas
+  testid <- length(rims)
+  margins <- rims[[testid]]
+  original.qual <- -2*entropija(samp.dat[,1]) #### THIS IS P(Q).crit, use inherit.f or even better: extract information from intermediate results
+  iteration <<- iteration +1
+  #grafikas pirminis nupaisomas
+  {
+    if (trace.level > 0 ) {
+      if(!is.null(pnts.col)){
+        plot(xy.data$x, xy.data$y, col=pnts.col )
+      } else {
+        plot(0,0,xlim = range(xy.data$x),ylim = range(xy.data$y),col=0)
+        }
+
+      lines(x,y)
+      lines(origins.chull)
+      points(samp_xy$x,samp_xy$y,pch=19)
+      centras <- poly_center(margins[,1],margins[,1])
+      points(centras[1],centras[2],col=3,pch=19)
+      lines(rims[[1]])
+      print(c("testid: ", testid))
+      # padalinimai savo ribose nupaisomi
+      if (testid>1) {
+        for (i in 2:c(testid)){
+          print(c("polygons drawed:", i-1))
+          lines(x=rims[[i]][,1],y=rims[[i]][,2],col=1,lwd=2)
+        }}
+    }
   }
-  return(print.spdiv(rezas))
+  #testavimui pjuviai paruosiami
+  perim_pts <- .perimeter_pts(polygon = margins,n.pts = divisions)
+
+  points(perim_pts[[2]],pch=19,col="purple")
+  pairs_pts <- .pair_pts(perim_pts[[1]],polygon = margins)
+  maxdif <- original.qual
+  print(maxdif)
+  any.split<-numeric()
+  maxid<-0
+  if (nrow(pairs_pts)!=0){
+    points(pairs_pts[,c(1:2)],col="yellow",pch=19)
+    points(pairs_pts[,c(3:4)],col="red",pch=19)
+    #pjaustymo ir testavimo ciklas
+    {
+      for (i in 1:nrow(pairs_pts)){
+        print('testuojamas padalinimas Nr.:')
+        print(i)
+
+        virs <- .close_poly(.split_poly(polygon = perim_pts[[2]], min_id = 1,
+                                        split_ids = pairs_pts[i,c(6:7)],
+                                        trivial_side = TRUE,poli_side = TRUE))
+        po <- .close_poly(.split_poly(polygon = perim_pts[[2]], min_id = 1,
+                                      split_ids = pairs_pts[i,c(6:7)],
+                                      trivial_side = TRUE,poli_side = FALSE))
+
+        # padalinami duomenys i dvi dalis pagal pjuvio koordinates
+        Puses <- list(.get_data(po,samp.dat),.get_data(virs,samp.dat))
+        if (all(c(length(Puses[[1]]$rusis),length(Puses[[2]]$rusis))>N.cond)){
+          SpjuvioI<-abs(polyarea(x=virs[,1],y=virs[,2]))
+          SpjuvioII<-abs(polyarea(x=po[,1],y=po[,2]))
+          if (SpjuvioI>S.cond&SpjuvioII>S.cond){
+            #nupiesiam padalinima ir paskaiciuojam kokybe
+            Skirtumas<-alfa(Puses[[1]]$rusis,Puses[[2]]$rusis)
+            any.split<-c(any.split,Skirtumas)
+            #Paskaiciuojam plotus padalintu bloku
+            if (Skirtumas > maxdif){
+              #Jei padalinimas patenkina minimalias saligas ir yra geresnis nei pries tai - pasizymim ir issisaugom ji
+              maxdif<-Skirtumas
+              maxid<-i
+              print(c('max Skirtumas=',Skirtumas))
+            }
+          }
+        }
+      }
+    }
+    if(length(any.split)>0){
+      performance<-mean(any.split)
+      #jei performance 0 ir visu padalinimu performance 0, tai padalinimo nera - idealiai atskirtas plotas
+      if(all(any.split==0)){
+        maxid<-0
+      }
+    } else {
+      performance<-original.qual # negalejom ivertinti ne vieno padalinimo, taigi performance lygu max.
+    }
+
+    blocks<<-rbind(blocks,data.frame(performance=1-performance/original.qual,
+                                     iteration=iteration,saknis=root))
+    print(c("blocks: ", blocks))
+    print(c("performance: ", performance))
+  }
+  # duomenu saugojimas
+  #Jei rastas tinkamas padalinimas - ieskom geriausios padalinimo kreives,
+  #issaugom duomenis ir ziurim ar galima skaidyti toliau
+  if (maxid>0){
+    print(perim_pts)
+    print(pairs_pts)
+    best.curve<-curvial.split(poly.x=perim_pts[[2]]$x.poly,poly.y=perim_pts[[2]]$y.poly,
+                              min.x.id = pairs_pts[maxid,6],max.x.id = pairs_pts[maxid,7],b=pairs_pts[maxid,5],samp.dat,knot.density.X=knot.density.X,
+                              knot.density.Y=knot.density.Y,N.cond,S.cond,iteracija=curve.iterations,correction.term=correction.term,original.qual)
+    lines(best.curve[[1]],col=2,lwd=3)
+    if ((1-(max(best.curve[[2]],maxdif)/original.qual))<C.cond ){
+      maxid<-0}}
+  if (maxid>0){
+    if(best.curve[[2]]>maxdif) {
+      splits<<-do.call(c,list(splits,list(data.frame(x=best.curve[[1]]$x,y=best.curve[[1]]$y))))
+      split.performance<<-do.call(c,list(split.performance,best.curve[[2]]))
+      split.reliability<<-do.call(c,list(split.reliability,(best.curve[[2]]-performance)/sd(any.split)))
+      #dalinam duomenis padalinimo kreive
+      #reikia sukurti poligonus du ir nufiltruoti duomenis  - galima padaryti geriau
+      virsus.h<-filter.reorg.poly(polygon = data.frame(xp=perim_pts[[2]][,1][-nrow(perim_pts[[2]])],yp=perim_pts[[2]][,2][-nrow(perim_pts[[2]])]),min.x.id =pairs_pts[maxid,6],
+                                  max.x.id =pairs_pts[maxid,7],poli.side = T,b= pairs_pts[maxid,5])
+      O.poli<-close.poly(split.poly = virsus.h,split.line.x = best.curve[[1]]$x, split.line.y = best.curve[[1]]$y)
+      O<-get.data(O.poli,samp.dat)
+      lines(O.poli,col=5,lwd=4)
+
+      apacia.h<-filter.reorg.poly(polygon = data.frame(xp=perim_pts[[2]][,1][-nrow(perim_pts[[2]])],yp=perim_pts[[2]][,2][-nrow(perim_pts[[2]])]),min.x.id =pairs_pts[maxid,6],max.x.id =pairs_pts[maxid,7],poli.side = F,b=pairs_pts[maxid,5])
+      OO.poli<-close.poly(split.poly = apacia.h,split.line.x = best.curve[[1]]$x, split.line.y = best.curve[[1]]$y)
+      lines(OO.poli,col=5,lwd=4)
+
+      OO<-get.data(OO.poli,samp.dat)
+
+      #issaugom duomenis padalinimo
+      ribs<-list(O.poli,OO.poli)
+    } else {
+      #issaugom duomenis padalinimo
+      splits<<-do.call(c,list(splits,list(data.frame(x=as.numeric(c(pairs_pts[maxid,c(1,3)])),y=as.numeric(c(pairs_pts[maxid,c(2,4)]))))))
+      split.performance<<-do.call(c,list(split.performance,maxdif))
+      split.reliability<<-do.call(c,list(split.reliability,(maxdif-performance)/sd(any.split)))
+      #padalinam duomenis pagal pjuvi
+      virs<-close.poly(split.line.x = as.numeric(pairs_pts[maxid,c(1,3)]),split.line.y = as.numeric(pairs_pts[maxid,c(2,4)]),
+                       split.poly =filter.reorg.poly(polygon = data.frame(xp=perim_pts[[2]][,1][-nrow(perim_pts[[2]])],yp=perim_pts[[2]][,2][-nrow(perim_pts[[2]])]),
+                                                     min.x.id =pairs_pts[maxid,6],max.x.id =pairs_pts[maxid,7],poli.side = T,b=pairs_pts[maxid,5]))
+
+      po<-close.poly(split.line.x = as.numeric(pairs_pts[maxid,c(1,3)]),split.line.y = as.numeric(pairs_pts[maxid,c(2,4)]),
+                     split.poly =filter.reorg.poly(polygon = data.frame(xp=perim_pts[[2]][,1][-nrow(perim_pts[[2]])],yp=perim_pts[[2]][,2][-nrow(perim_pts[[2]])]),
+                                                   min.x.id =pairs_pts[maxid,6],max.x.id =pairs_pts[maxid,7],poli.side = F,b=pairs_pts[maxid,5]))
+
+      O<-get.data(virs,samp.dat)
+      OO<-get.data(po,samp.dat)
+
+      #paryskinam atrinkta pjuvi
+      print(c('total max Skirtumas =', maxdif))
+
+      lines(pairs_pts[maxid,c(1,3)],pairs_pts[maxid,c(2,4)],col=2)
+
+      # sukuriam koordinates ribines zemu koordinaciu plotui ir
+      # bandom skaidyti ji. Jei pavyksta suskaidyti issaugom updatintus rezus, jei ne istrinam gogolis
+      # ir ribines koordinates neegzistuojancio pjuvio
+      ribs<-list(virs,po)
+    }
+    #maisom duomenis ir vertinam aptiktu erdviniu strukturu patimuma
+    if (null.models){
+      set.seed(seed.t)
+      test.samp.dat<-sim.testdat(samp.dat,test.n)
+      pseudo.kokybe<-numeric(test.n)
+      for (a in 1:test.n){
+        I.dat<-get.data(ribs[[1]],test.samp.dat[[a]])
+        II.dat<-get.data(ribs[[2]],test.samp.dat[[a]])
+        pseudo.kokybe[a]<-alfa(I.dat[,1],II.dat[,1])
+      }
+      checks<<-do.call(c,list(checks,list(pseudo.kokybe)))
+      split.reliability2<<-do.call(c,list(split.reliability2,sum(last(split.performance)<pseudo.kokybe)/test.n))
+    }
+    n.splits<<-do.call(c,list(n.splits,length(any.split)))
+    ave.split.abE<<-do.call(c,list(ave.split.abE,performance))
+    original.quality<<-do.call(c,list(original.quality,original.qual))
+    #
+    rims<<-do.call(c,list(rims,ribs[1]))
+    lines(ribs[[1]],col="purple")
+    spatial_div(O,root = iteration)
+    print(paste("griztam i", testid, "padalinima [po mazu koord bloko]", sep=" "))
+
+
+    # Skaidom antra bloka
+    #jei egzistuoja gogolis (updatinti duomenys) tuomet sukuriam ribines koordinates ir lipdom prie
+    #gogolis masyvo. Duotu koordinaciu ribose ir bandom ieskoti pjuvio bei toliau updatinti duomenis.
+    #Jei pavyksta rasti pjuvi, updatinam duomenis, jei ne trinam null bobolis ir priklijuotas koo-
+    #rdinates.
+
+    rims<<-do.call(c,list(rims,ribs[2]))
+    lines(ribs[[2]],col=2)
+    spatial_div(OO,root=iteration)
+    print(paste("griztam i", testid, "padalinima [po aukstu koord bloko (gogolis exists)]", sep=" "))
+
+  } else{
+    #Jei tinkamo padalino nerasta, grizta tuscias masyvas
+    if (testid>1){
+      print("tinkamo padalinimo nerasta, grizta tuscias masyvas NULL")
+    } else{
+      print("nebuvo skaldomu bloku")
+    }
+  }
 }
 
-
+print.hespdiv <- function(x){
+  cat("\n","Information about splits:", "\n","\n")
+  print(x[[4]])
+  cat("\n", "Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1")
+  invisible(x)
+}
