@@ -95,7 +95,7 @@
   knot.y.matrix<-matrix(B,knot.density.Y,1)%*%matrix(range,1,knot.density.X)+
     matrix(rep(do.y,each=knot.density.Y),knot.density.Y,knot.density.X)
   #randam geriausia padalinimo kreive
-  best.curvi_split<-curvi_split(
+  best..curvi_split<-.curvi_split(
     knot.y.matrix,split.line.x,Xup=upper.inner.poli$x,
     Xdown=bottom.inner.poli$x,Yup=upper.inner.poli$y,Ydown=bottom.inner.poli$y,
     N.cond,S.cond,knot.density.Y,knot.density.X,rot.poli.up,rot.poli.do,
@@ -103,11 +103,11 @@
     )
 
 # Up --> Yup, Down --> Ydown; xp --> x; yp --> y.  visur pakeist
-  best.curve<-data.frame(x=best.curvi_split[[1]]$x+poly.x[min.x.id],
-                         y=best.curvi_split[[1]]$y+poly.y[min.x.id])
+  best.curve<-data.frame(x=best..curvi_split[[1]]$x+poly.x[min.x.id],
+                         y=best..curvi_split[[1]]$y+poly.y[min.x.id])
   best.curve<-Rotate(x=best.curve$x,y=best.curve$y,mx=poly.x[min.x.id],
                      my=poly.y[min.x.id],theta=teta)
-  return(list(best.curve,best.curvi_split[[2]]))
+  return(list(best.curve,best..curvi_split[[2]]))
 }
 
 #' Find the curve that divides the polygon best (recursive function)
@@ -140,7 +140,7 @@
 #' @return A list of two elements: 1) rotated (not suitable for the original polygon) curve in shape of a spline that produces the best data separation; 2) quality of the division
 #' @author Liudas Daumantas
 #' @noRd
-curvi_split<-function(knot.y.matrix,split.line.x,Xup,Xdown,Yup,Ydown,N.cond,
+.curvi_split<-function(knot.y.matrix,split.line.x,Xup,Xdown,Yup,Ydown,N.cond,
                       S.cond,knot.density.Y,knot.density.X,rot.poli.up,
                       rot.poli.do,rot.data,n.curve.iter=n.curve.iter,
                       correction.term){
@@ -169,10 +169,10 @@ curvi_split<-function(knot.y.matrix,split.line.x,Xup,Xdown,Yup,Ydown,N.cond,
         # reikiamose vietose pridedam koordinates
         #sukuriam nauja split.line.x best.y.knots varianta
         #kartojam splina
-        curve<-spline_corrections(curve,Xup,Xdown,Yup,Ydown,best.y.knots,
+        curve<-.spline_corrections(curve,Xup,Xdown,Yup,Ydown,best.y.knots,
                                  split.line.x,correction.term=correction.term)
         #ivertinam poligono padalinimo su sugeneruota kreive kokybe
-        SS<-split_quality(curve=curve,rot.poli.up, rot.poli.do, rot.data,
+        SS<-.curve_quality(curve=curve,rot.poli.up, rot.poli.do, rot.data,
                           N.cond,S.cond)
         #fiksuojam verte
         SSk[k]<-SS
@@ -193,11 +193,11 @@ curvi_split<-function(knot.y.matrix,split.line.x,Xup,Xdown,Yup,Ydown,N.cond,
   #kreive gali islisti is uz polygono (pvz. kokybes dideli iverciai buvo
   # gauti pataisius duotus knotus)
   #taigi, kreive dar karta bandoma pataisyti, jei reikia
-  curve.final<-spline_corrections(curve.final,Xup,Xdown,Yup,Ydown,best.y.knots,
+  curve.final<-.spline_corrections(curve.final,Xup,Xdown,Yup,Ydown,best.y.knots,
                                  split.line.x,correction.term = correction.term)
   #ivertinam galutines padalinimo kreives kokybe
   lines(curve.final,col=3)
-  SS<-split_quality(curve.final,rot.poli.up, rot.poli.do, rot.data, N.cond,
+  SS<-.curve_quality(curve.final,rot.poli.up, rot.poli.do, rot.data, N.cond,
                     S.cond)
   #grazinam padalinimo kreive, jos kokybes iverti ir visu kitu lokaliai
   # geriausiu kreiviu ivercius - SSk
@@ -222,7 +222,7 @@ curvi_split<-function(knot.y.matrix,split.line.x,Xup,Xdown,Yup,Ydown,N.cond,
 #' @return A list of two elements: 1) rotated (not suitable for the original polygon) curve in shape of a spline that produces the best data separation; 2) quality of the division
 #' @author Liudas Daumantas
 #' @noRd
-split_quality<-function(curve,rot.poli.up,rot.poli.do,rot.data,N.cond,S.cond){
+.curve_quality<-function(curve,rot.poli.up,rot.poli.do,rot.data,N.cond,S.cond){
   #sudarom poligonus padalintus kreive
   I.poli<-data.frame(x=c(rot.poli.up$xp,rev(curve$x)[-1]),y=c(rot.poli.up$yp,rev(curve$y)[-1]))
   II.poli<-data.frame(x=c(rot.poli.do$xp,rev(curve$x)[-1]),y=c(rot.poli.do$yp,rev(curve$y)[-1]))
@@ -264,10 +264,10 @@ split_quality<-function(curve,rot.poli.up,rot.poli.do,rot.data,N.cond,S.cond){
 #' @return a curve (output of a spline function from stats package)
 #' @author Liudas Daumantas
 #' @noRd
-spline_corrections<-function(curve,Xup,Xdown,Yup,Ydown,best.y.knots,
+.spline_corrections<-function(curve,Xup,Xdown,Yup,Ydown,best.y.knots,
                              split.line.x,correction.term){
 
-  corrected.coords<-y_corrections(spline.x = curve$x,spline.y =curve$y ,
+  corrected.coords<-.y_corrections(spline.x = curve$x,spline.y =curve$y ,
                                   Xup = Xup,Xdown = Xdown,Yup = Up,
                                   Ydown = Ydown,
                                   correction.term = correction.term)
@@ -325,7 +325,7 @@ spline_corrections<-function(curve,Xup,Xdown,Yup,Ydown,best.y.knots,
     curve<-spline(corrected.split.line.x,corrected.best.y.knots,n=1000)
     best.y.knots<-corrected.best.y.knots
     split.line.x<-corrected.split.line.x
-    return(spline_corrections(curve =curve ,Xup =Xup ,Xdown =Xdown ,Yup=Yup,
+    return(.spline_corrections(curve =curve ,Xup =Xup ,Xdown =Xdown ,Yup=Yup,
                               Ydown = Ydown,best.y.knots=best.y.knots,
                               split.line.x = split.line.x,
                               correction.term = correction.term) )
@@ -365,7 +365,7 @@ spline_corrections<-function(curve,Xup,Xdown,Yup,Ydown,best.y.knots,
 #' @author Liudas Daumantas
 #' @importFrom sp point.in.polygon
 #' @noRd
-y_corrections<-function(spline.x,spline.y,Xup,Xdown,Yup,Ydown,
+.y_corrections<-function(spline.x,spline.y,Xup,Xdown,Yup,Ydown,
                         correction.term){
   #tikrinam, ar kreive polygone, nuimam po viena taska krastini, nes jie ant poligono ribos
   curve.in.polygon<-point.in.polygon(
