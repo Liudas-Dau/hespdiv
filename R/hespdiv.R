@@ -223,7 +223,7 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
     ids <- c(ch,ch[1])
     x <- data$x[ids]
     y <- data$y[ids]
-    origins.chull <- data.frame(X=x,Y=y)
+    origins.chull <- data.frame(x=x,y=y)
 
     if (trace.level > 0 ) {
       if(!is.null(pnts.col)){
@@ -245,7 +245,7 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
     plot.id <- numeric()
     split.z.score <- numeric()
     split.quality <- numeric()
-    split.reliability2 <- numeric()
+    p.val <- numeric()
     n.splits <- numeric()
     mean.dif <- numeric()
   }
@@ -261,10 +261,10 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
   names(block.obj) <- blocks$iteration
 
   if (null.models==F){
-    split.reliability2 <- rep(NaN,length(n.splits))
+    p.val <- rep(NaN,length(n.splits))
   }
 
-  Signif <- symnum(split.reliability2, corr = FALSE, na = FALSE,
+  Signif <- symnum(p.val, corr = FALSE, na = FALSE,
                    cutpoints = c(0 ,0.001,0.01, 0.05, 0.1, 1),
                    symbols = c("***", "**", "*", ".", " "))
 
@@ -282,10 +282,10 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
         split.p.red = split.quality,
         parent.E = parent.E,
         delta.E = -parent.E * split.quality,
-        p_value = split.reliability2,
+        p_value = p.val,
         signif. = format(Signif)
       ),
-      null.m.st= checks
+      null.m.st = checks
     ),
     class = "hespdiv"
     )
@@ -302,7 +302,7 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
       z.score = split.z.score,
       mean.dif = mean.dif,
       split.quality = split.quality,
-      p_value = split.reliability2,
+      p_value = p.val,
       signif. = format(Signif)
     ),
     null.m.st= checks
@@ -575,10 +575,10 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
       }
       assign(x = "checks",value = do.call(c,list(checks,list(pseudo.kokybe))),
                                           envir = e)
-      assign(x = "split.reliability2", value =
+      assign(x = "p.val", value =
                do.call(c,list(
-        split.reliability2,
-        sum(split.quality[length(split.quality)]<pseudo.kokybe)/n.m.N
+        p.val,
+        sum(maxdif<pseudo.kokybe)/n.m.N
         )),
         envir = e) # kvantilis
       # kvantilio reiksme - empirine p verte
