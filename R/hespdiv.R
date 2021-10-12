@@ -55,18 +55,31 @@
 #' \code{compare.f} that serve some distinct purpose. Available methods:
 #'  "Pielou_biozonation" (distinguishes paleoprovinces by reductions in Pielou
 #'  entropy after data sets of two paleoprovinces are divided).
-#' @param N.crit Algorithm stopping criteria - number of observations.
+#' @param N.crit Subdivision stopping criteria - number of observations.
 #' Minimum number of observations (rows in data) that should
 #' be present in areas separated by a split-line in order to establish the
 #' split-line. Default is 1.
-#' @param S.crit Algorithm stopping criteria - size of plots.
+#' @param S.crit Subdivision stopping criteria - size of plots.
 #' Minimum area expressed as a proportion of original study area
 #' (provided polygon or estimated as convex hull of \code{xy_dat}) that plots
 #' separated by a split-line should have so that the split-line could be
 #' established. Default is 0.
-#' @param P.crit Algorithm stopping criteria - magnitude of difference.
-#' Minimum difference as estimated by \code{compare.f} function that plots
-#' should have in order to establish the split-line. Default is -Inf.
+#' @param lower.Q.crit Subdivision stopping criteria - lower limit of split-line
+#' quality applied to the straight split-lines. This is a minimum difference as
+#' estimated by \code{compare.f} function that separated
+#' plots should exhibit, so that a straight split-line would be accepted. If
+#' the best straight split line has lower quality than \code{upper.Q.crit}, but
+#' passes this limit, then curvi-linear split-lines will be generated with
+#' expectation that they will improve the quality of a split above
+#'  \code{upper.Q.crit}.
+#' If \code{c.splits} is FALSE, then \code{lower.Q.crit} is set equal to
+#' \code{upper.Q.crit}
+#' Default is -Inf.
+#' @param upper.Q.crit Subdivision stopping criteria - upper limit of split-line
+#' quality applied to the final split-line. This is a minimum difference as
+#' estimated by \code{compare.f} function that separated
+#' plots should exhibit, so that a subdivision of a plot using the
+#' best split-line would be established. Default is -Inf.
 #' @param c.splits Logical (default TRUE).
 #' Should curvi-linear split-lines be estimated?
 #' @param c.axis.knots Curve parameter. The number of columns in the net of
@@ -167,7 +180,10 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
                            C.cond=0,E.cond=0,N.cond=0,S.cond=0,divisions=NULL,lim=NULL,
                            knot.density.X=knot.density.X,knot.density.Y=knot.density.Y,curve.iterations,
                            correction.term=0.05,null.models=T,seed.t=round(runif(1,0,9999),0),test.n) {
-
+  if (c.splits == FALSE & upper.Q.crit != lower.Q.crit) {
+    print("Since 'c.splits' is FALSE, 'lower.Q.crit' is set equal to
+          'upper.Q.crit'")
+  }
   if (method == "Pielou_biozonation") {
     if (ncol(data) != 3){
       stop("There should be one column in data besides 'x' and 'y' columns that
@@ -175,16 +191,17 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
            coded numerically. If multiple taxa is present at the same location,
            multiple rows should be dedicated for the same location in data.")
     }
+
+
     generalize.f <- function(plot.dat){
-      plot.dat <- plot.dat[,-c("x","y")]
+      x <- subset(plot.dat, select = -c(x, y))[,1]
       p <- table(as.numeric(paste(x)))/sum(table(as.numeric(paste(x))))
       H <- -sum(log(p)*p)
       ifelse(H==0,0,H/log(length(p)))
     }
-    compare.f <- function(plot1,plot2) {
-      samp.dat <- samp.dat[,-c("x","y")]
-      base.eveness <- -2 * generalize.f(samp.dat[,1])
-      base.eveness + plot1 + plot2
+    compare.f <- function(eveness1,eveness2) {
+      base.eveness <- 2 * generalize.f(samp.dat)
+      (1 - (eveness1 + eveness2) / base.eveness) * 100 # percent change in eveness
     }
   }
 
@@ -197,7 +214,7 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
   library(spatstat)
   #duomenys pirminiai
   {
-    if(any(names(data)== "x") & any(names(data)== "y")){
+    if( all(names(data) != "x") | all(names(data) != "y") ){
       stop("data should contain columns named \"x\" and \"y\" that contain
            coordinate information")
     }
@@ -218,25 +235,30 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
       lines(x,y)
       lines(origins.chull)
     }
-    rims <- list(origins.chull)
-    blocks <- data.frame(performance=numeric(0),iteration=numeric(0),
-                         root=numeric(0))
-    split.reliability <- numeric()
-    split.performance <- numeric()
+    rims <- list()
+    blocks <- data.frame(mean.dif = numeric(), # mean spatial heterogeneity irrespective of split-line position
+                         sd.dif = numeric(), # anizotropy of heterogeneity based on straight split-lines
+                         str.z.score = numeric(), # level of outstandingness. Are there other competetive candidate splits?
+                         iteration=numeric(),
+                         root=numeric() )
+    block.obj <- list(generalize.f(data))
+    plot.id <- numeric()
+    split.z.score <- numeric()
+    split.quality <- numeric()
     split.reliability2 <- numeric()
     n.splits <- numeric()
-    ave.split.abE <- numeric()
+    mean.dif <- numeric()
   }
   S.cond <- abs(polyarea(x,y)) * S.crit
   splits <- numeric()
   checks <- list()
-  original.quality <- numeric()
   iteration <- 1
 
-  environment(.spatial_div) <- environment()
+  e <- environment()
+  environment(.spatial_div) <- e
 
   .spatial_div(data,root=2)
-
+  names(block.obj) <- blocks$iteration
 
   if (null.models==F){
     split.reliability2 <- rep(NaN,length(n.splits))
@@ -246,18 +268,40 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
                    cutpoints = c(0 ,0.001,0.01, 0.05, 0.1, 1),
                    symbols = c("***", "**", "*", ".", " "))
 
+  if (method == "eee"){
+    parent.E <- block.obs[[match(plot.id,names(block.obs))]]
+    rezas <- structure(list(
+      split.lines = splits,
+      boundaries = rims,
+      block.stats = blocks,
+      split.stats = data.frame(
+        plot.id = plot.id,
+        n.splits = n.splits,
+        z.score = split.z.score,
+        mean.p.red = mean.dif,
+        split.p.red = split.quality,
+        parent.E = parent.E,
+        delta.E = -parent.E * split.quality,
+        p_value = split.reliability2,
+        signif. = format(Signif)
+      ),
+      null.m.st= checks
+    ),
+    class = "hespdiv"
+    )
+  }
 
   rezas <- structure(list(
     split.lines = splits,
     boundaries = rims,
-    block.stats = blocks[-1,],
+    block.stats = blocks,
+    block.obj = block.obj,
     split.stats = data.frame(
+      plot.id = plot.id,
       n.splits = n.splits,
-      z.score = round(split.reliability,2),
-      ave.abE = round(-ave.split.abE,2),
-      split.abE = round(-split.performance,2),
-      parent.2E = round(-original.quality,2),
-      delta.E = round(split.performance -  original.quality,2),
+      z.score = split.z.score,
+      mean.dif = mean.dif,
+      split.quality = split.quality,
       p_value = split.reliability2,
       signif. = format(Signif)
     ),
@@ -293,12 +337,17 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
 #' @importFrom pracma poly_center
 #' @noRd
 
-.spatial_div <- function(samp.dat,samp_xy, root=2){
+.spatial_div <- function(samp.dat, root=2){
   #testuojamas plotas
   testid <- length(rims)
   margins <- rims[[testid]]
   original.qual <- -2*entropija(samp.dat[,1]) #### THIS IS P(Q).crit, use inherit.f or even better: extract information from intermediate results
-  iteration <<- iteration +1
+
+  assign(x = "iteration",value = iteration +1, envir = e)
+  assign(x = "blocks.obj" ,
+         value = do.call(c,list(blocks.obj,list(geneneralize.f(samp.dat)))),
+         envir = e)
+
   perim_pts <- .perimeter_pts(polygon = margins,n.pts = divisions)
   #grafikas pirminis nupaisomas
   {
@@ -327,10 +376,10 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
   }
   #testavimui pjuviai paruosiami
 
-
+  environment(.dif_fun) <- e
 
   pairs_pts <- .pair_pts(perim_pts[[1]],polygon = margins)
-  maxdif <- original.qual # first split minimum quality. P.crit
+  maxdif <- lower.Q.crit # first split minimum quality. P.crit
   print(maxdif)
   any.split <- numeric()
   maxid <- 0
@@ -396,7 +445,8 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
     }
     if(length(any.split) > 0){
 
-      performance <- mean(any.split) # mean spatial heterogeneity
+      mean.dif <- mean(any.split) # mean spatial heterogeneity
+      sd.dif <- sd(any.split) # NA if 1 split
       # sd(any.split) -> anisotropy of heterogeneity
       # if all are equal, then complete randomness: no anisotropy - no splits present
       if( all(any.split==any.split[1]) & length(any.split) > 1  ){
@@ -406,30 +456,22 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
         maxid<-0
       }
     } else {
-      performance <- original.qual # negalejom ivertinti ne vieno padalinimo, taigi performance lygu max.
+      mean.dif <- NA # negalejom ivertinti ne vieno padalinimo, taigi performance lygu max.
       # P.crit
     }
-
-    blocks <<- rbind(blocks,data.frame(
-      performance = 1 - performance/original.qual, # perdatyr i tiesiog santyki. Ty. how many times better
-      # than null? DEL UNIVERSALUMO, REIKTU P.CRIT NAUDOTI. BET KA DARYT TUO ATVEJU, JEI KAIP CIA, NAUDOJAM
-      # LOKALU P.CRIT IS PAVELDETU DUOMENU ARBA IS PASKAICIUOTU SU INHERIT FUNKCIJA?
-      # GAL TADA GERIAU TIESIOG VIDUTINI PALIKTI? TUOMET PERSKAICIUOTI GALIMA.
-      # MINUSAS TAS, JOG SU ATASKAITA DAR REIKIA ZAISTI.
-      # TAIP PAT MINUSAS TAME, JOG ATASKAITOS DUOMENU GALI NEPAKAKTI, JEI KITAIP
-      # LOKALUS P.CRIT ISSISKAICIUOJA.
-      # PIRMA REIK ATSAKYT I KLAUSIMA KAM BUTENT TOKS RODIKLIS REIKALINGAS
-      # KAIP IR LOGISKA BUTU SANTYKI NAUDOT SU LOKALIU NULL MODELIU, JEI
-      # LOKALUS NULL MODELIS VERTINAMAS, NES TAS ATSPINDES OBJEKTYVIAU PERFORMANCE
-      # NEGU ABSOLIUTUS, KURIO KOKYBE IS TIESU PRIKLAUSO NUO NULL MODELIO
-      # BET TUOMET GAL REIKETU PATEIKTI: VIDURKI; SANTYKI SU ABSOLIUCIU NULL;
-      # SANTYKI SU LOKALIU NULL?
-      # KAIP PAIMTI TA LOKALU NULL? NEV NE VISI GI NAUDOS... IR TAIP SUDETINGAS NAUDOJIMAS
+    assign(x = "blocks" ,value = rbind(blocks, data.frame(
+      mean.dif = mean.dif,
+      sd.dif = sd.dif, # NA if 1 split
+      str.z.score = (maxdif - mean.dif) / sd.dif, # NA if 1 split
       iteration = iteration,
       root = root
-      ))
+    ))
+    ,envir = e)
+
     print(c("blocks: ", blocks))
-    print(c("performance: ", performance))
+    print(c("mean quality of straight splits: ", mean.dif))
+    print(c("anysotropy of quality of straight splits: ", sd.dif))
+    print((maxdif - mean.dif) / sd.dif)
   # duomenu saugojimas
   #Jei rastas tinkamas padalinimas - ieskom geriausios padalinimo kreives,
   #issaugom duomenis ir ziurim ar galima skaidyti toliau
@@ -449,14 +491,14 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
       knot.density.Y = knot.density.Y,
       N.cond =N.cond,
       S.cond = S.cond,
-      iteracija = curve.iterations,
-      n.curve.iter = correction.term
+      n.curve.iter = curve.iterations,
+      c.corr.term = correction.term
 
       )
     if (trace.level > 2) {
       lines(best.curve[[1]],col=2,lwd=3)
     }
-    if ((1-(max(best.curve[[2]],maxdif)/original.qual)) < P.crit ){ # vel santykinis base line. Be to,
+    if ( max(best.curve[[2]],maxdif) < upper.Q.crit ){ # vel santykinis base line. Be to,
       # galima gi reikalaut, kad atotrukis nuo base line butu tam tikro dydzio. Dar vienas P.crit
       # argumentas reikalingas?
       maxid<-0}
@@ -470,10 +512,16 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
       best.splitl <- data.frame(x=as.numeric(c(pairs_pts[maxid,c(1,3)])),
                                 y=as.numeric(c(pairs_pts[maxid,c(2,4)])))
     }
-    splits <<- do.call(c,list(splits,list(best.splitl)))
-    split.performance <<- do.call(c,list(split.performance,maxdif ))
-    split.reliability <<- do.call(c,list(split.reliability,
-                                         (maxdif - performance)/sd(any.split))) # z-score of performance
+    assign(x = "splits" ,value = do.call(c,list(splits,list(best.splitl))),
+           envir = e)
+    assign(x = "split.quality" ,
+           value = do.call(c,list(split.quality,maxdif )),
+           envir = e)
+    assign(x = "split.z.score" ,
+           value = do.call(c,list(split.z.score,
+                                  (maxdif - mean.dif)/sd.dif)),
+           envir = e)
+    # z-score of performance
     #dalinam duomenis padalinimo kreive
     #reikia sukurti poligonus du ir nufiltruoti duomenis  - galima padaryti geriau
     up.pol <- .close_poly(
@@ -525,26 +573,40 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
         II.dat <- .get_data(ribs[[2]], test.samp.dat[[a]])
         pseudo.kokybe[a] <- alfa(I.dat[,1], II.dat[,1])
       }
-      checks <<- do.call(c,list(checks,list(pseudo.kokybe)))
-      split.reliability2 <<- do.call(c,list(
+      assign(x = "checks",value = do.call(c,list(checks,list(pseudo.kokybe))),
+                                          envir = e)
+      assign(x = "split.reliability2", value =
+               do.call(c,list(
         split.reliability2,
-        sum(split.performance[length(split.performance)]<pseudo.kokybe)/n.m.N
-        )) # kvantilis
+        sum(split.quality[length(split.quality)]<pseudo.kokybe)/n.m.N
+        )),
+        envir = e) # kvantilis
       # kvantilio reiksme - empirine p verte
       # jei gausinis skirstinys,tai:
-      # 1 - qnorm(sum(last(split.performance),mean(pseudo.kokybe),sd(pseudo.kokybe)) duotu teorine p-verte
+      # 1 - qnorm(sum(last(split.quality),mean(pseudo.kokybe),sd(pseudo.kokybe)) duotu teorine p-verte
     }
   # updatinam ka reikia in hespdiv env.
-    n.splits <<- do.call(c,list(n.splits,length(any.split)))
-    ave.split.abE <<- do.call(c,list(ave.split.abE,performance))
-    original.quality <<- do.call(c,list(original.quality,original.qual))
+    assign(x = "n.splits",value = do.call(c,list(n.splits,length(any.split))),
+           envir = e)
+
+    assign(x = "mean.dif",
+           value = do.call(c,list(mean.dif,mean.dif)),
+           envir = e)
+    assign(x = "original.quality",
+           value = do.call(c,list(original.quality,original.qual)),envir = e)
     #
-    rims <<- do.call(c,list(rims,ribs[1]))
+    assign(x = "rims" ,value = do.call(c,list(rims,ribs[1])) ,envir = e)
+    assign(x = "plot.id",value = do.call(c,list(plot.id,iteration)),
+           envir = e)
+
     # where to next?
     if (trace.level > 1) {
       lines(ribs[[1]],col="purple")
     }
+
+
     .spatial_div(up.dat, root = iteration)
+
     print(paste("griztam i", testid, "padalinima [po mazu koord bloko]", sep=" "))
 
 
@@ -553,8 +615,7 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
     #gogolis masyvo. Duotu koordinaciu ribose ir bandom ieskoti pjuvio bei toliau updatinti duomenis.
     #Jei pavyksta rasti pjuvi, updatinam duomenis, jei ne trinam null bobolis ir priklijuotas koo-
     #rdinates.
-
-    rims <<- do.call(c,list(rims,ribs[2]))
+    assign(x = "rims" ,value = do.call(c,list(rims,ribs[2])) ,envir = e)
 
     if (trace.level > 1) {
       lines(ribs[[2]],col="purple")
@@ -573,12 +634,14 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
 }
 
 .dif_fun <- function() {
+  environment(generalize.f) <- e
+  environment(compare.f) <- e
   compare.f( generalize.f(Puses[[1]]), generalize.f(Puses[[2]]) )
 }
 
 print.hespdiv <- function(x){
   cat("\n","Information about splits:", "\n","\n")
-  print(x[[4]])
+  print(round(x$split.stats,2))
   cat("\n", "Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1")
   invisible(x)
 }
