@@ -645,3 +645,20 @@ print.hespdiv <- function(x){
   cat("\n", "Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1")
   invisible(x)
 }
+
+sim.testdat<-function(data,n){
+  for (i in 1:n){
+    x.shift <- runif(1,min=0,max=dist(range(data$x)))
+    y.shift <- runif(1,min=0,max=dist(range(data$y)))
+    testx <- data$x+x.shift
+    testy <- data$y+y.shift
+    tx <- case_when(testx>max(data$x) ~ testx-max(data$x)+min(data$x),
+                  TRUE ~ testx)
+    ty <- case_when(testy>max(data$y) ~ testy-max(data$y)+min(data$y),
+                  TRUE ~ testy)
+
+    tt <- data.frame(rusis=data[,1],X=tx,Y=ty)
+    ttt<-do.call(c,list(ttt,list(tt)))
+  }
+  ttt
+}
