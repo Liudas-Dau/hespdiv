@@ -284,7 +284,7 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
                    cutpoints = c(0 ,0.001,0.01, 0.05, 0.1, 1),
                    symbols = c("***", "**", "*", ".", " "))
 
-  if (method == "eee"){
+  if (method == "Pielou_biozonation"){
     parent.E <- block.obs[[match(plot.id,names(block.obs))]]
     rezas <- structure(list(
       split.lines = splits,
@@ -321,10 +321,13 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
       z.score = split.z.score,
       mean.dif = mean.dif,
       split.quality = split.quality,
-      p_value = p.val,
-      signif. = format(Signif)
+      p.val1 = p.val1,
+      signif.1 = format(Signif1),
+      p.val2 = p.val2,
+      signif.2 = format(Signif2)
     ),
-    null.m.st= checks
+    n.m.rez = list(sim1.difs = sim1.difs, sim2.difs),
+    n.m.sim = list(n.m.sims1,n.m.sims2)
   ),
   class = "hespdiv"
   )
@@ -340,7 +343,7 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
 #' @param min.x.id index of split line vertex in poly.x and poly.y objects that has lower x coordinate
 #' @param max.x.id index of split line vertex in poly.x and poly.y objects that has lower y coordinate
 #' @param b slope of a split line
-#' @param data data frame of data being analized
+#' @param data data frame of data being analyzed
 #' @param knot.density.X number of spline knots along the split line
 #' @param knot.density.Y number of spline knots orthogonal to the split line
 #' @param N.condminimum minimum number of fossils required to establish subdivision of a plot
@@ -449,7 +452,7 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
             #nupiesiam padalinima ir paskaiciuojam kokybe
             environment(generalize.f) <- environment()
             environment(compare.f) <- environment()
-            Skirtumas <- .dif_fun()
+            Skirtumas <- .dif_fun(Puses[[1]],Puses[[2]])
             any.split <- c(any.split,Skirtumas)
             #Paskaiciuojam plotus padalintu bloku
             if (Skirtumas > maxdif){
@@ -674,14 +677,6 @@ print.hespdiv <- function(x){
   cat("\n", "Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1")
   invisible(x)
 }
-a <- data.frame(x = 1:3,s = 5:7, y= 10:12)
-
-a[,c("x","y")] <- data.frame(x=2:4,y=7:9)
-
-a[,c("x","y")]
-
-a$x <- 3:1
-
 
 .sp.n.m <- function(data,n,n.m.keep,type){
     if (type == 1) {
