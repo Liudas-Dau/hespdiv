@@ -156,7 +156,8 @@
 #' data.
 #' @param root.heritage The assumed \code{inher.dat} variable, used in the first
 #' iteration, where there are no inherited information from parent plots.
-#'
+#' @param n.m.keep logical (default FALSE). Do you wish to keep null model
+#' simulations?
 #' @return A list of 2 elements:
 #' \describe{
 #'   \item{\code{per_pts}}{A data frame of 4 columns, providing the information about the generated points on a perimeter of a polygon. This data frame is used as an input in \code{\link{pair_pts}} function.}
@@ -245,13 +246,24 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
     plot.id <- numeric()
     split.z.score <- numeric()
     split.quality <- numeric()
-    p.val <- numeric()
+
+    if (n.m.test){
+      p.val1 <- numeric()
+      p.val2 <- numeric()
+      sim1.difs <- numeric()
+      sim2.difs <- numeric()
+      if (n.m.keep){
+        n.m.sims1 <- list()
+        n.m.sims2 <- list()
+      }
+    }
+
     n.splits <- numeric()
     mean.dif <- numeric()
   }
   S.cond <- abs(polyarea(x,y)) * S.crit
   splits <- numeric()
-  checks <- list()
+
   iteration <- 1
 
   e <- environment()
@@ -260,11 +272,15 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
   .spatial_div(data,root=2)
   names(block.obj) <- blocks$iteration
 
-  if (null.models==F){
-    p.val <- rep(NaN,length(n.splits))
+  if (null.models==FALSE){
+    p.val1 <- rep(NaN,length(n.splits))
+    p.val2 <- rep(NaN,length(n.splits))
   }
 
-  Signif <- symnum(p.val, corr = FALSE, na = FALSE,
+  Signif1 <- symnum(p.val1, corr = FALSE, na = FALSE,
+                   cutpoints = c(0 ,0.001,0.01, 0.05, 0.1, 1),
+                   symbols = c("***", "**", "*", ".", " "))
+  Signif2 <- symnum(p.val2, corr = FALSE, na = FALSE,
                    cutpoints = c(0 ,0.001,0.01, 0.05, 0.1, 1),
                    symbols = c("***", "**", "*", ".", " "))
 
@@ -282,10 +298,13 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
         split.p.red = split.quality,
         parent.E = parent.E,
         delta.E = -parent.E * split.quality,
-        p_value = p.val,
-        signif. = format(Signif)
+        p.val1 = p.val1,
+        signif.1 = format(Signif1),
+        p.val2 = p.val2,
+        signif.2 = format(Signif2)
       ),
-      null.m.st = checks
+      n.m.rez = list(sim1.difs = sim1.difs, sim2.difs),
+      n.m.sim = list(n.m.sims1,n.m.sims2)
     ),
     class = "hespdiv"
     )
@@ -565,26 +584,36 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
     if (n.m.test){
 
       set.seed(n.m.seed)
-      test.samp.dat <- sim.testdat(samp.dat,n.m.N) # reikia pakurti dar sita funkcija
-      pseudo.kokybe <- numeric(n.m.N)
+      test1 <- .sp.n.m(samp.dat,n.m.N,n.m.keep,type = 1)
+      test2 <- .sp.n.m(samp.dat,n.m.N,n.m.keep,type = 2) # reikia pakurti dar sita funkcija
 
-      for (a in 1:n.m.N){
-        I.dat <- .get_data(ribs[[1]], test.samp.dat[[a]])
-        II.dat <- .get_data(ribs[[2]], test.samp.dat[[a]])
-        pseudo.kokybe[a] <- alfa(I.dat[,1], II.dat[,1])
+      if (n.m.keep){
+        assign(x = "n.m.sims1",value = do.call(c,list(n.m.sims1,list(test1[[2]]))),
+               envir = e)
+        assign(x = "n.m.sims2",value = do.call(c,list(n.m.sims2,list(test2[[2]]))),
+               envir = e)
       }
-      assign(x = "checks",value = do.call(c,list(checks,list(pseudo.kokybe))),
+      assign(x = "sim2.difs",value = do.call(c,list(sim2.difs,list(test2[[1]]))),
                                           envir = e)
-      assign(x = "p.val", value =
+      assign(x = "sim1.difs",value = do.call(c,list(sim1.difs,list(test1[[1]]))),
+             envir = e)
+
+      assign(x = "p.val1", value =
                do.call(c,list(
-        p.val,
-        sum(maxdif<pseudo.kokybe)/n.m.N
+                 p.val1,
+        sum(maxdif < test1[[1]])/n.m.N
         )),
         envir = e) # kvantilis
       # kvantilio reiksme - empirine p verte
       # jei gausinis skirstinys,tai:
       # 1 - qnorm(sum(last(split.quality),mean(pseudo.kokybe),sd(pseudo.kokybe)) duotu teorine p-verte
-    }
+      assign(x = "p.val2", value =
+               do.call(c,list(
+                 p.val,
+                 sum(maxdif<test2[[1]])/n.m.N
+               )),
+             envir = e)
+      }
   # updatinam ka reikia in hespdiv env.
     assign(x = "n.splits",value = do.call(c,list(n.splits,length(any.split))),
            envir = e)
@@ -633,10 +662,10 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
   }
 }
 
-.dif_fun <- function() {
+.dif_fun <- function(dat1,dat2) {
   environment(generalize.f) <- e
   environment(compare.f) <- e
-  compare.f( generalize.f(Puses[[1]]), generalize.f(Puses[[2]]) )
+  compare.f( generalize.f(dat1), generalize.f(dat2) )
 }
 
 print.hespdiv <- function(x){
@@ -645,11 +674,29 @@ print.hespdiv <- function(x){
   cat("\n", "Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1")
   invisible(x)
 }
+a <- data.frame(x = 1:3,s = 5:7, y= 10:12)
 
-sim.testdat<-function(data,n){
+a[,c("x","y")] <- data.frame(x=2:4,y=7:9)
+
+a[,c("x","y")]
+
+a$x <- 3:1
+
+
+.sp.n.m <- function(data,n,n.m.keep,type){
+    if (type == 1) {
+      N <- nrow(data)
+    } else {
+      N <- 1
+    }
+    mirror.data <- data
+    pseudo.kokybe <- numeric(n.m.N)
+    if (n.m.keep){
+      sim <- list()
+    }
   for (i in 1:n){
-    x.shift <- runif(1,min=0,max=dist(range(data$x)))
-    y.shift <- runif(1,min=0,max=dist(range(data$y)))
+    x.shift <- runif(N,min=0,max=dist(range(data$x)))
+    y.shift <- runif(N,min=0,max=dist(range(data$y)))
     testx <- data$x+x.shift
     testy <- data$y+y.shift
     tx <- case_when(testx>max(data$x) ~ testx-max(data$x)+min(data$x),
@@ -657,8 +704,19 @@ sim.testdat<-function(data,n){
     ty <- case_when(testy>max(data$y) ~ testy-max(data$y)+min(data$y),
                   TRUE ~ testy)
 
-    tt <- data.frame(rusis=data[,1],X=tx,Y=ty)
-    ttt<-do.call(c,list(ttt,list(tt)))
+    mirror.data[,c("x","y")] <- data.frame(x=tx,y=ty)
+    I.dat <- .get_data(ribs[[1]], mirror.data)
+    II.dat <- .get_data(ribs[[2]], mirror.data)
+
+    pseudo.kokybe[i] <- dif.fun(I.dat, II.dat)
+
+    if (n.m.keep){
+    sim <- do.call(c,list(sim1,list(mirror.data)))
+    }
   }
-  ttt
+    if (n.m.keep){
+      return(list(pseudo.kokybe,sim))
+    } else {
+      return(list(pseudo.kokybe))
+    }
 }
