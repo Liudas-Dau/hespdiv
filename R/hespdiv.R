@@ -308,7 +308,7 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
     ),
     class = "hespdiv"
     )
-  }
+  } else {
 
   rezas <- structure(list(
     split.lines = splits,
@@ -331,6 +331,7 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
   ),
   class = "hespdiv"
   )
+  }
 
   return(print.hespdiv(rezas))
 }
@@ -363,7 +364,6 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
   #testuojamas plotas
   testid <- length(rims)
   margins <- rims[[testid]]
-  original.qual <- -2*entropija(samp.dat[,1]) #### THIS IS P(Q).crit, use inherit.f or even better: extract information from intermediate results
 
   assign(x = "iteration",value = iteration +1, envir = e)
   assign(x = "blocks.obj" ,
@@ -624,8 +624,6 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
     assign(x = "mean.dif",
            value = do.call(c,list(mean.dif,mean.dif)),
            envir = e)
-    assign(x = "original.quality",
-           value = do.call(c,list(original.quality,original.qual)),envir = e)
     #
     assign(x = "rims" ,value = do.call(c,list(rims,ribs[1])) ,envir = e)
     assign(x = "plot.id",value = do.call(c,list(plot.id,iteration)),
