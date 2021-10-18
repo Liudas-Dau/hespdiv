@@ -94,7 +94,7 @@
 #' spline knots. These columns are distributed regularly along to the straight
 #' split-line. This parameter controls wiggliness (wave length) of the
 #' curvi-linear split-lines. Higher values allow  wigglier curves, thus
-#' inceasing the fit to the data, but increases the optimization time of
+#' increasing the fit to the data, but increases the optimization time of
 #' curvi-linear split-lines. Default value is 5.
 #' @param c.ort.knots Curve parameter. The number of rows in the net of
 #' spline knots. These rows are distributed regularly orthogonal to the straight
@@ -142,6 +142,8 @@
 #' @param n.m.seed randomization seed that is set before analysis (default 1).
 #' The use of the same seed allows to obtain the same stochastic process
 #' simulation results (e. g. p values calculated from null model simulations).
+#' @param n.m.keep logical (default FALSE). Do you wish to keep null model
+#' simulations?
 #' @param study.pol A polygon of study area (optional). It should be data.frame
 #' with two columns 'x' and 'y' containing coordinates of vertexes
 #' of a polygon that encompasses the locations of \code{data}. If not
@@ -156,8 +158,6 @@
 #' split lines are reported; 7 - all split-lines are reported.
 #' @param pnts.col Color of data points, default is 1. Argument is used when
 #' \code{trace.level} > 0. If set to NULL, data points will not be displayed.
-#' @param n.m.keep logical (default FALSE). Do you wish to keep null model
-#' simulations?
 #' @return hespdiv class object, a list of at least 5 elements (see details):
 #' \describe{
 #'   \item{\code{split.lines}}{ a list containing data frames of
@@ -196,11 +196,15 @@
 #' @importFrom pracma polyarea
 #' @export
 
-hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA,
-                           C.cond=0,E.cond=0,N.cond=0,S.cond=0,divisions=NULL,lim=NULL,
-                           knot.density.X=knot.density.X,knot.density.Y=knot.density.Y,curve.iterations,
-                           correction.term=0.05,null.models=T,seed.t=round(runif(1,0,9999),0),test.n) {
-  if (c.splits == FALSE & upper.Q.crit != lower.Q.crit) {
+hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
+                  compare.f = NULL, method = "Pielou_biozonation", N.crit = 0,
+                  S.crit = 0, lower.Q.crit = -Inf, upper.Q.crit = -Inf,
+                  c.splits = TRUE, c.axis.knots = 5, c.ort.knots = 10,
+                  c.iter.no = 2, c.corr.term = 0.05, n.m.test = FALSE,
+                  n.m.N = 1000, n.m.seed = 1,  n.m.keep = FALSE,
+                  study.pol = NULL, trace.level = 0, pnts.col = 1){
+
+    if (c.splits == FALSE & upper.Q.crit != lower.Q.crit) {
     print("Since 'c.splits' is FALSE, 'lower.Q.crit' is set equal to
           'upper.Q.crit'")
   }

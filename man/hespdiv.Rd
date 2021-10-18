@@ -6,37 +6,32 @@
 \usage{
 hespdiv(
   data,
-  polygon = NULL,
-  method = NA,
-  variation = NA,
-  metric = NA,
-  criteria = NA,
-  C.cond = 0,
-  E.cond = 0,
-  N.cond = 0,
-  S.cond = 0,
-  divisions = NULL,
-  lim = NULL,
-  knot.density.X = knot.density.X,
-  knot.density.Y = knot.density.Y,
-  curve.iterations,
-  correction.term = 0.05,
-  null.models = T,
-  seed.t = round(runif(1, 0, 9999), 0),
-  test.n
+  n.split.pts = 15,
+  generalize.f = NULL,
+  compare.f = NULL,
+  method = "Pielou_biozonation",
+  N.crit = 0,
+  S.crit = 0,
+  lower.Q.crit = -Inf,
+  upper.Q.crit = -Inf,
+  c.splits = TRUE,
+  c.axis.knots = 5,
+  c.ort.knots = 10,
+  c.iter.no = 2,
+  c.corr.term = 0.05,
+  n.m.test = FALSE,
+  n.m.N = 1000,
+  n.m.seed = 1,
+  n.m.keep = FALSE,
+  study.pol = NULL,
+  trace.level = 0,
+  pnts.col = 1
 )
 }
 \arguments{
 \item{data}{a data frame with columns containing the variables analyzed and
 rows - observations, potentially from different locations. \code{data} must
 have columns named "x" and "y" that contain coordinate information.}
-
-\item{method}{A pre-set combination of \code{generalize.f} and
-\code{compare.f} functions that serve some distinct purpose.
-Available methods:
- "Pielou_biozonation" - distinguishes paleoprovinces by maximum reductions in
- Pielou entropy that are observed in the occurrence data of fossil taxa, when
- the split-line manages to correctly separate different paleoprovinces.}
 
 \item{n.split.pts}{number of points that are used in creation of split-lines
 since these points serve as endings / origins of straight, as well as
@@ -55,6 +50,13 @@ arguments (see the list of free variables available in \code{generalize.f}
 an R object, that is recognized and used by \code{compare.f} function to
 estimate the quality of the split-lines (difference between two data groups
 separated in space by a split-line)}
+
+\item{method}{A pre-set combination of \code{generalize.f} and
+\code{compare.f} functions that serve some distinct purpose.
+Available methods:
+ "Pielou_biozonation" - distinguishes paleoprovinces by maximum reductions in
+ Pielou entropy that are observed in the occurrence data of fossil taxa, when
+ the split-line manages to correctly separate different paleoprovinces.}
 
 \item{N.crit}{Subdivision stopping criteria - number of observations.
 Minimum number of observations (rows in data) that should
@@ -147,6 +149,9 @@ TWO models (toroidal and totally random).}
 The use of the same seed allows to obtain the same stochastic process
 simulation results (e. g. p values calculated from null model simulations).}
 
+\item{n.m.keep}{logical (default FALSE). Do you wish to keep null model
+simulations?}
+
 \item{study.pol}{A polygon of study area (optional). It should be data.frame
 with two columns 'x' and 'y' containing coordinates of vertexes
 of a polygon that encompasses the locations of \code{data}. If not
@@ -163,9 +168,6 @@ split lines are reported; 7 - all split-lines are reported.}
 
 \item{pnts.col}{Color of data points, default is 1. Argument is used when
 \code{trace.level} > 0. If set to NULL, data points will not be displayed.}
-
-\item{n.m.keep}{logical (default FALSE). Do you wish to keep null model
-simulations?}
 }
 \value{
 hespdiv class object, a list of at least 5 elements (see details):
