@@ -211,15 +211,15 @@ created and tested in a similar manner. Thus, each recursive iteration can
 produce either a straight or curvi-linear split-line that divides the study
 area and data into two parts. Each part can be further subdivided in
 the subsequent iterations to ultimately produce a hierarchical subdivision of
-space and data.
-Two main functions must be provided to estimate the separation of data in
+space and data. \n Two main functions must be provided to estimate the
+separation of data in
 space. First one (argument = \code{generalize.f}) is needed to calculate some
 emergent data quality (eg. some model, summary statistic, etc.).
 The second one (argument = \code{compare.f}) defines how the difference between
 emergent data qualities estimated from different areas should be
 quantified (e.g. prediction error, change in model structure, absolute
-difference in statistic, etc).
-In some sense, data generalization functions similar to the distance
+difference in statistic, etc). \n In some sense, data generalization
+functions similar to the distance
 calculation method and comparison function - to the linkage function of
 cluster analysis. The difference is, that the top-down approach used here
 allows to quantify the distance between groups of data in ways that require
