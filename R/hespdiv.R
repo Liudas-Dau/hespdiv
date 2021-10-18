@@ -29,7 +29,7 @@
 #'
 #' @param data a data frame with columns containing the variables analyzed and
 #' rows - observations, potentially from different locations. \code{data} must
-#' contain columns named "x" and "y" that contain coordinate information.
+#' have columns named "x" and "y" that contain coordinate information.
 #' @param n.split.pts number of points that are used in creation of split-lines
 #' since these points serve as endings / origins of straight, as well as
 #' curvi-linear split-lines. Thus, the bigger this number, the more split-lines
@@ -37,24 +37,33 @@
 #' increase the computation time dedicated to the search of straight
 #' split-lines, but increase the fit to the data.
 #' @param generalize.f a function used to estimate some emergent data quality.
-#' As an input it  should use a subset of \code{data}, though it can also use
-#' the values of other \code{hespidv} arguments. As an output, it should produce
+#' It must have one argument to which a spatially filtered subset of \code{data}
+#' could be assigned. However, \code{generalize.f} can access the
+#' \code{hespdiv} environment, thus inside this function other variables from
+#' \code{hespdiv} environment could be used, without requiring them as
+#' arguments (see the list of free variables available in \code{generalize.f}
+#' - list). As an output, \code{generalize.f} should produce
 #' an R object, that is recognized and used by \code{compare.f} function to
-#' estimate the difference between two data groups separated in space by a
-#' split-line.
+#' estimate the quality of the split-lines (difference between two data groups
+#' separated in space by a split-line)
 #' @param compare.f a function used to quantify the difference between two data
-#' groups separated in space by a split-line. This function should have
-#' arguments \code{plot.1} and \code{plot.2}, since these are the outputs of
-#' \code{generalize.f} function applied to the data sets from different areas
-#' that were separated by a split-line. Arguments of \code{hespidv} function
-#' can also be used as arguments in \code{compare.f} function. The output of
-#' \code{compare.f} should be a single numerical value that represents the
-#' difference between two data sets (\code{plot.1} and \code{plot.2} objects).
-#' The higher this number, the greater the difference will be recognized.
+#' groups separated in space by a split-line. The estimated difference
+#' represents the quality of a split-line. This function must have two
+#' arguments to which the outputs of \code{generalize.f} could be assigned.
+#' These outputs are the emergent data qualities estimated at opposite sides of
+#' a split-line. Thus, \code{compare.f} must define how these data qualities
+#' should be compared to produce a difference measure that represents the
+#' quality of a split line. Similar to \code{generalize.f}, \code{compare.f}
+#' can access the \code{hespdiv} environment. Thus, inside \code{compare.f}
+#' function other variables from \code{hespdiv} environment could be used,
+#' without requiring them as arguments (see the list of free variables
+#' available in \code{generalize.f - list).
 #' @param method A pre-set combination of \code{generalize.f} and
-#' \code{compare.f} that serve some distinct purpose. Available methods:
-#'  "Pielou_biozonation" (distinguishes paleoprovinces by reductions in Pielou
-#'  entropy after data sets of two paleoprovinces are divided).
+#' \code{compare.f} functions that serve some distinct purpose.
+#' Available methods:
+#'  "Pielou_biozonation" - distinguishes paleoprovinces by maximum reductions in
+#'  Pielou entropy that are observed in the occurrence data of fossil taxa, when
+#'  the split-line manages to correctly separate different paleoprovinces.
 #' @param N.crit Subdivision stopping criteria - number of observations.
 #' Minimum number of observations (rows in data) that should
 #' be present in areas separated by a split-line in order to establish the
@@ -148,14 +157,6 @@
 #' split lines are reported; 7 - all split-lines are reported.
 #' @param pnts.col Color of data points, default is 1. Argument is used when
 #' \code{trace.level} > 0. If set to NULL, data points will not be displayed.
-#' @param inherit.f A function whose output is saved internally
-#' as \code{inher.dat} variable. \code{inher.dat} can be used as an argument in
-#' \code{generalize.f} or \code{compare.f} functions. Thus, \code{inherit.f} can
-#' be used to extract some information from parent plots and data, and pass it
-#' to other recursive iterations to be used when dividing offspring plots and
-#' data.
-#' @param root.heritage The assumed \code{inher.dat} variable, used in the first
-#' iteration, where there are no inherited information from parent plots.
 #' @param n.m.keep logical (default FALSE). Do you wish to keep null model
 #' simulations?
 #' @return A list of 2 elements:
@@ -209,10 +210,10 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
 
   ##### pirmas data stulpelis turi buti rusis - faktorius, antras X, trecias Y., dependencies = dplyr
   #S.cond pateikti kaip proporcija ploto
-  require(dplyr)
-  library(gstat)
-  library(sp)
-  library(spatstat)
+  #require(dplyr)
+  #library(gstat)
+  #library(sp)
+  #library(spatstat)
   #duomenys pirminiai
   {
     if( all(names(data) != "x") | all(names(data) != "y") ){
@@ -272,21 +273,12 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
   .spatial_div(data,root=2)
   names(block.obj) <- blocks$iteration
 
-  if (null.models==FALSE){
-    p.val1 <- rep(NaN,length(n.splits))
-    p.val2 <- rep(NaN,length(n.splits))
-  }
 
-  Signif1 <- symnum(p.val1, corr = FALSE, na = FALSE,
-                   cutpoints = c(0 ,0.001,0.01, 0.05, 0.1, 1),
-                   symbols = c("***", "**", "*", ".", " "))
-  Signif2 <- symnum(p.val2, corr = FALSE, na = FALSE,
-                   cutpoints = c(0 ,0.001,0.01, 0.05, 0.1, 1),
-                   symbols = c("***", "**", "*", ".", " "))
 
-  if (method == "Pielou_biozonation"){
+
+  if(method == "Pielou_biozonation"){
     parent.E <- block.obs[[match(plot.id,names(block.obs))]]
-    rezas <- structure(list(
+    result <- structure(list(
       split.lines = splits,
       boundaries = rims,
       block.stats = blocks,
@@ -297,43 +289,52 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
         mean.p.red = mean.dif,
         split.p.red = split.quality,
         parent.E = parent.E,
-        delta.E = -parent.E * split.quality,
-        p.val1 = p.val1,
-        signif.1 = format(Signif1),
-        p.val2 = p.val2,
-        signif.2 = format(Signif2)
-      ),
-      n.m.rez = list(sim1.difs = sim1.difs, sim2.difs),
-      n.m.sim = list(n.m.sims1,n.m.sims2)
+        delta.E = -parent.E * split.quality
+      )
     ),
     class = "hespdiv"
     )
   } else {
-
-  rezas <- structure(list(
-    split.lines = splits,
-    boundaries = rims,
-    block.stats = blocks,
-    block.obj = block.obj,
-    split.stats = data.frame(
-      plot.id = plot.id,
-      n.splits = n.splits,
-      z.score = split.z.score,
-      mean.dif = mean.dif,
-      split.quality = split.quality,
-      p.val1 = p.val1,
-      signif.1 = format(Signif1),
-      p.val2 = p.val2,
-      signif.2 = format(Signif2)
+    result <- structure(list(
+      split.lines = splits,
+      boundaries = rims,
+      block.stats = blocks,
+      block.obj = block.obj,
+      split.stats = data.frame(
+        plot.id = plot.id,
+        n.splits = n.splits,
+        z.score = split.z.score,
+        mean.dif = mean.dif,
+        split.quality = split.quality
+      )
     ),
-    n.m.rez = list(sim1.difs = sim1.difs, sim2.difs),
-    n.m.sim = list(n.m.sims1,n.m.sims2)
-  ),
-  class = "hespdiv"
-  )
+    class = "hespdiv"
+    )
   }
 
-  return(print.hespdiv(rezas))
+  if (n.m.test){
+    Signif1 <- symnum(p.val1, corr = FALSE, na = FALSE,
+                      cutpoints = c(0 ,0.001,0.01, 0.05, 0.1, 1),
+                      symbols = c("***", "**", "*", ".", " "))
+    Signif2 <- symnum(p.val2, corr = FALSE, na = FALSE,
+                      cutpoints = c(0 ,0.001,0.01, 0.05, 0.1, 1),
+                      symbols = c("***", "**", "*", ".", " "))
+
+    result$split.stats <- cbind(result$split.stats,
+                               data.frame(p.val1 = p.val1,
+                                          signif.1 = format(Signif1),
+                                          p.val2 = p.val2,
+                                          signif.2 = format(Signif2)))
+    result <- do.call(c,list(result,
+                            list(n.m.rez =
+                                   list(sim1.difs = sim1.difs, sim2.difs))))
+  }
+  if (n.m.keep){
+    result <- do.call(c,list(result,
+                            list(n.m.sim = list(n.m.sims1,n.m.sims2))))
+  }
+
+  return(print.hespdiv(result))
 }
 #' Main recursive hespdiv inner helper function
 #'
@@ -482,9 +483,9 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
       # P.crit
     }
     assign(x = "blocks" ,value = rbind(blocks, data.frame(
-      mean.dif = mean.dif,
-      sd.dif = sd.dif, # NA if 1 split
-      str.z.score = (maxdif - mean.dif) / sd.dif, # NA if 1 split
+      mean.dif = mean.dif, # NA if 0
+      sd.dif = sd.dif, # NA if 1 or 0 split
+      str.z.score = (maxdif - mean.dif) / sd.dif, # NA if 1 or 0 split
       iteration = iteration,
       root = root
     ))
@@ -498,6 +499,7 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
   #Jei rastas tinkamas padalinimas - ieskom geriausios padalinimo kreives,
   #issaugom duomenis ir ziurim ar galima skaidyti toliau
   if (maxid>0) {
+    if ( c.splits) {
     print(perim_pts)
     print(pairs_pts)
 
@@ -523,11 +525,23 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
     if ( max(best.curve[[2]],maxdif) < upper.Q.crit ){ # vel santykinis base line. Be to,
       # galima gi reikalaut, kad atotrukis nuo base line butu tam tikro dydzio. Dar vienas P.crit
       # argumentas reikalingas?
-      maxid<-0}
+      maxid <- 0
+    }
+    } else {
+      if (maxdif < upper.Q.crit){
+        maxdif <- 0
+      }
+    }
   }
 
-  if (maxid>0){
-    if(best.curve[[2]] > maxdif) {
+  if (maxid > 0){ # save the split and perform new splits if TRUE
+    curve.best <- FALSE
+    if (c.splits) {
+      if(best.curve[[2]] > maxdif) {
+        curve.best <- TRUE
+      }
+    }
+    if(curve.best) {
       best.splitl <- data.frame(x = best.curve[[1]]$x, y = best.curve[[1]]$y)
       maxdif <- best.curve[[2]]
     } else {
