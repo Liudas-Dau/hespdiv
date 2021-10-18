@@ -10,15 +10,15 @@
 #' produce either a straight or curvi-linear split-line that divides the study
 #' area and data into two parts. Each part can be further subdivided in
 #' the subsequent iterations to ultimately produce a hierarchical subdivision of
-#' space and data.
-#' Two main functions must be provided to estimate the separation of data in
+#' space and data. \n Two main functions must be provided to estimate the
+#' separation of data in
 #' space. First one (argument = \code{generalize.f}) is needed to calculate some
 #' emergent data quality (eg. some model, summary statistic, etc.).
 #' The second one (argument = \code{compare.f}) defines how the difference between
 #' emergent data qualities estimated from different areas should be
 #' quantified (e.g. prediction error, change in model structure, absolute
-#' difference in statistic, etc).
-#' In some sense, data generalization functions similar to the distance
+#' difference in statistic, etc). \n In some sense, data generalization
+#' functions similar to the distance
 #' calculation method and comparison function - to the linkage function of
 #' cluster analysis. The difference is, that the top-down approach used here
 #' allows to quantify the distance between groups of data in ways that require
@@ -159,20 +159,39 @@
 #' \code{trace.level} > 0. If set to NULL, data points will not be displayed.
 #' @param n.m.keep logical (default FALSE). Do you wish to keep null model
 #' simulations?
-#' @return A list of 2 elements:
+#' @return hespdiv class object, a list of at least 5 elements (see details):
 #' \describe{
-#'   \item{\code{per_pts}}{A data frame of 4 columns, providing the information about the generated points on a perimeter of a polygon. This data frame is used as an input in \code{\link{pair_pts}} function.}
+#'   \item{\code{split.lines}}{ a list containing data frames of
+#'   split-lines coordinates}
+#'   \item{\code{poly.stats}} { a data frame containing information about
+#'   polygons established by the split-lines. Columns:}
 #'   \itemize{
-#'   \item \code{x} - X coordinates of generated points.
-#'   \item \code{y} - Y coordinates of generated points.
-#'   \item \code{ID} - An ID that reflects the relative location of a point along a perimeter of a polygon in relation to other generated points and polygon vertices.
-#'   \item \code{segment.no} = A vector indicating the ID of a polygon segment on which a generated point is located. It helps to indentify points located on the same
-#' polygon segment.
+#'   \item \code{mean.dif} - mean quality of straight split-lines that were
+#'   produced and tested inside a polygon. Can be interpreted as a spatial
+#'   heterogeneity of emergent data quality.
+#'   \item \code{sd.dif} - standard deviation of quality of straight split-lines
+#'   that were produced and tested inside a polygon. Can be interpreted as the
+#'   extent of anisotropy in spatial heterogeneity of emergent data quality.
+#'   \item \code{str.z.score} - z-score of the best straight split-line quality
+#'   produced in a polygon. Indicates, how outstanding the produced straight
+#'   split-line is, when compared to other tested straight split-lines.
+#'   \item \code{iteration} - ID of \code{hespdiv} iteration, in which a
+#'   polygon was analyzed. Can be considered as the ID of a polygon.
+#'   \item \code{root} - the ID of \code{hespdiv} iteration, which produced the
+#'   split-line, isolating a polygon. Can be considered as the ID of
+#'   a polygon's parent-polygon.
 #'   }
-#'   \item{\code{full.poly}}{ A data frame that contains coordinates of the provided polygon vertices and generated points. \code{coords[,"ID"]} can be used to
-#' extract rows of generated points.This data frame is used as an input in \code{\link{curvial.split}} function.}
-#' }
-#' @note If both, n.pts and dst.pts, are specified, then points are generated according to n.pts.
+#'   \item{\code{polygons.xy}}{a list, containing data frames of polygons,
+#'   produced by split-lines. Who corresponds to who??????????????
+#'   \item{\code{poly.obj}}{a list of \code{generalize.f} outputs of each
+#'   polygon. Names of \code{poly.obj} elements correspond
+#'   to the \code{iteration} column of \code{poly.stats}}}
+#'   \item{\code{split.stats}}{a data frame containing information about the
+#'   produced split-lines. Its contents depend on the choice of method and
+#'   the use of null models (see details)}
+#'   }
+#' @note Nothing to note yet.
+#' @details Nothing to detail yet (split.stats, null model results).
 #' @author Liudas Daumantas
 #' @importFrom grDevices chull
 #' @importFrom pracma polyarea
@@ -238,12 +257,12 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
       lines(origins.chull)
     }
     rims <- list()
-    blocks <- data.frame(mean.dif = numeric(), # mean spatial heterogeneity irrespective of split-line position
+    poly.info <- data.frame(mean.dif = numeric(), # mean spatial heterogeneity irrespective of split-line position
                          sd.dif = numeric(), # anizotropy of heterogeneity based on straight split-lines
                          str.z.score = numeric(), # level of outstandingness. Are there other competetive candidate splits?
                          iteration=numeric(),
                          root=numeric() )
-    block.obj <- list(generalize.f(data))
+    poly.obj <- list(generalize.f(data))
     plot.id <- numeric()
     split.z.score <- numeric()
     split.quality <- numeric()
@@ -271,17 +290,18 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
   environment(.spatial_div) <- e
 
   .spatial_div(data,root=2)
-  names(block.obj) <- blocks$iteration
-
+  names(poly.obj) <- poly.info$iteration
+  names(rims) <- poly.info$iteration
 
 
 
   if(method == "Pielou_biozonation"){
-    parent.E <- block.obs[[match(plot.id,names(block.obs))]]
+    parent.E <- poly.obj[[match(plot.id,names(poly.obj))]]
     result <- structure(list(
       split.lines = splits,
-      boundaries = rims,
-      block.stats = blocks,
+      polygons.xy = rims,
+      poly.stats = poly.info,
+      poly.obj = poly.obj,
       split.stats = data.frame(
         plot.id = plot.id,
         n.splits = n.splits,
@@ -297,9 +317,9 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
   } else {
     result <- structure(list(
       split.lines = splits,
-      boundaries = rims,
-      block.stats = blocks,
-      block.obj = block.obj,
+      polygons.xy = rims,
+      poly.stats = poly.info,
+      poly.obj = poly.obj,
       split.stats = data.frame(
         plot.id = plot.id,
         n.splits = n.splits,
@@ -367,8 +387,8 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
   margins <- rims[[testid]]
 
   assign(x = "iteration",value = iteration +1, envir = e)
-  assign(x = "blocks.obj" ,
-         value = do.call(c,list(blocks.obj,list(geneneralize.f(samp.dat)))),
+  assign(x = "polygons.obj" ,
+         value = do.call(c,list(polygons.obj,list(geneneralize.f(samp.dat)))),
          envir = e)
 
   perim_pts <- .perimeter_pts(polygon = margins,n.pts = divisions)
@@ -482,7 +502,7 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
       mean.dif <- NA # negalejom ivertinti ne vieno padalinimo, taigi performance lygu max.
       # P.crit
     }
-    assign(x = "blocks" ,value = rbind(blocks, data.frame(
+    assign(x = "poly.info" ,value = rbind(poly.info, data.frame(
       mean.dif = mean.dif, # NA if 0
       sd.dif = sd.dif, # NA if 1 or 0 split
       str.z.score = (maxdif - mean.dif) / sd.dif, # NA if 1 or 0 split
@@ -491,7 +511,7 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
     ))
     ,envir = e)
 
-    print(c("blocks: ", blocks))
+    print(c("poly.info: ", poly.info))
     print(c("mean quality of straight splits: ", mean.dif))
     print(c("anysotropy of quality of straight splits: ", sd.dif))
     print((maxdif - mean.dif) / sd.dif)
@@ -638,7 +658,7 @@ hespdiv<-function(data,polygon=NULL,method=NA,variation=NA,metric=NA,criteria=NA
     assign(x = "mean.dif",
            value = do.call(c,list(mean.dif,mean.dif)),
            envir = e)
-    #
+    # kaip su situo rims blet?
     assign(x = "rims" ,value = do.call(c,list(rims,ribs[1])) ,envir = e)
     assign(x = "plot.id",value = do.call(c,list(plot.id,iteration)),
            envir = e)

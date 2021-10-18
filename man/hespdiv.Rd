@@ -28,16 +28,15 @@ hespdiv(
 }
 \arguments{
 \item{data}{a data frame with columns containing the variables analyzed and
-rows - observations, potentially from different locations.}
+rows - observations, potentially from different locations. \code{data} must
+have columns named "x" and "y" that contain coordinate information.}
 
 \item{method}{A pre-set combination of \code{generalize.f} and
-\code{compare.f} that serve some distinct purpose. Available methods:
- "Pielou_biozonation" (distinguishes paleoprovinces by reductions in Pielou
- entropy after data sets of two paleoprovinces are divided).}
-
-\item{xy.data}{a data frame with coordinate information (x,y columns in this
-order). \code{xy.data} rows correspond to rows (observations) of the
-\code{data} data frame.}
+\code{compare.f} functions that serve some distinct purpose.
+Available methods:
+ "Pielou_biozonation" - distinguishes paleoprovinces by maximum reductions in
+ Pielou entropy that are observed in the occurrence data of fossil taxa, when
+ the split-line manages to correctly separate different paleoprovinces.}
 
 \item{n.split.pts}{number of points that are used in creation of split-lines
 since these points serve as endings / origins of straight, as well as
@@ -47,34 +46,44 @@ increase the computation time dedicated to the search of straight
 split-lines, but increase the fit to the data.}
 
 \item{generalize.f}{a function used to estimate some emergent data quality.
-As an input it  should use a subset of \code{data}, though it can also use
-the values of other \code{hespidv} arguments. As an output, it should produce
+It must have one argument to which a spatially filtered subset of \code{data}
+could be assigned. However, \code{generalize.f} can access the
+\code{hespdiv} environment, thus inside this function other variables from
+\code{hespdiv} environment could be used, without requiring them as
+arguments (see the list of free variables available in \code{generalize.f}
+- list). As an output, \code{generalize.f} should produce
 an R object, that is recognized and used by \code{compare.f} function to
-estimate the difference between two data groups separated in space by a
-split-line.}
+estimate the quality of the split-lines (difference between two data groups
+separated in space by a split-line)}
 
-\item{compare.f}{a function used to quantify the difference between two data
-groups separated in space by a split-line. This function should have
-arguments \code{plot.1} and \code{plot.2}, since these are the outputs of
-\code{generalize.f} function applied to the data sets from different areas
-that were separated by a split-line. Arguments of \code{hespidv} function
-can also be used as arguments in \code{compare.f} function. The output of
-\code{compare.f} should be a single numerical value that represents the
-difference between two data sets (\code{plot.1} and \code{plot.2} objects).
-The higher this number, the greater the difference will be recognized.}
-
-\item{N.crit}{Algorithm stopping criteria - number of observations.
+\item{N.crit}{Subdivision stopping criteria - number of observations.
 Minimum number of observations (rows in data) that should
 be present in areas separated by a split-line in order to establish the
 split-line. Default is 1.}
 
-\item{S.crit}{Algorithm stopping criteria - size of plots.
-Minimum area in squared coordinate units that plots separated by a
-split-line should have in order to establish the split-line. Default is 0.}
+\item{S.crit}{Subdivision stopping criteria - size of plots.
+Minimum area expressed as a proportion of original study area
+(provided polygon or estimated as convex hull of \code{xy_dat}) that plots
+separated by a split-line should have so that the split-line could be
+established. Default is 0.}
 
-\item{P.crit}{Algorithm stopping criteria - magnitude of difference.
-Minimum difference as estimated by \code{compare.f} function that plots
-should have in order to establish the split-line. Default is -Inf.}
+\item{lower.Q.crit}{Subdivision stopping criteria - lower limit of split-line
+quality applied to the straight split-lines. This is a minimum difference as
+estimated by \code{compare.f} function that separated
+plots should exhibit, so that a straight split-line would be accepted. If
+the best straight split line has lower quality than \code{upper.Q.crit}, but
+passes this limit, then curvi-linear split-lines will be generated with
+expectation that they will improve the quality of a split above
+ \code{upper.Q.crit}.
+If \code{c.splits} is FALSE, then \code{lower.Q.crit} is set equal to
+\code{upper.Q.crit}
+Default is -Inf.}
+
+\item{upper.Q.crit}{Subdivision stopping criteria - upper limit of split-line
+quality applied to the final split-line. This is a minimum difference as
+estimated by \code{compare.f} function that separated
+plots should exhibit, so that a subdivision of a plot using the
+best split-line would be established. Default is -Inf.}
 
 \item{c.splits}{Logical (default TRUE).
 Should curvi-linear split-lines be estimated?}
@@ -139,9 +148,9 @@ The use of the same seed allows to obtain the same stochastic process
 simulation results (e. g. p values calculated from null model simulations).}
 
 \item{study.pol}{A polygon of study area (optional). It should be data.frame
-with two columns containing coordinates (x and y, respectively) of vertixes
-of a polygon that encompasses the locations of \code{xy.data}. If not
-provided (default is NULL), convex hull of \code{xy.data} will be used a
+with two columns 'x' and 'y' containing coordinates of vertexes
+of a polygon that encompasses the locations of \code{data}. If not
+provided (default is NULL), convex hull of \code{data} will be used a
 study area polygon.}
 
 \item{trace.level}{Integer from 0 to 7, indicates how much information should
@@ -152,32 +161,44 @@ curvi-linear split-lines are reported; 4 - best intermediate split-lines are
 reported; 5 - all straight split lines are reported; 6 - all curvi-linear
 split lines are reported; 7 - all split-lines are reported.}
 
-\item{pnts.col}{Color of data points. Argument is when \code{trace.level} > 0}
+\item{pnts.col}{Color of data points, default is 1. Argument is used when
+\code{trace.level} > 0. If set to NULL, data points will not be displayed.}
 
-\item{inherit.f}{A function whose output is saved internally
-as \code{inher_dat} variable. \code{inher_dat} can be used as an argument in
-\code{generalize.f} or \code{compare.f} functions. Thus, \code{inherit.f} can
-be used to extract some information from parent plots and data, and pass it
-to other recursive iterations to be used when dividing offspring plots and
-data.}
-
-\item{root.heritage}{The assumed \code{inher_dat} variable, used in the first
-iteration.}
+\item{n.m.keep}{logical (default FALSE). Do you wish to keep null model
+simulations?}
 }
 \value{
-A list of 2 elements:
+hespdiv class object, a list of at least 5 elements (see details):
 \describe{
-  \item{\code{per_pts}}{A data frame of 4 columns, providing the information about the generated points on a perimeter of a polygon. This data frame is used as an input in \code{\link{pair_pts}} function.}
+  \item{\code{split.lines}}{ a list containing data frames of
+  split-lines coordinates}
+  \item{\code{poly.stats}} { a data frame containing information about
+  polygons established by the split-lines. Columns:}
   \itemize{
-  \item \code{x} - X coordinates of generated points.
-  \item \code{y} - Y coordinates of generated points.
-  \item \code{ID} - An ID that reflects the relative location of a point along a perimeter of a polygon in relation to other generated points and polygon vertices.
-  \item \code{segment.no} = A vector indicating the ID of a polygon segment on which a generated point is located. It helps to indentify points located on the same
-polygon segment.
+  \item \code{mean.dif} - mean quality of straight split-lines that were
+  produced and tested inside a polygon. Can be interpreted as a spatial
+  heterogeneity of emergent data quality.
+  \item \code{sd.dif} - standard deviation of quality of straight split-lines
+  that were produced and tested inside a polygon. Can be interpreted as the
+  extent of anisotropy in spatial heterogeneity of emergent data quality.
+  \item \code{str.z.score} - z-score of the best straight split-line quality
+  produced in a polygon. Indicates, how outstanding the produced straight
+  split-line is, when compared to other tested straight split-lines.
+  \item \code{iteration} - ID of \code{hespdiv} iteration, in which a
+  polygon was analyzed. Can be considered as the ID of a polygon.
+  \item \code{root} - the ID of \code{hespdiv} iteration, which produced the
+  split-line, isolating a polygon. Can be considered as the ID of
+  a polygon's parent-polygon.
   }
-  \item{\code{full.poly}}{ A data frame that contains coordinates of the provided polygon vertices and generated points. \code{coords[,"ID"]} can be used to
-extract rows of generated points.This data frame is used as an input in \code{\link{curvial.split}} function.}
-}
+  \item{\code{polygons.xy}}{a list, containing data frames of polygons,
+  produced by split-lines. Who corresponds to who??????????????
+  \item{\code{poly.obj}}{a list of \code{generalize.f} outputs of each
+  polygon. Names of \code{poly.obj} elements correspond
+  to the \code{iteration} column of \code{poly.stats}}}
+  \item{\code{split.stats}}{a data frame containing information about the
+  produced split-lines. Its contents depend on the choice of method and
+  the use of null models (see details)}
+  }
 }
 \description{
 This is the main function of HespDiv package that performs hierarchical
@@ -191,8 +212,6 @@ produce either a straight or curvi-linear split-line that divides the study
 area and data into two parts. Each part can be further subdivided in
 the subsequent iterations to ultimately produce a hierarchical subdivision of
 space and data.
-}
-\details{
 Two main functions must be provided to estimate the separation of data in
 space. First one (argument = \code{generalize.f}) is needed to calculate some
 emergent data quality (eg. some model, summary statistic, etc.).
@@ -200,7 +219,6 @@ The second one (argument = \code{compare.f}) defines how the difference between
 emergent data qualities estimated from different areas should be
 quantified (e.g. prediction error, change in model structure, absolute
 difference in statistic, etc).
-
 In some sense, data generalization functions similar to the distance
 calculation method and comparison function - to the linkage function of
 cluster analysis. The difference is, that the top-down approach used here
@@ -210,8 +228,11 @@ comparing and first grouping single data points, they cannot use more
 emergent data qualities (whose estimation requires certain amount of points
 distributed in space) to calculate distance between clusters.
 }
+\details{
+Nothing to detail yet (split.stats, null model results).
+}
 \note{
-If both, n.pts and dst.pts, are specified, then points are generated according to n.pts.
+Nothing to note yet.
 }
 \author{
 Liudas Daumantas
