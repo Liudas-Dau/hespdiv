@@ -172,7 +172,7 @@ hespdiv class object, a list of at least 5 elements (see details):
 \describe{
   \item{\code{split.lines}}{ a list containing data frames of
   split-lines coordinates}
-  \item{\code{poly.stats}} { a data frame containing information about
+  \item{\code{poly.stats}}{ a data frame containing information about
   polygons established by the split-lines. Columns:}
   \itemize{
   \item \code{mean.dif} - mean quality of straight split-lines that were
@@ -191,10 +191,10 @@ hespdiv class object, a list of at least 5 elements (see details):
   a polygon's parent-polygon.
   }
   \item{\code{polygons.xy}}{a list, containing data frames of polygons,
-  produced by split-lines. Who corresponds to who??????????????
+  produced by split-lines. Who corresponds to who??????????????}
   \item{\code{poly.obj}}{a list of \code{generalize.f} outputs of each
   polygon. Names of \code{poly.obj} elements correspond
-  to the \code{iteration} column of \code{poly.stats}}}
+  to the \code{iteration} column of \code{poly.stats}}
   \item{\code{split.stats}}{a data frame containing information about the
   produced split-lines. Its contents depend on the choice of method and
   the use of null models (see details)}
@@ -211,14 +211,14 @@ created and tested in a similar manner. Thus, each recursive iteration can
 produce either a straight or curvi-linear split-line that divides the study
 area and data into two parts. Each part can be further subdivided in
 the subsequent iterations to ultimately produce a hierarchical subdivision of
-space and data. \n Two main functions must be provided to estimate the
+space and data. \cr Two main functions must be provided to estimate the
 separation of data in
 space. First one (argument = \code{generalize.f}) is needed to calculate some
 emergent data quality (eg. some model, summary statistic, etc.).
 The second one (argument = \code{compare.f}) defines how the difference between
 emergent data qualities estimated from different areas should be
 quantified (e.g. prediction error, change in model structure, absolute
-difference in statistic, etc). \n In some sense, data generalization
+difference in statistic, etc). \cr In some sense, data generalization
 functions similar to the distance
 calculation method and comparison function - to the linkage function of
 cluster analysis. The difference is, that the top-down approach used here
