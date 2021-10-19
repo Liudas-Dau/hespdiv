@@ -294,7 +294,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
 
   .spatial_div(data,root=2)
   names(poly.obj) <- poly.info$iteration
-  names(rims) <- poly.info$iteration
+  names(rims) <- poly.info$iteration # crazy line?
 
 
 
@@ -357,30 +357,23 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
                             list(n.m.sim = list(n.m.sims1,n.m.sims2))))
   }
 
-  return(print.hespdiv(result))
+  return(print.hespdiv(result,n.m.test))
 }
 #' Main recursive hespdiv inner helper function
 #'
-#' @description function prepares the data to start the searching procedure of the curve that provides the best spatial separation.
-#' As curve are generated using splines, matrix of knot coordinates are prepared. Also, polygon is rotated so that split line would be horizontal and at Y = 0, and start at X = 0.
-#' @param poly.x a vector of x coordinates of a polygon perimeter points
-#' @param poly.y a vector of y coordinates of a polygon perimeter points
-#' @param min.x.id index of split line vertex in poly.x and poly.y objects that has lower x coordinate
-#' @param max.x.id index of split line vertex in poly.x and poly.y objects that has lower y coordinate
-#' @param b slope of a split line
-#' @param data data frame of data being analyzed
-#' @param knot.density.X number of spline knots along the split line
-#' @param knot.density.Y number of spline knots orthogonal to the split line
-#' @param N.condminimum minimum number of fossils required to establish subdivision of a plot
-#' @param S.cond minimum area required to establish subdivision of a plot
-#' @param n.curve.iter number of curve iterations
-#' @param correction.term term that defines how much the a problematic spline
-#' will be corrected (in terms of proportion of polygon width where spline
-#' intersects the polygon boundary) if the spline is not contained within the
-#' plot. Small values recommended (default is 0.05).
-#' @return A list of two elements: 1) curve in shape of a spline that produces the best data separation; 2) quality of the division
+#' @description  During each recursive iteration this function fits straight and
+#' curvi-linear split-lines, then it uses the better of the two to separate
+#' data in space, saves information about the polygon and split-lines,
+#' and calls itself again using the extracted data samples.
+#' @param samp.dat a spatial subset of \code{data} that lies entirely within
+#' some polygon, produced using split-line subdivisions of original study area.
+#' At first iteration, while no subdivisions are established,
+#' \code{samp.dat = data}.
+#' @param root An id of recursive iteration that produced the \code{samp.dat}.
+#' An id of parent-polygon.
+#' @return No return. Function updates variables in \code{hespdiv} environment.
 #' @author Liudas Daumantas
-#' @importFrom DescTools Rotate
+#' @note Function inherits the environment of \code{hespdiv} function.
 #' @importFrom pracma poly_center
 #' @noRd
 
@@ -624,8 +617,8 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
     if (n.m.test){
 
       set.seed(n.m.seed)
-      test1 <- .sp.n.m(samp.dat,n.m.N,n.m.keep,type = 1)
-      test2 <- .sp.n.m(samp.dat,n.m.N,n.m.keep,type = 2) # reikia pakurti dar sita funkcija
+      test1 <- .sp.n.m(samp.dat,ribs,n.m.N,n.m.keep,type = 1)
+      test2 <- .sp.n.m(samp.dat,ribs,n.m.N,n.m.keep,type = 2)
 
       if (n.m.keep){
         assign(x = "n.m.sims1",value = do.call(c,list(n.m.sims1,list(test1[[2]]))),
@@ -700,20 +693,84 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
   }
 }
 
+#' Calculate difference between two data sets
+#'
+#' @description  Function combines generalize.f and compare.f functions, to
+#' estimate the difference between two data sets obtained from opposite sides
+#' of a split-line. This difference reflects the ability of a split-line to
+#' spatially separate data. Thus, it is considered to reflect the quality of a
+#' split-line.
+#' @param dat1 a spatial subset of \code{samp.dat} that is located at opposite
+#' side of a split-line than \code{dat2} is.
+#' \code{samp.dat = data}.
+#' @param dat2 a spatial subset of \code{samp.dat} that is located at opposite
+#' side of a split-line than \code{dat1} is.
+#' @return Numeric value, expressing the difference between two data sets and
+#' the quality of a split-line.
+#' @author Liudas Daumantas
+#' @note Function inherits the environment of \code{hespdiv} function. Also,
+#' it forces this environment to inherited by generalize.f and compare.f
+#' functions.
+#' @noRd
 .dif_fun <- function(dat1,dat2) {
   environment(generalize.f) <- e
   environment(compare.f) <- e
   compare.f( generalize.f(dat1), generalize.f(dat2) )
 }
 
-print.hespdiv <- function(x){
-  cat("\n","Information about splits:", "\n","\n")
+#' Print the results of hespdiv object
+#'
+#' @description  Function formats and prints the results
+#' of R object of class "hespdiv". It prints rounded split.stats data frame.
+#' @param x hespdiv object
+#' @param n.m.test logical - were splits tested using null model simulations?
+#' @return x
+#' @author Liudas Daumantas
+#' @noRd
+print.hespdiv <- function(n.m.test){
+  cat("\n","Information about the splits:", "\n","\n")
   print(round(x$split.stats,2))
-  cat("\n", "Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1")
+  if (n.m.test){
+    cat("\n", "Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1")
+  }
   invisible(x)
 }
 
-.sp.n.m <- function(data,n,n.m.keep,type){
+#' Test the split-line with null model simulations
+#'
+#' @description  Function simulates spatial null models of the provided data and
+#' then checks the performance of the established split-line fitted to the
+#' simulated data.
+#' @param data a samp.dat from .spatial_div function.
+#' @param ribs a list of two data frames of polygons, established by the
+#' fitted, "best" split-line.
+#' @param n integer - number of data simulations to perform.
+#' @param n.m.keep logical - should the produced simulations be kept
+#' @param type type of null model simulations:
+#' 1 - completely random: toroidal rotation of individual data points (the only
+#' things maintained is polygon shape and number of points, and points
+#' themselves),
+#' 2 - random perspective of data points: toroidal rotation of all data points
+#' (micro and macro spatial inter-relations of points are maintained)
+#' Other possible n.m. types:
+#' 3 - random macro inter-relations of data points: toroidal rotation of
+#' data point groups, that lie in the same quadrant of polygon extent (micro
+#' inter-relations of points are maintained) # quadrant number would be required
+#' as an argument.
+#' 4 - random micro inter-relations of data points: jitter of data
+#' points. The amount of jittery equal to points' distance to the xth
+#' nearest neighbor (density surface (intensity, first moment) as well as macro
+#' inter-relations of points are maintained) # xth nearest neighbour would be
+#' required as an argument.
+#' 5?? - random micro and macro inter-relations of data points: rotation of
+#' quadrants and jitter of the points (maintained are point inter-relations that
+#' are occur between the given micro and macro scales.)
+#' @return list of one or two elements: 1 - vector of estimated performances of
+#' the split-line for each of null model simulation. 2 -  list of data frames of
+#' simulated data (null models), returned only when n.m.keep is TRUE.
+#' @author Liudas Daumantas
+#' @noRd
+.sp.n.m <- function(data,ribs,n,n.m.keep,type){
     if (type == 1) {
       N <- nrow(data)
     } else {
