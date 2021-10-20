@@ -51,6 +51,19 @@ an R object, that is recognized and used by \code{compare.f} function to
 estimate the quality of the split-lines (difference between two data groups
 separated in space by a split-line)}
 
+\item{compare.f}{a function used to quantify the difference between two data
+groups separated in space by a split-line. The estimated difference
+represents the quality of a split-line. This function must have two
+arguments to which the outputs of \code{generalize.f} could be assigned.
+These outputs are the emergent data qualities estimated at opposite sides of
+a split-line. Thus, \code{compare.f} must define how these data qualities
+should be compared to produce a difference measure that represents the
+quality of a split line. Similar to \code{generalize.f}, \code{compare.f}
+can access the \code{hespdiv} environment. Thus, inside \code{compare.f}
+function other variables from \code{hespdiv} environment could be used,
+without requiring them as arguments (see the list of free variables
+available in \code{generalize.f} - list).}
+
 \item{method}{A pre-set combination of \code{generalize.f} and
 \code{compare.f} functions that serve some distinct purpose.
 Available methods:
@@ -94,7 +107,7 @@ Should curvi-linear split-lines be estimated?}
 spline knots. These columns are distributed regularly along to the straight
 split-line. This parameter controls wiggliness (wave length) of the
 curvi-linear split-lines. Higher values allow  wigglier curves, thus
-inceasing the fit to the data, but increases the optimization time of
+increasing the fit to the data, but increases the optimization time of
 curvi-linear split-lines. Default value is 5.}
 
 \item{c.ort.knots}{Curve parameter. The number of rows in the net of

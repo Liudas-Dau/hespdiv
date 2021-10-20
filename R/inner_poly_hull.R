@@ -2,7 +2,7 @@
 #' @param rule logic vector indicating which polygon segments are selected
 #' @param cut_poly data.frame of a polygon
 #' @author Liudas Daumantas
-#' @NoRd
+#' @noRd
 .create_ints <- function(rule,cut_poly){
   data.frame(x1 = cut_poly[which(rule),1],
              y1 = cut_poly[which(rule),2],
@@ -15,10 +15,10 @@
 #' nearest to the y axis.
 #' @param polygon data frame of a polygon
 #' @author Liudas Daumantas
-#' @import sp
-#' @NoRd
+#' @importFrom  sp point.in.polygon
+#' @noRd
 .is_pol_up <- function(lowest_up_intervals,polygon) {
-  point.in.polygon(point.x = lowest_up_intervals[2,1],
+  sp::point.in.polygon(point.x = lowest_up_intervals[2,1],
                    point.y = lowest_up_intervals[2,2]-lowest_up_intervals[2,2]/2,
                    pol.x = polygon[,1],
                    pol.y = polygon[,2]) != 0
@@ -27,7 +27,7 @@
 
 #' Convert polygon segments data.frame into points data.frame
 #' @param inters data frame of x and y intervals of polygon segments
-#' @NoRd
+#' @noRd
 .ints_to_pnts <- function(inters) {
   idx<-cbind(rep(1:nrow(inters),each=2),rep(c(1,3),nrow(inters)))
   idy<-cbind(rep(1:nrow(inters),each=2),rep(c(2,4),nrow(inters)))
@@ -50,7 +50,7 @@
 #' @param newrows data frame of rows to be inserted
 #' @param r numeric vector of indeces that show where the rows should be placed
 #' @author Liudas Daumantas
-#' @NoRd
+#' @noRd
 .insert_filter_Rows <- function(df, newrows, r) {
   df <- rbind(df,newrows)
   df <- df[order(c(1:(nrow(df)-nrow(newrows)),r+0.5)),]

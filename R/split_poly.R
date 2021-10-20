@@ -3,9 +3,9 @@
 #' This function splits a polygon in two halfs by a split line that links two provided polygon vertices and returns one half of this polygon.
 #'
 #' @param polygon A data frame containing coordinates of a polygon that will be split. The polygon can be either closed or open.
-#' @param split_ids A vector containing 2 integers. These integers should be indeces of polygon data frame rows that contain coordinates
+#' @param split_ids A vector containing 2 integers. These integers should be indexes of polygon data frame rows that contain coordinates
 #' of vertices that are used to split a polygon.
-#' @param min_id (Optional) Integer (1 or 2) showing which of the polygon vertices indicated by the \code{split_ids} has lower x coordinate
+#' @param min_id (Optional) Integer (1 or 2) showing which of the polygon vertexes indicated by the \code{split_ids} has lower x coordinate
 #' (or lower y coordinate, if split line is vertical).
 #' @param trivial_side A logical argument indicating whether it matters which side of the divided polygon will be returned.
 #' @param poli_side A logical argument. When \code{trivial_side} is \code{FALSE}, \code{poli_side = TRUE} returns the upper half
@@ -52,7 +52,7 @@
 #'  trivial_side = FALSE, poli_side = FALSE)
 #' lines(upper_half,col=4)
 #' lines(lower_half,col=2)
-#' @export
+#' @noRd
 
 .split_poly <- function(polygon,split_ids,min_id=NULL, trivial_side=TRUE, poli_side){
   if (is.null(min_id)){

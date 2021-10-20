@@ -17,7 +17,7 @@
 #' line <- data.frame(x=seq(0,1,length.out=10),y=c(0,.2,.1,.3,.6,.5,.3,.4,.2,0))
 #' poly <- .close_poly(open.pol,line)
 #' plot(poly,type="l")
-#' @export
+#' @noRd
 
 .close_poly<-function(open.poly, close.line=NULL){
   if (is.null(close.line)){

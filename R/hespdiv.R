@@ -56,7 +56,7 @@
 #' can access the \code{hespdiv} environment. Thus, inside \code{compare.f}
 #' function other variables from \code{hespdiv} environment could be used,
 #' without requiring them as arguments (see the list of free variables
-#' available in \code{generalize.f - list).
+#' available in \code{generalize.f} - list).
 #' @param method A pre-set combination of \code{generalize.f} and
 #' \code{compare.f} functions that serve some distinct purpose.
 #' Available methods:
@@ -284,7 +284,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
     n.splits <- numeric()
     mean.dif <- numeric()
   }
-  S.cond <- abs(polyarea(x,y)) * S.crit
+  S.cond <- abs(pracma::polyarea(x,y)) * S.crit
   splits <- numeric()
 
   iteration <- 1
@@ -400,7 +400,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
       lines(x,y)
       lines(origins.chull)
       points(samp_xy$x,samp_xy$y,pch=19)
-      centras <- poly_center(margins[,1],margins[,1])
+      centras <- pracma::poly_center(margins[,1],margins[,1])
       points(centras[1],centras[2],col=3,pch=19)
       lines(rims[[1]])
       print(c("testid: ", testid))
@@ -459,8 +459,8 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
         if (all(c(nrow(Puses[[1]]),
                   nrow(Puses[[2]]))>N.cond)){
           if (S.crit > 0){
-          SpjuvioI <- abs(polyarea(x=virs[,1],y=virs[,2]))
-          SpjuvioII <- abs(polyarea(x=po[,1],y=po[,2]))
+          SpjuvioI <- abs(pracma::polyarea(x=virs[,1],y=virs[,2]))
+          SpjuvioII <- abs(pracma::polyarea(x=po[,1],y=po[,2]))
           cond <- SpjuvioI > S.cond & SpjuvioII > S.cond
           } else {
             cond <- TRUE
@@ -532,7 +532,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
       N.cond =N.cond,
       S.cond = S.cond,
       n.curve.iter = curve.iterations,
-      c.corr.term = correction.term
+      correction.term = c.corr.term
 
       )
     if (trace.level > 2) {
@@ -727,7 +727,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
 #' @return x
 #' @author Liudas Daumantas
 #' @noRd
-print.hespdiv <- function(n.m.test){
+print.hespdiv <- function(x, n.m.test){
   cat("\n","Information about the splits:", "\n","\n")
   print(round(x$split.stats,2))
   if (n.m.test){

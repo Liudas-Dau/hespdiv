@@ -221,21 +221,21 @@
 #' @param S.cond minimum area required to establish subdivision of a plot
 #' @return A list of two elements: 1) rotated (not suitable for the original polygon) curve in shape of a spline that produces the best data separation; 2) quality of the division
 #' @author Liudas Daumantas
+#' @importFrom sp point.in.polygon
+#' @importFrom pracma polyarea
 #' @noRd
 .curve_quality<-function(curve,rot.poli.up,rot.poli.do,rot.data,N.cond,S.cond){
   #sudarom poligonus padalintus kreive
   I.poli<-data.frame(x=c(rot.poli.up$xp,rev(curve$x)[-1]),y=c(rot.poli.up$yp,rev(curve$y)[-1]))
   II.poli<-data.frame(x=c(rot.poli.do$xp,rev(curve$x)[-1]),y=c(rot.poli.do$yp,rev(curve$y)[-1]))
   #atrenkam taskus patenkancius i skirtingas poligono dalis, padalintas kreive
-  library(sp)
-  I.poli.data<-rot.data[which(point.in.polygon(point.x = rot.data$X.rot,point.y =rot.data$Y.rot ,pol.x = I.poli$x,pol.y =I.poli$y)!=0),]
-  II.poli.data<-rot.data[which(point.in.polygon(point.x = rot.data$X.rot,point.y = rot.data$Y.rot,pol.x =II.poli$x ,pol.y =II.poli$y)!=0),]
+  I.poli.data<-rot.data[which(sp::point.in.polygon(point.x = rot.data$X.rot,point.y =rot.data$Y.rot ,pol.x = I.poli$x,pol.y =I.poli$y)!=0),]
+  II.poli.data<-rot.data[which(sp::point.in.polygon(point.x = rot.data$X.rot,point.y = rot.data$Y.rot,pol.x =II.poli$x ,pol.y =II.poli$y)!=0),]
   #atliekam plotu palyginima, t.y. padalinimo gerumo ivertinima, jei kreive netenkina minimaliu kriteriju - padalinimo kokybe nuline
-  library(pracma)
-  S1<-abs(polyarea(I.poli$x,I.poli$y))
-  S2<-abs(polyarea(II.poli$x,II.poli$y))
+  S1<-abs(pracma:polyarea(I.poli$x,I.poli$y))
+  S2<-abs(pracma:polyarea(II.poli$x,II.poli$y))
   if(min(nrow(I.poli.data),nrow(II.poli.data))>N.cond&min(S1,S2)>S.cond){
-    SS<-alfa(I.poli.data[,1],II.poli.data[,1])
+    SS<-.dif_fun(I.poli.data[,1],II.poli.data[,1])
   } else{
     SS<-0
   }
@@ -368,7 +368,7 @@
 .y_corrections<-function(spline.x,spline.y,Xup,Xdown,Yup,Ydown,
                         correction.term){
   #tikrinam, ar kreive polygone, nuimam po viena taska krastini, nes jie ant poligono ribos
-  curve.in.polygon<-point.in.polygon(
+  curve.in.polygon<-sp::point.in.polygon(
     point.x = spline.x,
     point.y = spline.y,
     pol.x = c(Xup,rev(Xdown)),
@@ -396,7 +396,7 @@
           x3<-spline.x[min.id+1]+(spline.x[ind[i]+1]-spline.x[min.id+1])/2
           vid.x<-c(vid.x,x3)
           #y3 ant splino
-          y3.spline<-.y.online(X=spline.x,Y=spline.y,x3=x3)
+          y3.spline<-.y.online(x=spline.x,y=spline.y,x3=x3)
           vid.y<-c(vid.y,y3.spline)
           #fiksuojam naujo intervalo pradzia
           min.id<-ind[i+1]}
@@ -408,12 +408,12 @@
         } else {
           vid.x<-spline.x[ind[1]+1]+(spline.x[ind[length(ind)]+1]-spline.x[ind[1]+1])/2
         }
-        vid.y<-.y.online(X=spline.x,Y=spline.y,x3=vid.x)
+        vid.y<-.y.online(x=spline.x,y=spline.y,x3=vid.x)
       } else {# jei rasta intervalu, tai ufiksuoti ju viduriai, bet paskutinio intervalo vidurys neuzfiksuotas
         x3<-spline.x[min.id+1]+(spline.x[ind[length(ind)]+1]-spline.x[min.id+1])/2
         vid.x<-c(vid.x,x3)
         #y3 ant splino
-        y3.spline<-.y.online(X=spline.x,Y=spline.y,x3=x3)
+        y3.spline<-.y.online(x=spline.x,y=spline.y,x3=x3)
         vid.y<-c(vid.y,y3.spline)
       }
     }
@@ -425,8 +425,8 @@
     RANGES<-numeric()
     corrected.y<-numeric()
     for (i in 1:length(vid.x)){
-      y3.up<-c(y3.up,y.online(X=Xup,Y=Yup,x3=vid.x[i]))
-      y3.down<-c(y3.down,y.online(x3=vid.x[i],X=Xdown,Y=Down))
+      y3.up<-c(y3.up,y.online(x=Xup,y=Yup,x3=vid.x[i]))
+      y3.down<-c(y3.down,y.online(x3=vid.x[i],x=Xdown,y=Down))
       #surandam atstuma tarp y3 up ir down
       RANGES<-c(RANGES,y3.up[i]-y3.down[i])
       #paziurim, per kuria puse kreives atkarpa iseina uz poligono (per virsu ar ne?)

@@ -3,10 +3,10 @@
 #' This function generates regularly spaced points on a perimeter of a polygon. Their number is specified by arguments n.pts or dst.pts.
 #' @param polygon A data frame of 2 columns (x,y) that contain coordinates of polygon vertices. Both, closed and open polygons, are accepted.
 #' @param n.pts A number of regularly spaced points to be generated on a perimeter of a polygon. If n.pts is not specified, then it is calculated according to the argument dst.pts.
-#' @param dst.pts A distance along a polygon perimeter between adjecent points to be generated on a perimeter of a polygon. If dst.pts is not specified, then it is calculated according to the argument n.pts.
+#' @param dst.pts A distance along a polygon perimeter between adjacent points to be generated on a perimeter of a polygon. If dst.pts is not specified, then it is calculated according to the argument n.pts.
 #' @return A list of 2 elements:
 #' \describe{
-#'   \item{\code{per_pts}}{A data frame of 4 columns, providing the information about the generated points on a perimeter of a polygon. This data frame is used as an input in \code{\link{pair_pts}} function.}
+#'   \item{\code{per_pts}}{A data frame of 4 columns, providing the information about the generated points on a perimeter of a polygon. This data frame is used as an input in \code{.pair_pts} function.}
 #'   \itemize{
 #'   \item \code{x} - X coordinates of generated points.
 #'   \item \code{y} - Y coordinates of generated points.
@@ -15,7 +15,7 @@
 #' polygon segment.
 #'   }
 #'   \item{\code{full.poly}}{ A data frame that contains coordinates of the provided polygon vertices and generated points. \code{coords[,"ID"]} can be used to
-#' extract rows of generated points.This data frame is used as an input in \code{\link{curvial.split}} function.}
+#' extract rows of generated points.This data frame is used as an input in \code{.curvial_split} function.}
 #' }
 #' @note If both, n.pts and dst.pts, are specified, then points are generated according to n.pts.
 #' @author Liudas Daumantas
@@ -31,7 +31,7 @@
 #' points(a[[1]][,-3],col=2,pch=19)
 #' #ID of points
 #' text(x=a[[1]][,1],y=a[[1]][,2],a[[1]][,3],-0.3)
-#' @export
+#' @noRd
 
 
 .perimeter_pts<-function (polygon,n.pts=NULL,dst.pts=NULL){

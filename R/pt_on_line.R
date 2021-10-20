@@ -16,7 +16,7 @@
 #' x <- seq(1,3,0.5)
 #' y <- .pt_on_line(x1 = 3,x2 = 1,y1 = 0,y2 = -1,x3 = x)
 #' points(x,y,col=2,pch=19)
-#' @export
+#' @noRd
 .pt_on_line<-function(x1,x2,y1,y2,x3=NULL,y3=NULL){
   if (is.null(y3) & is.null(x3)){
     stop(print("Provide either x3 or y3"))
