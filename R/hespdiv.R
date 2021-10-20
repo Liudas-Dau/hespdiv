@@ -207,6 +207,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
     if (c.splits == FALSE & upper.Q.crit != lower.Q.crit) {
     print("Since 'c.splits' is FALSE, 'lower.Q.crit' is set equal to
           'upper.Q.crit'")
+      lower.Q.crit <- upper.Q.crit
   }
   if (method == "Pielou_biozonation") {
     if (ncol(data) != 3){
@@ -259,13 +260,13 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
       lines(x,y)
       lines(origins.chull)
     }
-    rims <- list()
+    rims <- list(origins.chull)
     poly.info <- data.frame(mean.dif = numeric(), # mean spatial heterogeneity irrespective of split-line position
                          sd.dif = numeric(), # anizotropy of heterogeneity based on straight split-lines
                          str.z.score = numeric(), # level of outstandingness. Are there other competetive candidate splits?
                          iteration=numeric(),
                          root=numeric() )
-    poly.obj <- list(generalize.f(data))
+    poly.obj <- list()
     plot.id <- numeric()
     split.z.score <- numeric()
     split.quality <- numeric()
@@ -291,7 +292,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
 
   e <- environment()
   environment(.spatial_div) <- e
-
+  debug(.spatial_div)
   .spatial_div(data,root=2)
   names(poly.obj) <- poly.info$iteration
   names(rims) <- poly.info$iteration # crazy line?
@@ -383,11 +384,11 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
   margins <- rims[[testid]]
 
   assign(x = "iteration",value = iteration +1, envir = e)
-  assign(x = "polygons.obj" ,
-         value = do.call(c,list(polygons.obj,list(geneneralize.f(samp.dat)))),
+  assign(x = "poly.obj" ,
+         value = do.call(c,list(poly.obj,list(generalize.f(samp.dat)))),
          envir = e)
 
-  perim_pts <- .perimeter_pts(polygon = margins,n.pts = divisions)
+  perim_pts <- .perimeter_pts(polygon = margins,n.pts = n.split.pts)
   #grafikas pirminis nupaisomas
   {
     if (trace.level > 0 ) {
@@ -397,10 +398,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
         plot(0,0,xlim = range(data$x),ylim = range(data$y),col=0)
         }
 
-      lines(x,y)
-      lines(origins.chull)
-      points(samp_xy$x,samp_xy$y,pch=19)
-      centras <- pracma::poly_center(margins[,1],margins[,1])
+      centras <- pracma::poly_center(margins[,1],margins[,2])
       points(centras[1],centras[2],col=3,pch=19)
       lines(rims[[1]])
       print(c("testid: ", testid))
@@ -410,7 +408,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
           print(c("polygons drawed:", i-1))
           lines(x=rims[[i]][,1],y=rims[[i]][,2],col=1,lwd=2)
         }}
-      points(perim_pts[[2]],pch=19,col="purple")
+      points(perim_pts[[1]],pch=19,col="purple")
     }
   }
   #testavimui pjuviai paruosiami
