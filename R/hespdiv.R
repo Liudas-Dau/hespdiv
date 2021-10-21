@@ -464,9 +464,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
           }
           if (cond) {
             #nupiesiam padalinima ir paskaiciuojam kokybe
-            environment(generalize.f) <- environment()
-            environment(compare.f) <- environment()
-            debug(.dif_fun)
+            environment(.dif_fun) <- environment()
             Skirtumas <- .dif_fun(Puses[[1]],Puses[[2]])
             any.split <- c(any.split,Skirtumas)
             #Paskaiciuojam plotus padalintu bloku
@@ -711,8 +709,8 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
 #' functions.
 #' @noRd
 .dif_fun <- function(dat1,dat2) {
-  environment(generalize.f) <- e
-  environment(compare.f) <- e
+  environment(generalize.f) <- environment()
+  environment(compare.f) <- environment()
   compare.f( generalize.f(dat1), generalize.f(dat2) )
 }
 
