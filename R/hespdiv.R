@@ -243,24 +243,24 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
       stop("data should contain columns named \"x\" and \"y\" that contain
            coordinate information")
     }
+    if (is.null(study.pol)){
 
-    ch <- chull(data$x, data$y)
-    ids <- c(ch,ch[1])
-    x <- data$x[ids]
-    y <- data$y[ids]
-    origins.chull <- data.frame(x=x,y=y)
-
+      ch <- chull(data$x, data$y)
+      ids <- c(ch,ch[1])
+      x <- data$x[ids]
+      y <- data$y[ids]
+      study.pol <- data.frame(x=x,y=y)
+    }
     if (trace.level > 0 ) {
       if(!is.null(pnts.col)){
         plot(data$x, data$y, col=pnts.col )
       } else {
         plot(0,0,xlim = range(data$x),ylim = range(data$y),col=0)
-        }
+      }
 
-      lines(x,y)
-      lines(origins.chull)
+      lines(study.pol)
     }
-    rims <- list(origins.chull)
+    rims <- list(study.pol)
     poly.info <- data.frame(mean.dif = numeric(), # mean spatial heterogeneity irrespective of split-line position
                          sd.dif = numeric(), # anizotropy of heterogeneity based on straight split-lines
                          str.z.score = numeric(), # level of outstandingness. Are there other competetive candidate splits?
@@ -431,13 +431,12 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
       for (i in 1:nrow(pairs_pts)){
         print('testuojamas padalinimas Nr.:')
         print(i)
-
         virs <- .close_poly(
           open.poly =
             .split_poly(
               polygon = perim_pts[[2]],
               min_id = 1,
-              split_ids = pairs_pts[i,c(6:7)],
+              split_ids = as.numeric(pairs_pts[i,c(6:7)]),
               trivial_side = TRUE,
               poli_side = TRUE
             ))
@@ -446,7 +445,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
             .split_poly(
               polygon = perim_pts[[2]],
               min_id = 1,
-              split_ids = pairs_pts[i,6:7],
+              split_ids = as.numeric(pairs_pts[i,6:7]),
               trivial_side = TRUE,
               poli_side = FALSE
             ))
@@ -455,7 +454,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
         Puses <- list(.get_data(po,samp.dat),.get_data(virs,samp.dat))
 
         if (all(c(nrow(Puses[[1]]),
-                  nrow(Puses[[2]]))>N.cond)){
+                  nrow(Puses[[2]]))>N.crit)){
           if (S.crit > 0){
           SpjuvioI <- abs(pracma::polyarea(x=virs[,1],y=virs[,2]))
           SpjuvioII <- abs(pracma::polyarea(x=po[,1],y=po[,2]))
@@ -467,6 +466,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
             #nupiesiam padalinima ir paskaiciuojam kokybe
             environment(generalize.f) <- environment()
             environment(compare.f) <- environment()
+            debug(.dif_fun)
             Skirtumas <- .dif_fun(Puses[[1]],Puses[[2]])
             any.split <- c(any.split,Skirtumas)
             #Paskaiciuojam plotus padalintu bloku
@@ -527,7 +527,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
       data = samp.dat,
       knot.density.X = knot.density.X,
       knot.density.Y = knot.density.Y,
-      N.cond =N.cond,
+      N.crit =N.crit,
       S.cond = S.cond,
       n.curve.iter = curve.iterations,
       correction.term = c.corr.term

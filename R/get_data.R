@@ -22,7 +22,7 @@
 .get_data<-function(polygon, data){
   data.frame(data[sp::point.in.polygon(pol.x = polygon[,1],
                                    pol.y = polygon[,2],
-                                   point.x = data$X,
-                                   point.y = data$Y)!=0,])
+                                   point.x = data$x,
+                                   point.y = data$y)!=0,])
 }
 
