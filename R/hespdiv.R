@@ -151,7 +151,7 @@
 #' study area polygon.
 #' @param trace.level Integer from 0 to 7, indicates how much information should
 #' the algorithm communicate during computations. 0 (default) - no algorithm
-#' tracing; 1 - only selected split-splits are reported; 2 - best
+#' tracing; 1 - only the best split-lines are reported; 2 - best
 #' intermediate straight split-lines are reported; 3 - best intermediate
 #' curvi-linear split-lines are reported; 4 - best intermediate split-lines are
 #' reported; 5 - all straight split lines are reported; 6 - all curvi-linear
@@ -423,8 +423,8 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
 
   if (nrow(pairs_pts)!=0){
     if (trace.level > 0 ) {
-      points(pairs_pts[,c(1:2)],col="yellow",pch=19)
-      points(pairs_pts[,c(3:4)],col="red",pch=19)
+      points(pairs_pts[,c(1:2)], col = "purple", pch=19)
+      points(pairs_pts[,c(3:4)], col = "purple", pch=19)
     }
     #pjaustymo ir testavimo ciklas
     {
@@ -452,13 +452,20 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
 
         # padalinami duomenys i dvi dalis pagal pjuvio koordinates
         Puses <- list(.get_data(po,samp.dat),.get_data(virs,samp.dat))
-
+        if (any(trace.level == c(5,7)) ) {
+          readline(prompt = "Press enter, to see the next straight split-line")
+          lines(x = pairs_pts[i,c(1,3)], y = pairs_pts[i,c(2,4)],
+                col = "yellow", pch = 19) # filtravimas spalvu su get.dat!
+          points(Puses[[1]]$x,Puses[[1]]$y,col=3)
+          readline(prompt = "Press enter, to see points from other polygon")
+          points(Puses[[2]]$x,Puses[[2]]$y,col=6)
+        }
         if (all(c(nrow(Puses[[1]]),
                   nrow(Puses[[2]]))>N.crit)){
           if (S.crit > 0){
-          SpjuvioI <- abs(pracma::polyarea(x=virs[,1],y=virs[,2]))
-          SpjuvioII <- abs(pracma::polyarea(x=po[,1],y=po[,2]))
-          cond <- SpjuvioI > S.cond & SpjuvioII > S.cond
+            SpjuvioI <- abs(pracma::polyarea(x=virs[,1],y=virs[,2]))
+            SpjuvioII <- abs(pracma::polyarea(x=po[,1],y=po[,2]))
+            cond <- SpjuvioI > S.cond & SpjuvioII > S.cond
           } else {
             cond <- TRUE
           }
@@ -469,12 +476,36 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
             any.split <- c(any.split,Skirtumas)
             #Paskaiciuojam plotus padalintu bloku
             if (Skirtumas > maxdif){
+              if (any(trace.level == c(2,4,5,7)) ) {
+                lines(x = pairs_pts[i,c(1,3)], y = pairs_pts[i,c(2,4)],
+                      col = "blue", pch = 19)
+                print(c('Difference obtained between polygons:',Skirtumas))
+                print(c('Old best difference: ',maxdif))
+                readline(prompt = "The blue line is currently the
+                         best straight split-line. Press enter to continue...")
+              }
+
               #Jei padalinimas patenkina minimalias saligas ir yra geresnis nei pries tai - pasizymim ir issisaugom ji
               maxdif <- Skirtumas
               maxid <- i
-              print(c('max Skirtumas=',Skirtumas))
+            } else {
+              if (any(trace.level == c(5,7)) ) {
+                print(c("Estimated difference was too small. Required: ",
+                        Skirtumas,". Was obatained: ", maxdif ))
+              }
             }
+          } else {
+            if (any(trace.level == c(5,7)) )
+              print(c("Obtained polygons were too small. Required area: ",
+                      S.cond, ", S_pol1: ", SpjuvioI, " ,S_pol2: " ,
+                      SpjuvioII ))
           }
+        } else {
+          if (any(trace.level == c(5,7)) )
+            print(c("Not enough data points in at least one of the polygons.
+                    N required: ",N.crit, " ,N obtained: ", c(nrow(Puses[[1]]),
+                                                              nrow(Puses[[2]]))
+            ))
         }
       }
     }
@@ -507,18 +538,18 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
     print(c("mean quality of straight splits: ", mean.dif))
     print(c("anysotropy of quality of straight splits: ", sd.dif))
     print((maxdif - mean.dif) / sd.dif)
-  # duomenu saugojimas
-  #Jei rastas tinkamas padalinimas - ieskom geriausios padalinimo kreives,
-  #issaugom duomenis ir ziurim ar galima skaidyti toliau
-  if (maxid>0) {
-    if ( c.splits) {
-    print(perim_pts)
-    print(pairs_pts)
+    # duomenu saugojimas
+    #Jei rastas tinkamas padalinimas - ieskom geriausios padalinimo kreives,
+    #issaugom duomenis ir ziurim ar galima skaidyti toliau
+    if (maxid>0) {
+      if ( c.splits) {
+        print(perim_pts)
+        print(pairs_pts)
 
-    best.curve <- .curvial_split(
+        best.curve <- .curvial_split(
 
-      poly.x = perim_pts[[2]]$x.poly,
-      poly.y = perim_pts[[2]]$y.poly,
+          poly.x = perim_pts[[2]]$x.poly,
+          poly.y = perim_pts[[2]]$y.poly,
       min.x.id = pairs_pts[maxid,6],
       max.x.id = pairs_pts[maxid,7],
       b = pairs_pts[maxid,5],
@@ -682,9 +713,13 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
   }} else{
     #Jei tinkamo padalino nerasta, grizta tuscias masyvas
     if (testid>1){
-      print("tinkamo padalinimo nerasta, grizta tuscias masyvas NULL")
+      if (trace.level > 0)
+      print("There were no suitable points on the polygon perimeter
+            to generate straight-split lines")
     } else{
-      print("nebuvo skaldomu bloku")
+      if (trace.level > 0)
+      print("There were no suitable points on the polygon perimeter
+            to generate straight-split lines")
     }
   }
 }
