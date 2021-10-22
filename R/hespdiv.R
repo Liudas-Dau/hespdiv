@@ -423,8 +423,8 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
 
   if (nrow(pairs_pts)!=0){
     if (trace.level > 0 ) {
-      points(pairs_pts[,c(1:2)], col = "purple", pch=19)
-      points(pairs_pts[,c(3:4)], col = "purple", pch=19)
+      points(pairs_pts[,c(1:2)], col = "green", pch=19)
+      points(pairs_pts[,c(3:4)], col = "green", pch=19)
     }
     #pjaustymo ir testavimo ciklas
     {
@@ -456,9 +456,9 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
           readline(prompt = "Press enter, to see the next straight split-line")
           lines(x = pairs_pts[i,c(1,3)], y = pairs_pts[i,c(2,4)],
                 col = "yellow", pch = 19) # filtravimas spalvu su get.dat!
-          points(Puses[[1]]$x,Puses[[1]]$y,col=3)
+          points(Puses[[1]]$x,Puses[[1]]$y,col=3,pch=19)
           readline(prompt = "Press enter, to see points from other polygon")
-          points(Puses[[2]]$x,Puses[[2]]$y,col=6)
+          points(Puses[[2]]$x,Puses[[2]]$y,col=6,pch=19)
         }
         if (all(c(nrow(Puses[[1]]),
                   nrow(Puses[[2]]))>N.crit)){
@@ -490,19 +490,19 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
               maxid <- i
             } else {
               if (any(trace.level == c(5,7)) ) {
-                print(c("Estimated difference was too small. Required: ",
-                        Skirtumas,". Was obatained: ", maxdif ))
+                paste(c("Estimated difference was too small. Required: ",
+                        round(maxdif,2),"; Was obatained: ", round(Skirtumas,2) ))
               }
             }
           } else {
             if (any(trace.level == c(5,7)) )
-              print(c("Obtained polygons were too small. Required area: ",
-                      S.cond, ", S_pol1: ", SpjuvioI, " ,S_pol2: " ,
-                      SpjuvioII ))
+              paste(c("The obtained polygons were too small. Required area: ",
+                      round(S.cond,2), ", S_pol1: ", round(SpjuvioI,2), " ,S_pol2: " ,
+                            round(SpjuvioII,2) ))
           }
         } else {
           if (any(trace.level == c(5,7)) )
-            print(c("Not enough data points in at least one of the polygons.
+            paste(c("Not enough data points in at least one of the polygons.
                     N required: ",N.crit, " ,N obtained: ", c(nrow(Puses[[1]]),
                                                               nrow(Puses[[2]]))
             ))
