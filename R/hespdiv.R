@@ -298,10 +298,7 @@ generalize.f <- function(plot.dat){
 
   if(method == "Pielou_biozonation"){
     browser()
-    poly.obj[[1:2]]
-    str(poly.obj)
-    poly.obj[[plot.id]]
-    str(plot.id)
+
     str(as.numeric(match(plot.id,names(poly.obj))))
     poly.obj[paste(plot.id)]
     parent.E <- unlist(poly.obj[paste(plot.id)])
