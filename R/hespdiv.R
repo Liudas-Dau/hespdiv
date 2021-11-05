@@ -353,11 +353,13 @@ generalize.f <- function(plot.dat){
     result <- do.call(c,list(result,
                             list(n.m.rez =
                                    list(sim1.difs = sim1.difs, sim2.difs))))
+
+    if (n.m.keep){
+      result <- do.call(c,list(result,
+                               list(n.m.sim = list(n.m.sims1,n.m.sims2))))
+    }
   }
-  if (n.m.keep){
-    result <- do.call(c,list(result,
-                            list(n.m.sim = list(n.m.sims1,n.m.sims2))))
-  }
+
 
   return(print.hespdiv(result,n.m.test))
 }
