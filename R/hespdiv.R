@@ -205,8 +205,8 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
                   study.pol = NULL, trace.level = 0, pnts.col = 1){
 
     if (c.splits == FALSE & upper.Q.crit != lower.Q.crit) {
-    print("Since 'c.splits' is FALSE, 'lower.Q.crit' is set equal to
-          'upper.Q.crit'")
+    print(paste("Since 'c.splits' is FALSE, 'lower.Q.crit' is set equal to
+          'upper.Q.crit'"))
       lower.Q.crit <- upper.Q.crit
   }
   if (method == "Pielou_biozonation") {
@@ -217,16 +217,14 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
            multiple rows should be dedicated for the same location in data.")
     }
 
-
-    generalize.f <- function(plot.dat){
-      x <- subset(plot.dat, select = -c(x, y))[,1]
-      p <- table(as.numeric(paste(x)))/sum(table(as.numeric(paste(x))))
+generalize.f <- function(plot.dat){
+      x <- table(as.numeric(paste(subset(plot.dat, select = -c(x, y))[,1])))
+      p <- x/sum(x)
       H <- -sum(log(p)*p)
-      ifelse(H==0,0,H/log(length(p)))
     }
     compare.f <- function(eveness1,eveness2) {
-      base.eveness <- 2 * generalize.f(samp.dat)
-      (1 - (eveness1 + eveness2) / base.eveness) * 100 # percent change in eveness
+      base.eveness <- poly.obj[[testid]]
+      (1 - mean(eveness1, eveness2) / base.eveness) * 100 # percent change in eveness
     }
   }
 
@@ -283,7 +281,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
     }
 
     n.splits <- numeric()
-    mean.dif <- numeric()
+    mean.difs <- numeric()
   }
   S.cond <- abs(pracma::polyarea(x,y)) * S.crit
   splits <- numeric()
@@ -292,15 +290,21 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
 
   e <- environment()
   environment(.spatial_div) <- e
-  debug(.spatial_div)
   .spatial_div(data,root=2)
   names(poly.obj) <- poly.info$iteration
-  names(rims) <- poly.info$iteration # crazy line?
+  names(rims) <- poly.info$iteration # bad line?
 
 
 
   if(method == "Pielou_biozonation"){
-    parent.E <- poly.obj[[match(plot.id,names(poly.obj))]]
+    browser()
+    poly.obj[[1:2]]
+    str(poly.obj)
+    poly.obj[[plot.id]]
+    str(plot.id)
+    str(as.numeric(match(plot.id,names(poly.obj))))
+    poly.obj[paste(plot.id)]
+    parent.E <- unlist(poly.obj[paste(plot.id)])
     result <- structure(list(
       split.lines = splits,
       polygons.xy = rims,
@@ -310,10 +314,10 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
         plot.id = plot.id,
         n.splits = n.splits,
         z.score = split.z.score,
-        mean.p.red = mean.dif,
+        mean.p.red = mean.difs,
         split.p.red = split.quality,
         parent.E = parent.E,
-        delta.E = -parent.E * split.quality
+        delta.E = -parent.E * split.quality/100
       )
     ),
     class = "hespdiv"
@@ -328,7 +332,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
         plot.id = plot.id,
         n.splits = n.splits,
         z.score = split.z.score,
-        mean.dif = mean.dif,
+        mean.dif = mean.difs,
         split.quality = split.quality
       )
     ),
@@ -401,11 +405,11 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
       centras <- pracma::poly_center(margins[,1],margins[,2])
       points(centras[1],centras[2],col=3,pch=19)
       lines(rims[[1]])
-      print(c("testid: ", testid))
+      print(paste0("Polygon tested No. : ", testid))
       # padalinimai savo ribose nupaisomi
       if (testid>1) {
         for (i in 2:c(testid)){
-          print(c("polygons drawed:", i-1))
+          print(paste0("polygons drawed: ", i-1))
           lines(x=rims[[i]][,1],y=rims[[i]][,2],col=1,lwd=2)
         }}
       points(perim_pts[[1]],pch=19,col="purple")
@@ -417,7 +421,6 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
 
   pairs_pts <- .pair_pts(perim_pts[[1]],polygon = margins)
   maxdif <- lower.Q.crit # first split minimum quality. P.crit
-  print(maxdif)
   any.split <- numeric()
   maxid <- 0
 
@@ -429,8 +432,6 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
     #pjaustymo ir testavimo ciklas
     {
       for (i in 1:nrow(pairs_pts)){
-        print('testuojamas padalinimas Nr.:')
-        print(i)
         virs <- .close_poly(
           open.poly =
             .split_poly(
@@ -453,10 +454,12 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
         # padalinami duomenys i dvi dalis pagal pjuvio koordinates
         Puses <- list(.get_data(po,samp.dat),.get_data(virs,samp.dat))
         if (any(trace.level == c(5,7)) ) {
-          readline(prompt = "Press enter, to see the next straight split-line")
+          readline(prompt = paste0('Going to test straight split-line No. : ',i))
+          points(pairs_pts[i,c(3,4)],col = 4, pch = 19, cex = 1.5)
           lines(x = pairs_pts[i,c(1,3)], y = pairs_pts[i,c(2,4)],
-                col = "yellow", pch = 19) # filtravimas spalvu su get.dat!
-          points(Puses[[1]]$x,Puses[[1]]$y,col=3,pch=19)
+                col = "yellow", pch = 19)
+          # filtravimas spalvu su get.dat - imanoma, bet gal nereikia?
+          points(Puses[[1]]$x,Puses[[1]]$y,col="darkgreen",pch=19)
           readline(prompt = "Press enter, to see points from other polygon")
           points(Puses[[2]]$x,Puses[[2]]$y,col=6,pch=19)
         }
@@ -479,8 +482,8 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
               if (any(trace.level == c(2,4,5,7)) ) {
                 lines(x = pairs_pts[i,c(1,3)], y = pairs_pts[i,c(2,4)],
                       col = "blue", pch = 19)
-                print(c('Difference obtained between polygons:',Skirtumas))
-                print(c('Old best difference: ',maxdif))
+                print(paste0('Difference obtained between polygons: ',round(Skirtumas,2)))
+                print(paste0('Old best difference: ',round(maxdif,2)))
                 readline(prompt = "The blue line is currently the
                          best straight split-line. Press enter to continue...")
               }
@@ -490,22 +493,35 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
               maxid <- i
             } else {
               if (any(trace.level == c(5,7)) ) {
-                paste(c("Estimated difference was too small. Required: ",
-                        round(maxdif,2),"; Was obatained: ", round(Skirtumas,2) ))
+                lines(x = pairs_pts[i,c(1,3)], y = pairs_pts[i,c(2,4)],
+                      col = "gray60", pch = 19)
+                points(pairs_pts[i,c(3,4)],col = "gray60", pch = 19, cex = 1.5)
+                print("Estimated difference was too small.")
+                print(paste0("Required: ",round(maxdif,2)))
+                print(paste0("Was obatained: ",round(Skirtumas,2)))
               }
             }
           } else {
-            if (any(trace.level == c(5,7)) )
-              paste(c("The obtained polygons were too small. Required area: ",
-                      round(S.cond,2), ", S_pol1: ", round(SpjuvioI,2), " ,S_pol2: " ,
-                            round(SpjuvioII,2) ))
+            if (any(trace.level == c(5,7)) ){
+              print("The obtained polygons were too small.")
+              lines(x = pairs_pts[i,c(1,3)], y = pairs_pts[i,c(2,4)],
+                    col = "gray60", pch = 19)
+              points(pairs_pts[i,c(3,4)],col = "gray60", pch = 19, cex = 1.5)
+              print(paste0("Required area: ",round(S.cond,2)))
+              print(paste0("S_pol1: ", round(SpjuvioI,2)))
+              print(paste0("S_pol2: ", round(SpjuvioII,2)))
+            }
           }
         } else {
-          if (any(trace.level == c(5,7)) )
-            paste(c("Not enough data points in at least one of the polygons.
-                    N required: ",N.crit, " ,N obtained: ", c(nrow(Puses[[1]]),
-                                                              nrow(Puses[[2]]))
-            ))
+          if (any(trace.level == c(5,7)) ){
+            lines(x = pairs_pts[i,c(1,3)], y = pairs_pts[i,c(2,4)],
+                  col = "gray60", pch = 19)
+            points(pairs_pts[i,c(3,4)],col = "gray60", pch = 19, cex = 1.5)
+            print("Not enough data points in at least one of the polygons.")
+            print(paste0("N required: ", N.crit))
+            print(paste0("N1: ",nrow(Puses[[1]])))
+            print(paste0("N2: ",nrow(Puses[[2]])))
+          }
         }
       }
     }
@@ -523,7 +539,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
       }
     } else {
       mean.dif <- NA # negalejom ivertinti ne vieno padalinimo, taigi performance lygu max.
-      # P.crit
+      sd.dif <- NA # P.crit
     }
     assign(x = "poly.info" ,value = rbind(poly.info, data.frame(
       mean.dif = mean.dif, # NA if 0
@@ -534,17 +550,15 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
     ))
     ,envir = e)
 
-    print(c("poly.info: ", poly.info))
-    print(c("mean quality of straight splits: ", mean.dif))
-    print(c("anysotropy of quality of straight splits: ", sd.dif))
+    print(paste0("poly.info: ", poly.info))
+    print(paste0("mean quality of straight splits: ", mean.dif))
+    print(paste0("anysotropy of quality of straight splits: ", sd.dif))
     print((maxdif - mean.dif) / sd.dif)
     # duomenu saugojimas
     #Jei rastas tinkamas padalinimas - ieskom geriausios padalinimo kreives,
     #issaugom duomenis ir ziurim ar galima skaidyti toliau
     if (maxid>0) {
       if ( c.splits) {
-        print(perim_pts)
-        print(pairs_pts)
 
         best.curve <- .curvial_split(
 
@@ -556,7 +570,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
       data = samp.dat,
       knot.density.X = knot.density.X,
       knot.density.Y = knot.density.Y,
-      N.crit =N.crit,
+      N.cond = N.crit,
       S.cond = S.cond,
       n.curve.iter = curve.iterations,
       correction.term = c.corr.term
@@ -608,7 +622,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
         .split_poly(
           polygon = data.frame(x=perim_pts[[2]][,1][-nrow(perim_pts[[2]])],
                                y=perim_pts[[2]][,2][-nrow(perim_pts[[2]])]),
-          split_ids = pairs_pts[maxid,6:7],
+          split_ids = as.numeric(pairs_pts[maxid,6:7]),
           min_id = 1,
           trivial_side = TRUE,
           poli_side = TRUE
@@ -622,7 +636,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
         .split_poly(
           polygon = data.frame(x=perim_pts[[2]][,1][-nrow(perim_pts[[2]])],
                                y=perim_pts[[2]][,2][-nrow(perim_pts[[2]])]),
-          split_ids = pairs_pts[maxid,6:7],
+          split_ids = as.numeric(pairs_pts[maxid,6:7]),
           min_id = 1,
           trivial_side = TRUE,
           poli_side = FALSE
@@ -638,7 +652,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
 
     #issaugom duomenis padalinimo
     ribs <- list(up.pol,do.pol)
-    print(c('total max Skirtumas =', maxdif))
+    print(paste0('total max Skirtumas =', maxdif))
 
     #maisom duomenis ir vertinam aptiktu erdviniu strukturu patimuma
     if (n.m.test){
@@ -678,7 +692,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
     assign(x = "n.splits",value = do.call(c,list(n.splits,length(any.split))),
            envir = e)
 
-    assign(x = "mean.dif",
+    assign(x = "mean.difs",
            value = do.call(c,list(mean.dif,mean.dif)),
            envir = e)
     # kaip su situo rims blet?

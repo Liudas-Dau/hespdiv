@@ -173,7 +173,7 @@ study area polygon.}
 
 \item{trace.level}{Integer from 0 to 7, indicates how much information should
 the algorithm communicate during computations. 0 (default) - no algorithm
-tracing; 1 - only selected split-splits are reported; 2 - best
+tracing; 1 - only the best split-lines are reported; 2 - best
 intermediate straight split-lines are reported; 3 - best intermediate
 curvi-linear split-lines are reported; 4 - best intermediate split-lines are
 reported; 5 - all straight split lines are reported; 6 - all curvi-linear
