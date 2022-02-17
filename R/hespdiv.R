@@ -290,7 +290,11 @@ generalize.f <- function(plot.dat){
 
   e <- environment()
   environment(.spatial_div) <- e
+
+
   .spatial_div(data,root=2)
+
+
   names(poly.obj) <- poly.info$iteration
   names(rims) <- poly.info$iteration # bad line?
 
