@@ -93,7 +93,7 @@
   }
 
   new_pts <- data.frame(x = rep(x3, length(change_id0)),
-                        y = pt_on_line(x1 = polygon$x[change_id0],
+                        y = .pt_on_line(x1 = polygon$x[change_id0],
                                        x2 = polygon$x[ change_id0 + 1 ],
                                        y1 = polygon$y[change_id0],
                                        y2 = polygon$y[ change_id0 + 1 ],
@@ -164,7 +164,7 @@
                          o[2] <= overlap_int_ranges[,2] ) |
                      (o[1] <= overlap_int_ranges[,1] &
                         o[2] >= overlap_int_ranges[,2]))
-      overlap_int_ranges[ids[which.min(abs(pt_on_line(
+      overlap_int_ranges[ids[which.min(abs(.pt_on_line(
         x1 = intervals$x1[overlap_int_ranges[ids,3]],
         x2 = intervals$x2[overlap_int_ranges[ids,3]],
         y1 = intervals$y1[overlap_int_ranges[ids,3]],
@@ -198,13 +198,13 @@
                                   }))
 
     #intervals_selected <- intervals_selected[paste(x_ranges_int_id),]
-    inters <- data.frame(x1 = x_ranges[,1],y1 = pt_on_line(
+    inters <- data.frame(x1 = x_ranges[,1],y1 = .pt_on_line(
       x1 = intervals_selected[,1],
       x2 = intervals_selected[,3],
       y1 = intervals_selected[,2],
       y2 = intervals_selected[,4],
       x3 = x_ranges[,1]), x2 = x_ranges[,2],
-      y2 = pt_on_line(
+      y2 = .pt_on_line(
         x1 = intervals_selected[,1],
         x2 = intervals_selected[,3],
         y1 = intervals_selected[,2],
