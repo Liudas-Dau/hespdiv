@@ -372,7 +372,7 @@
     point.x = spline.x,
     point.y = spline.y,
     pol.x = c(Xup,rev(Xdown)),
-    pol.y = c(Up,rev(Down))
+    pol.y = c(Yup,rev(Ydown))
     )[-c(1,length(spline.x))]
 
   #jei kreive ne polygone
