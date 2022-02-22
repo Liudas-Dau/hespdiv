@@ -107,18 +107,22 @@
 #' Remove parts of a polygon that are outside of x range
 #' of a split line
 #'
-#' @description Function removes polygon verteces that are outside of x range
+#' @description Function removes polygon vortexes that are outside of x range
 #' of a split line, as well as interpolates and adds vertexes where polygon
 #' segments from deleted vertexes enters the allowed x range.
 #' @param polygon A data frame containing coordinates of a polygon vertexes, an
 #' output of .split_poly function that is rotated so that the split line is
-#' horizontal, starting at x=0, y0 and ending at some positive x, y = 0.
+#' horizontal, starting at x=0, y=0 and ending at some positive x, y = 0.
 #' The provided polygon can be either closed or open.
 #' @return A data frame containing the coordinates of vertexes of a provided
 #' polygon that are inside an x range of a split line.
 #' @author Liudas Daumantas
 #' @noRd
 .cut_by_x_margins <- function(polygon) {
+  if (all(polygon[1,]==polygon[nrow(polygon),])){
+    polygon <- polygon[-nrow(polygon),]
+  }
+
   pol1 <- .find_y(polygon$x <= 0, x3= 0,polygon)
   return (.find_y(pol1$x >= pol1$x[ length(pol1$x) ],
                   x3 = pol1$x[ length(pol1$x) ], pol1) )
