@@ -232,8 +232,8 @@
   I.poli.data<-rot.data[which(sp::point.in.polygon(point.x = rot.data$X.rot,point.y =rot.data$Y.rot ,pol.x = I.poli$x,pol.y =I.poli$y)!=0),]
   II.poli.data<-rot.data[which(sp::point.in.polygon(point.x = rot.data$X.rot,point.y = rot.data$Y.rot,pol.x =II.poli$x ,pol.y =II.poli$y)!=0),]
   #atliekam plotu palyginima, t.y. padalinimo gerumo ivertinima, jei kreive netenkina minimaliu kriteriju - padalinimo kokybe nuline
-  S1<-abs(pracma:polyarea(I.poli$x,I.poli$y))
-  S2<-abs(pracma:polyarea(II.poli$x,II.poli$y))
+  S1<-abs(pracma::polyarea(I.poli$x,I.poli$y))
+  S2<-abs(pracma::polyarea(II.poli$x,II.poli$y))
   if(min(nrow(I.poli.data),nrow(II.poli.data))>N.cond&min(S1,S2)>S.cond){
     SS<-.dif_fun(I.poli.data[,1],II.poli.data[,1])
   } else{
