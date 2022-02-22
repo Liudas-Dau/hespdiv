@@ -426,7 +426,7 @@
     corrected.y<-numeric()
     for (i in 1:length(vid.x)){
       y3.up<-c(y3.up,.y.online(x=Xup,y=Yup,x3=vid.x[i]))
-      y3.down<-c(y3.down,.y.online(x3=vid.x[i],x=Xdown,y=Down))
+      y3.down<-c(y3.down,.y.online(x3=vid.x[i],x=Xdown,y=Ydown))
       #surandam atstuma tarp y3 up ir down
       RANGES<-c(RANGES,y3.up[i]-y3.down[i])
       #paziurim, per kuria puse kreives atkarpa iseina uz poligono (per virsu ar ne?)
