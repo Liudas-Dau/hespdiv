@@ -79,9 +79,9 @@
   up.y<-numeric(c.X.knots)
   do.y<-numeric(c.X.knots)
   for(i in 1:length(split.line.x)){
-    up.y[i]<-.y.online(x=upper.inner.poli$x,y=upper.inner.poli$yp,
+    up.y[i]<-.y.online(x=upper.inner.poli[[1]]$x,y=upper.inner.poli[[1]]$y,
                        x3=split.line.x[i])
-    do.y[i]<-.y.online(x=bottom.inner.poli$x,y=bottom.inner.poli$yp,
+    do.y[i]<-.y.online(x=bottom.inner.poli[[1]]$x,y=bottom.inner.poli[[1]]$yp,
                        x3=split.line.x[i])
   }
   #randam ploti pataisyto poligono
@@ -95,19 +95,19 @@
   knot.y.matrix<-matrix(B,c.Y.knots,1)%*%matrix(range,1,c.X.knots)+
     matrix(rep(do.y,each=c.Y.knots),c.Y.knots,c.X.knots)
   #randam geriausia padalinimo kreive
-  best..curvi_split<-.curvi_split(
-    knot.y.matrix,split.line.x,Xup=upper.inner.poli$x,
-    Xdown=bottom.inner.poli$x,Yup=upper.inner.poli$y,Ydown=bottom.inner.poli$y,
+  best_curvi_split<-.curvi_split(
+    knot.y.matrix,split.line.x,Xup=upper.inner.poli[[1]]$x,
+    Xdown=bottom.inner.poli[[1]]$x,Yup=upper.inner.poli[[1]]$y,Ydown=bottom.inner.poli[[1]]$y,
     N.cond,S.cond,c.Y.knots,c.X.knots,rot.poli.up,rot.poli.do,
     rot.data,n.curve.iter =n.curve.iter,correction.term = correction.term
     )
 
 # Up --> Yup, Down --> Ydown; xp --> x; yp --> y.  visur pakeist
-  best.curve<-data.frame(x=best..curvi_split[[1]]$x+poly.x[min.x.id],
-                         y=best..curvi_split[[1]]$y+poly.y[min.x.id])
+  best.curve<-data.frame(x=best_curvi_split[[1]]$x+poly.x[min.x.id],
+                         y=best_curvi_split[[1]]$y+poly.y[min.x.id])
   best.curve<-Rotate(x=best.curve$x,y=best.curve$y,mx=poly.x[min.x.id],
                      my=poly.y[min.x.id],theta=teta)
-  return(list(best.curve,best..curvi_split[[2]]))
+  return(list(best.curve,best_curvi_split[[2]]))
 }
 
 #' Find the curve that divides the polygon best (recursive function)
