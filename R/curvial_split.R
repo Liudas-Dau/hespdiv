@@ -81,7 +81,7 @@
   for(i in 1:length(split.line.x)){
     up.y[i]<-.y.online(x=upper.inner.poli[[1]]$x,y=upper.inner.poli[[1]]$y,
                        x3=split.line.x[i])
-    do.y[i]<-.y.online(x=bottom.inner.poli[[1]]$x,y=bottom.inner.poli[[1]]$yp,
+    do.y[i]<-.y.online(x=bottom.inner.poli[[1]]$x,y=bottom.inner.poli[[1]]$y,
                        x3=split.line.x[i])
   }
   #randam ploti pataisyto poligono
