@@ -149,13 +149,16 @@
 #' of a polygon that encompasses the locations of \code{data}. If not
 #' provided (default is NULL), convex hull of \code{data} will be used a
 #' study area polygon.
-#' @param trace.level Integer from 0 to 7, indicates how much information should
-#' the algorithm communicate during computations. 0 (default) - no algorithm
-#' tracing; 1 - only the best split-lines are reported; 2 - best
-#' intermediate straight split-lines are reported; 3 - best intermediate
-#' curvi-linear split-lines are reported; 4 - best intermediate split-lines are
-#' reported; 5 - all straight split lines are reported; 6 - all curvi-linear
-#' split lines are reported; 7 - all split-lines are reported.
+#' @param trace.level Integer from 0 to 7 that indicates which information
+#' should be traced and visualized:
+#' 0 (default) - nothing;
+#' 1 - only the best split-lines are reported;
+#' 2 - best intermediate straight split-lines are reported;
+#' 3 - best intermediate curvi-linear split-lines are reported;
+#' 4 - best intermediate split-lines are reported;
+#' 5 - all straight split lines are reported;
+#' 6 - all curvi-linear split lines are reported;
+#' 7 - all split-lines are reported.
 #' @param pnts.col Color of data points, default is 1. Argument is used when
 #' \code{trace.level} > 0. If set to NULL, data points will not be displayed.
 #' @return hespdiv class object, a list of at least 5 elements (see details):
