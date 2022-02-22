@@ -12,8 +12,8 @@
 #' @param c.Y.knots number of spline knots orthogonal to the split line
 #' @param N.condminimum minimum number of fossils required to establish subdivision of a plot
 #' @param S.cond minimum area required to establish subdivision of a plot
-#' @param n.curve.iter number of curve iterations
-#' @param correction.term term that defines how much the a problematic spline
+#' @param c.iter.no number of c.iter.no
+#' @param c.corr.term term that defines how much the a problematic spline
 #' will be corrected (in terms of proportion of polygon width where spline
 #' intersects the polygon boundary) if the spline is not contained within the
 #' plot. Small values recommended (default is 0.05).
@@ -23,8 +23,8 @@
 #' @noRd
 .curvial_split<-function(poly.x,poly.y,min.x.id,max.x.id,b,
                          data,c.X.knots=20,c.Y.knots=20,
-                         N.cond,S.cond,n.curve.iter,
-                         correction.term){
+                         N.cond,S.cond,c.iter.no,
+                         c.corr.term){
   #nustatau, kuris padalinimo linijos id yra kairej, kuris desinej
   # length of a split line
   AE<-sqrt(sum((c(poly.x[min.x.id],
@@ -99,7 +99,7 @@
     knot.y.matrix,split.line.x,Xup=upper.inner.poli[[1]]$x,
     Xdown=bottom.inner.poli[[1]]$x,Yup=upper.inner.poli[[1]]$y,Ydown=bottom.inner.poli[[1]]$y,
     N.cond,S.cond,c.Y.knots,c.X.knots,rot.poli.up,rot.poli.do,
-    rot.data,n.curve.iter =n.curve.iter,correction.term = correction.term
+    rot.data,c.iter.no =c.iter.no,c.corr.term = c.corr.term
     )
 
 # Up --> Yup, Down --> Ydown; xp --> x; yp --> y.  visur pakeist
@@ -113,7 +113,7 @@
 #' Find the curve that divides the polygon best (recursive function)
 #'
 #' @description At this stage of an algorithm, polygon is rotated so that the split line is horizontal and positioned along X axis (at Y = 0), and split line starts at X = 0.
-#' Function iterates trough knot matrix several times (number of times is defined by n.curve.iter argument) and tries different splines to seperate data in space.
+#' Function iterates trough knot matrix several times (number of times is defined by c.iter.no argument) and tries different splines to seperate data in space.
 #' Iteration through knots starts from left to right along the split line. For each position along the split line several positions orthogonal to the split line are tried.
 #' The best orthogonal positions are estimated from a spline model (Split Quality ~ Y coordinate of a knot for a given X coordinate)
 #' So the best Y knot coordinate is provided for each knot along X. Thus, knots along the split line are fixated, but along Y are not. When one iteration is complete, the next
@@ -132,8 +132,8 @@
 #' @param rot.poli.up rotated, but not standartized, full upper polygon
 #' @param rot.poli.do rotated, but not standartized, full lower polygon
 #' @param rot.data rotated data that is analyzed
-#' @param n.curve.iter number of curve iterations
-#' @param correction.term term that defines how much the a problematic spline
+#' @param c.iter.no number of c.iter.no
+#' @param c.corr.term term that defines how much the a problematic spline
 #' will be corrected (in terms of proportion of polygon width where spline
 #' intersects the polygon boundary) if the spline is not contained within the
 #' plot. Small values recommended (default is 0.05).
@@ -142,13 +142,13 @@
 #' @noRd
 .curvi_split<-function(knot.y.matrix,split.line.x,Xup,Xdown,Yup,Ydown,N.cond,
                       S.cond,c.Y.knots,c.X.knots,rot.poli.up,
-                      rot.poli.do,rot.data,n.curve.iter=n.curve.iter,
-                      correction.term){
+                      rot.poli.do,rot.data,c.iter.no=c.iter.no,
+                      c.corr.term){
   best.y.knots<-numeric(c.X.knots)
   SSk<-numeric(c.Y.knots-2)
   SSks<-numeric(c.X.knots-2)
   knot.y.matrix<-knot.y.matrix[-c(1,c.Y.knots),-c(1,c.X.knots)]
-  for (it in seq(n.curve.iter)){
+  for (it in seq(c.iter.no)){
     if(it%%2==1){
       if(it==1){
         seq.of.x.knots <- 1:(c.X.knots-2)
@@ -170,7 +170,7 @@
         #sukuriam nauja split.line.x best.y.knots varianta
         #kartojam splina
         curve<-.spline_corrections(curve,Xup,Xdown,Yup,Ydown,best.y.knots,
-                                 split.line.x,correction.term=correction.term)
+                                 split.line.x,c.corr.term=c.corr.term)
         #ivertinam poligono padalinimo su sugeneruota kreive kokybe
         SS<-.curve_quality(curve=curve,rot.poli.up, rot.poli.do, rot.data,
                           N.cond,S.cond)
@@ -194,7 +194,7 @@
   # gauti pataisius duotus knotus)
   #taigi, kreive dar karta bandoma pataisyti, jei reikia
   curve.final<-.spline_corrections(curve.final,Xup,Xdown,Yup,Ydown,best.y.knots,
-                                 split.line.x,correction.term = correction.term)
+                                 split.line.x,c.corr.term = c.corr.term)
   #ivertinam galutines padalinimo kreives kokybe
   lines(curve.final,col=3)
   SS<-.curve_quality(curve.final,rot.poli.up, rot.poli.do, rot.data, N.cond,
@@ -257,7 +257,7 @@
 #' @param best.y.knots a vector of Y coordinates of knots of a spline that were used to produce the curve.
 #' Each Y coordinate is dedicated for corresponding elements of split.line.x, that is X coordinates of spline knots.
 #' @param split.line.x a vector of x coordinates for each knot along the split line
-#' @param correction.term term that defines how much the a problematic spline
+#' @param c.corr.term term that defines how much the a problematic spline
 #' will be corrected (in terms of proportion of polygon width where spline
 #' intersects the polygon boundary) if the spline is not contained within the
 #' plot. Small values recommended (default is 0.05).
@@ -265,12 +265,12 @@
 #' @author Liudas Daumantas
 #' @noRd
 .spline_corrections<-function(curve,Xup,Xdown,Yup,Ydown,best.y.knots,
-                             split.line.x,correction.term){
+                             split.line.x,c.corr.term){
 
   corrected.coords<-.y_corrections(spline.x = curve$x,spline.y =curve$y ,
                                   Xup = Xup,Xdown = Xdown,Yup = Up,
                                   Ydown = Ydown,
-                                  correction.term = correction.term)
+                                  c.corr.term = c.corr.term)
   if (length(dim(corrected.coords))>1){
     ind<-numeric()
     k<-0
@@ -328,7 +328,7 @@
     return(.spline_corrections(curve =curve ,Xup =Xup ,Xdown =Xdown ,Yup=Yup,
                               Ydown = Ydown,best.y.knots=best.y.knots,
                               split.line.x = split.line.x,
-                              correction.term = correction.term) )
+                              c.corr.term = c.corr.term) )
   } else {
     return(curve)
   }
@@ -343,7 +343,7 @@
 #' Then, Y coordinates are produced for each X coordinate in a way so that each produced Y are within the polygon.
 #' The Y coordinates are calculated as follows: 1) width of the polygon is calculated
 #' at X coordinate (distance in Y coord. between upper and lower boundaries of the
-#' standartized polygon at X coord.); 2) the correction.term is then multiplied by the calculated width
+#' standartized polygon at X coord.); 2) the c.corr.term is then multiplied by the calculated width
 #' to get the correction size in Y units; 3) correction is then added to the Y of lower polygon boundary
 #' if curve crosses the boundary there, or is subtracted from the upper boundary Y if else.
 #'
@@ -355,7 +355,7 @@
 #' @param Ydown Y coordinates of lower part (below split line) of standartized polygon
 #' @param best.y.knots a vector of Y coordinates of knots of a spline that were used to produce the curve.
 #' Each Y coordinate is dedicated for corresponding elements of split.line.x, that is X coordinates of spline knots.
-#' @param correction.term term that defines how much the a problematic spline
+#' @param c.corr.term term that defines how much the a problematic spline
 #' will be corrected (in terms of proportion of polygon width where spline
 #' intersects the polygon boundary) if the spline is not contained within the
 #' plot. Small values recommended (default is 0.05).
@@ -366,7 +366,7 @@
 #' @importFrom sp point.in.polygon
 #' @noRd
 .y_corrections<-function(spline.x,spline.y,Xup,Xdown,Yup,Ydown,
-                        correction.term){
+                        c.corr.term){
   #tikrinam, ar kreive polygone, nuimam po viena taska krastini, nes jie ant poligono ribos
   curve.in.polygon<-sp::point.in.polygon(
     point.x = spline.x,
@@ -432,9 +432,9 @@
       #paziurim, per kuria puse kreives atkarpa iseina uz poligono (per virsu ar ne?)
       #pataisom y3 taip, kad jis atsidurtu poligone, 5% atstumu nuo krasto poligono
       if (vid.y[i]>=0){
-        corrected.y<-c(corrected.y,y3.up[i]-correction.term*RANGES[i])
+        corrected.y<-c(corrected.y,y3.up[i]-c.corr.term*RANGES[i])
       } else {
-        corrected.y<-c(corrected.y,y3.down[i]+correction.term*RANGES[i])
+        corrected.y<-c(corrected.y,y3.down[i]+c.corr.term*RANGES[i])
       }
     }
     return(data.frame(vid.x,corrected.y))

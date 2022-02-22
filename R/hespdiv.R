@@ -571,8 +571,8 @@ generalize.f <- function(plot.dat){
       c.Y.knots = c.Y.knots,
       N.cond = N.crit,
       S.cond = S.cond,
-      n.curve.iter = curve.iterations,
-      correction.term = c.corr.term
+      c.iter.no = c.iter.no,
+      c.corr.term = c.corr.term
 
       )
     if (trace.level > 2) {
