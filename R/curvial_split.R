@@ -8,8 +8,8 @@
 #' @param max.x.id index of split line vertex in poly.x and poly.y objects that has lower y coordinate
 #' @param b slope of a split line
 #' @param data data frame of data being analized
-#' @param knot.density.X number of spline knots along the split line
-#' @param knot.density.Y number of spline knots orthogonal to the split line
+#' @param c.X.knots number of spline knots along the split line
+#' @param c.Y.knots number of spline knots orthogonal to the split line
 #' @param N.condminimum minimum number of fossils required to establish subdivision of a plot
 #' @param S.cond minimum area required to establish subdivision of a plot
 #' @param n.curve.iter number of curve iterations
@@ -22,7 +22,7 @@
 #' @importFrom DescTools Rotate
 #' @noRd
 .curvial_split<-function(poly.x,poly.y,min.x.id,max.x.id,b,
-                         data,knot.density.X=20,knot.density.Y=20,
+                         data,c.X.knots=20,c.Y.knots=20,
                          N.cond,S.cond,n.curve.iter,
                          correction.term){
   #nustatau, kuris padalinimo linijos id yra kairej, kuris desinej
@@ -72,12 +72,12 @@
   }
   #pasirupinam splino knot'ais pradiniais
 
-  split.line.x<-seq(0,AE,length.out = knot.density.X)
-  split.line.x[knot.density.X]<-AE
+  split.line.x<-seq(0,AE,length.out = c.X.knots)
+  split.line.x[c.X.knots]<-AE
   #ant pataisyto poligono reikia rasti Y koordinates duotom x koordinatem,
   # atitinkanciom padalinimo linijos atkarpu galus
-  up.y<-numeric(knot.density.X)
-  do.y<-numeric(knot.density.X)
+  up.y<-numeric(c.X.knots)
+  do.y<-numeric(c.X.knots)
   for(i in 1:length(split.line.x)){
     up.y[i]<-.y.online(x=upper.inner.poli$x,y=upper.inner.poli$yp,
                        x3=split.line.x[i])
@@ -87,18 +87,18 @@
   #randam ploti pataisyto poligono
   range<-up.y-do.y
   #nustatom i kiek daliu dalinsim polygona pagal Y koordinate
-  B<-seq(0,1,length.out = knot.density.Y)
+  B<-seq(0,1,length.out = c.Y.knots)
   #sugeneruojam matrica su testuojamu spline knotu y koordinatem.
   #Kiekvienas stulpelis atitinka skirtinga X verte ant padalinimo linijos
   #spit.line.x, kiekviena eilute atitinka skirtinga poligono pjuvio ties x
   # koordinate dali - virsutines eilutes apatine poligono dalis
-  knot.y.matrix<-matrix(B,knot.density.Y,1)%*%matrix(range,1,knot.density.X)+
-    matrix(rep(do.y,each=knot.density.Y),knot.density.Y,knot.density.X)
+  knot.y.matrix<-matrix(B,c.Y.knots,1)%*%matrix(range,1,c.X.knots)+
+    matrix(rep(do.y,each=c.Y.knots),c.Y.knots,c.X.knots)
   #randam geriausia padalinimo kreive
   best..curvi_split<-.curvi_split(
     knot.y.matrix,split.line.x,Xup=upper.inner.poli$x,
     Xdown=bottom.inner.poli$x,Yup=upper.inner.poli$y,Ydown=bottom.inner.poli$y,
-    N.cond,S.cond,knot.density.Y,knot.density.X,rot.poli.up,rot.poli.do,
+    N.cond,S.cond,c.Y.knots,c.X.knots,rot.poli.up,rot.poli.do,
     rot.data,n.curve.iter =n.curve.iter,correction.term = correction.term
     )
 
@@ -127,8 +127,8 @@
 #' @param Ydown Y coordinates of lower part (below split line) of standartized polygon
 #' @param N.cond minimum number of fossils required to establish subdivision of a plot
 #' @param S.cond minimum area required to establish subdivision of a plot
-#' @param knot.density.Y number of spline knots orthogonal to the split line
-#' @param knot.density.X number of spline knots along the split line
+#' @param c.Y.knots number of spline knots orthogonal to the split line
+#' @param c.X.knots number of spline knots along the split line
 #' @param rot.poli.up rotated, but not standartized, full upper polygon
 #' @param rot.poli.do rotated, but not standartized, full lower polygon
 #' @param rot.data rotated data that is analyzed
@@ -141,24 +141,24 @@
 #' @author Liudas Daumantas
 #' @noRd
 .curvi_split<-function(knot.y.matrix,split.line.x,Xup,Xdown,Yup,Ydown,N.cond,
-                      S.cond,knot.density.Y,knot.density.X,rot.poli.up,
+                      S.cond,c.Y.knots,c.X.knots,rot.poli.up,
                       rot.poli.do,rot.data,n.curve.iter=n.curve.iter,
                       correction.term){
-  best.y.knots<-numeric(knot.density.X)
-  SSk<-numeric(knot.density.Y-2)
-  SSks<-numeric(knot.density.X-2)
-  knot.y.matrix<-knot.y.matrix[-c(1,knot.density.Y),-c(1,knot.density.X)]
+  best.y.knots<-numeric(c.X.knots)
+  SSk<-numeric(c.Y.knots-2)
+  SSks<-numeric(c.X.knots-2)
+  knot.y.matrix<-knot.y.matrix[-c(1,c.Y.knots),-c(1,c.X.knots)]
   for (it in seq(n.curve.iter)){
     if(it%%2==1){
       if(it==1){
-        seq.of.x.knots <- 1:(knot.density.X-2)
+        seq.of.x.knots <- 1:(c.X.knots-2)
       } else {
-        seq.of.x.knots <- 2:(knot.density.X-2)
+        seq.of.x.knots <- 2:(c.X.knots-2)
       }} else {
-        seq.of.x.knots <- (knot.density.X-3):1
+        seq.of.x.knots <- (c.X.knots-3):1
       }
     for (l in seq.of.x.knots) {
-      for (k in 1:(knot.density.Y-2)) {
+      for (k in 1:(c.Y.knots-2)) {
         #isbandom vis kita Y koordinate knotui su duota x koordinate
         best.y.knots[1+l]<-knot.y.matrix[k,l]
         #sugeneruojam splina per knotus

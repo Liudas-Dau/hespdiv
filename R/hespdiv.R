@@ -90,13 +90,13 @@
 #' best split-line would be established. Default is -Inf.
 #' @param c.splits Logical (default TRUE).
 #' Should curvi-linear split-lines be estimated?
-#' @param c.axis.knots Curve parameter. The number of columns in the net of
+#' @param c.X.knots Curve parameter. The number of columns in the net of
 #' spline knots. These columns are distributed regularly along to the straight
 #' split-line. This parameter controls wiggliness (wave length) of the
 #' curvi-linear split-lines. Higher values allow  wigglier curves, thus
 #' increasing the fit to the data, but increases the optimization time of
 #' curvi-linear split-lines. Default value is 5.
-#' @param c.ort.knots Curve parameter. The number of rows in the net of
+#' @param c.Y.knots Curve parameter. The number of rows in the net of
 #' spline knots. These rows are distributed regularly orthogonal to the straight
 #' split-line. This parameter controls wiggliness (resolution of tested wave
 #' amplitudes) of the curvi-linear split-lines. Higher values allow higher
@@ -199,7 +199,7 @@
 hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
                   compare.f = NULL, method = "Pielou_biozonation", N.crit = 0,
                   S.crit = 0, lower.Q.crit = -Inf, upper.Q.crit = -Inf,
-                  c.splits = TRUE, c.axis.knots = 5, c.ort.knots = 10,
+                  c.splits = TRUE, c.X.knots = 5, c.Y.knots = 10,
                   c.iter.no = 2, c.corr.term = 0.05, n.m.test = FALSE,
                   n.m.N = 1000, n.m.seed = 1,  n.m.keep = FALSE,
                   study.pol = NULL, trace.level = 0, pnts.col = 1){
@@ -567,8 +567,8 @@ generalize.f <- function(plot.dat){
       max.x.id = pairs_pts[maxid,7],
       b = pairs_pts[maxid,5],
       data = samp.dat,
-      knot.density.X = knot.density.X,
-      knot.density.Y = knot.density.Y,
+      c.X.knots = c.X.knots,
+      c.Y.knots = c.Y.knots,
       N.cond = N.crit,
       S.cond = S.cond,
       n.curve.iter = curve.iterations,
