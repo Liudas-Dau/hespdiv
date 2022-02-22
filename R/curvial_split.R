@@ -35,7 +35,7 @@
   #paverciu poligona ir duomenis
   rot.pol.cords <- Rotate(x=poly.x,y=poly.y,mx=poly.x[min.x.id],
                           my=poly.y[min.x.id],theta=-teta)
-  rot.dat.cords <- Rotate(x=data$X,y=data$Y,mx=poly.x[min.x.id],
+  rot.dat.cords <- Rotate(x=data$x,y=data$y,mx=poly.x[min.x.id],
                           my=poly.y[min.x.id],theta=-teta)
   #pastumiu duomenis ir poligona, kad padalinimo linijos kairinis taskas butu
   # koordinaciu sistemos pradzioje
