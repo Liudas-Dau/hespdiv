@@ -268,7 +268,7 @@
                              split.line.x,c.corr.term){
 
   corrected.coords<-.y_corrections(spline.x = curve$x,spline.y =curve$y ,
-                                  Xup = Xup,Xdown = Xdown,Yup = Up,
+                                  Xup = Xup,Xdown = Xdown,Yup = Yup,
                                   Ydown = Ydown,
                                   c.corr.term = c.corr.term)
   if (length(dim(corrected.coords))>1){
