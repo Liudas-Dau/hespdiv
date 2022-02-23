@@ -149,16 +149,10 @@
 #' of a polygon that encompasses the locations of \code{data}. If not
 #' provided (default is NULL), convex hull of \code{data} will be used a
 #' study area polygon.
-#' @param trace Integer from 0 to 7 that indicates which information
-#' should be traced and visualized:
-#' 0 (default) - nothing;
-#' 1 - only the best split-lines are reported;
-#' 2 - best intermediate straight split-lines are reported;
-#' 3 - best intermediate curvi-linear split-lines are reported;
-#' 4 - best intermediate split-lines are reported;
-#' 5 - all straight split lines are reported;
-#' 6 - all curvi-linear split lines are reported;
-#' 7 - all split-lines are reported.
+#' @param trace.level Sting indicating the trace level. Can be one of the
+#' following: "best", "main", "all"
+#' @param trace.object String that informs what graphical information to show.
+#' Can be either "curves", "straight" or "both".
 #' @param pnts.col Color of data points, default is 1. Argument is used when
 #' \code{trace} > 0. If set to NULL, data points will not be displayed.
 #' @return hespdiv class object, a list of at least 5 elements (see details):
@@ -205,7 +199,8 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
                   c.splits = TRUE, c.X.knots = 5, c.Y.knots = 10,
                   c.iter.no = 2, c.corr.term = 0.05, n.m.test = FALSE,
                   n.m.N = 1000, n.m.seed = 1,  n.m.keep = FALSE,
-                  study.pol = NULL, trace = 0, pnts.col = 1){
+                  study.pol = NULL, trace.level = NULL,
+                  trace.object = NULL, pnts.col = 1){
 
     if (c.splits == FALSE & upper.Q.crit != lower.Q.crit) {
     print(paste("Since 'c.splits' is FALSE, 'lower.Q.crit' is set equal to
@@ -284,11 +279,8 @@ generalize.f <- function(plot.dat){
   iteration <- 1
 
   e <- environment()
-
-  environment(.visualise_splits) <- e
   environment(.spatial_div) <- e
 
-  .visualise_splits(what = trace, when = "start")
   .spatial_div(data,root=2)
 
 
@@ -389,28 +381,11 @@ generalize.f <- function(plot.dat){
          envir = e)
 
   perim_pts <- .perimeter_pts(polygon = margins,n.pts = n.split.pts)
-  #grafikas pirminis nupaisomas
-  {
-    if (trace > 0 ) {
-      if(!is.null(pnts.col)){
-        plot(data$x, data$y, col=pnts.col )
-      } else {
-        plot(0,0,xlim = range(data$x),ylim = range(data$y),col=0)
-        }
 
-      centras <- pracma::poly_center(margins[,1],margins[,2])
-      points(centras[1],centras[2],col=3,pch=19)
-      lines(rims[[1]])
-      print(paste0("Polygon tested No. : ", testid))
-      # padalinimai savo ribose nupaisomi
-      if (testid>1) {
-        for (i in 2:c(testid)){
-          print(paste0("polygons drawed: ", i-1))
-          lines(x=rims[[i]][,1],y=rims[[i]][,2],col=1,lwd=2)
-        }}
-      points(perim_pts[[1]],pch=19,col="purple")
-    }
-  }
+  environment(.visualise_splits) <- environment()
+  .visualise_splits(what = trace.object,level = trace.level,
+                    when = "start")
+
   #testavimui pjuviai paruosiami
 
   environment(.dif_fun) <- e
