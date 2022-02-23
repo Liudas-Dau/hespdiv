@@ -252,15 +252,7 @@ generalize.f <- function(plot.dat){
       y <- data$y[ids]
       study.pol <- data.frame(x=x,y=y)
     }
-    if (trace.level > 0 ) {
-      if(!is.null(pnts.col)){
-        plot(data$x, data$y, col=pnts.col )
-      } else {
-        plot(0,0,xlim = range(data$x),ylim = range(data$y),col=0)
-      }
 
-      lines(study.pol)
-    }
     rims <- list(study.pol)
     poly.info <- data.frame(mean.dif = numeric(), # mean spatial heterogeneity irrespective of split-line position
                          sd.dif = numeric(), # anizotropy of heterogeneity based on straight split-lines
@@ -292,9 +284,11 @@ generalize.f <- function(plot.dat){
   iteration <- 1
 
   e <- environment()
+
+  environment(.visualise_splits) <- e
   environment(.spatial_div) <- e
 
-
+  .visualise_splits(what = trace, when = "start")
   .spatial_div(data,root=2)
 
 
@@ -782,6 +776,8 @@ print.hespdiv <- function(x, n.m.test){
   }
   invisible(x)
 }
+
+
 
 #' Test the split-line with null model simulations
 #'
