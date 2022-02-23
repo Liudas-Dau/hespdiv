@@ -149,7 +149,7 @@
 #' of a polygon that encompasses the locations of \code{data}. If not
 #' provided (default is NULL), convex hull of \code{data} will be used a
 #' study area polygon.
-#' @param trace.level Integer from 0 to 7 that indicates which information
+#' @param trace Integer from 0 to 7 that indicates which information
 #' should be traced and visualized:
 #' 0 (default) - nothing;
 #' 1 - only the best split-lines are reported;
@@ -160,7 +160,7 @@
 #' 6 - all curvi-linear split lines are reported;
 #' 7 - all split-lines are reported.
 #' @param pnts.col Color of data points, default is 1. Argument is used when
-#' \code{trace.level} > 0. If set to NULL, data points will not be displayed.
+#' \code{trace} > 0. If set to NULL, data points will not be displayed.
 #' @return hespdiv class object, a list of at least 5 elements (see details):
 #' \describe{
 #'   \item{\code{split.lines}}{ a list containing data frames of
@@ -205,7 +205,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
                   c.splits = TRUE, c.X.knots = 5, c.Y.knots = 10,
                   c.iter.no = 2, c.corr.term = 0.05, n.m.test = FALSE,
                   n.m.N = 1000, n.m.seed = 1,  n.m.keep = FALSE,
-                  study.pol = NULL, trace.level = 0, pnts.col = 1){
+                  study.pol = NULL, trace = 0, pnts.col = 1){
 
     if (c.splits == FALSE & upper.Q.crit != lower.Q.crit) {
     print(paste("Since 'c.splits' is FALSE, 'lower.Q.crit' is set equal to
@@ -391,7 +391,7 @@ generalize.f <- function(plot.dat){
   perim_pts <- .perimeter_pts(polygon = margins,n.pts = n.split.pts)
   #grafikas pirminis nupaisomas
   {
-    if (trace.level > 0 ) {
+    if (trace > 0 ) {
       if(!is.null(pnts.col)){
         plot(data$x, data$y, col=pnts.col )
       } else {
@@ -421,7 +421,7 @@ generalize.f <- function(plot.dat){
   maxid <- 0
 
   if (nrow(pairs_pts)!=0){
-    if (trace.level > 0 ) {
+    if (trace > 0 ) {
       points(pairs_pts[,c(1:2)], col = "green", pch=19)
       points(pairs_pts[,c(3:4)], col = "green", pch=19)
     }
@@ -449,7 +449,7 @@ generalize.f <- function(plot.dat){
 
         # padalinami duomenys i dvi dalis pagal pjuvio koordinates
         Puses <- list(.get_data(po,samp.dat),.get_data(virs,samp.dat))
-        if (any(trace.level == c(5,7)) ) {
+        if (any(trace == c(5,7)) ) {
           readline(prompt = paste0('Going to test straight split-line No. : ',i))
           points(pairs_pts[i,c(3,4)],col = 4, pch = 19, cex = 1.5)
           lines(x = pairs_pts[i,c(1,3)], y = pairs_pts[i,c(2,4)],
@@ -475,7 +475,7 @@ generalize.f <- function(plot.dat){
             any.split <- c(any.split,Skirtumas)
             #Paskaiciuojam plotus padalintu bloku
             if (Skirtumas > maxdif){
-              if (any(trace.level == c(2,4,5,7)) ) {
+              if (any(trace == c(2,4,5,7)) ) {
                 lines(x = pairs_pts[i,c(1,3)], y = pairs_pts[i,c(2,4)],
                       col = "blue", pch = 19)
                 print(paste0('Difference obtained between polygons: ',round(Skirtumas,2)))
@@ -488,7 +488,7 @@ generalize.f <- function(plot.dat){
               maxdif <- Skirtumas
               maxid <- i
             } else {
-              if (any(trace.level == c(5,7)) ) {
+              if (any(trace == c(5,7)) ) {
                 lines(x = pairs_pts[i,c(1,3)], y = pairs_pts[i,c(2,4)],
                       col = "gray60", pch = 19)
                 points(pairs_pts[i,c(3,4)],col = "gray60", pch = 19, cex = 1.5)
@@ -498,7 +498,7 @@ generalize.f <- function(plot.dat){
               }
             }
           } else {
-            if (any(trace.level == c(5,7)) ){
+            if (any(trace == c(5,7)) ){
               print("The obtained polygons were too small.")
               lines(x = pairs_pts[i,c(1,3)], y = pairs_pts[i,c(2,4)],
                     col = "gray60", pch = 19)
@@ -509,7 +509,7 @@ generalize.f <- function(plot.dat){
             }
           }
         } else {
-          if (any(trace.level == c(5,7)) ){
+          if (any(trace == c(5,7)) ){
             lines(x = pairs_pts[i,c(1,3)], y = pairs_pts[i,c(2,4)],
                   col = "gray60", pch = 19)
             points(pairs_pts[i,c(3,4)],col = "gray60", pch = 19, cex = 1.5)
@@ -572,7 +572,7 @@ generalize.f <- function(plot.dat){
       c.corr.term = c.corr.term
 
       )
-    if (trace.level > 2) {
+    if (trace > 2) {
       lines(best.curve[[1]],col=2,lwd=3)
     }
     if ( max(best.curve[[2]],maxdif) < upper.Q.crit ){ # vel santykinis base line. Be to,
@@ -641,7 +641,7 @@ generalize.f <- function(plot.dat){
     )
     do.dat <- .get_data(do.pol,samp.dat)
 
-    if (trace.level > 0) {
+    if (trace > 0) {
       lines(up.pol,col=5,lwd=4)
       lines(do.pol,col=5,lwd=4)
     }
@@ -697,7 +697,7 @@ generalize.f <- function(plot.dat){
            envir = e)
 
     # where to next?
-    if (trace.level > 1) {
+    if (trace > 1) {
       lines(ribs[[1]],col="purple")
     }
 
@@ -714,7 +714,7 @@ generalize.f <- function(plot.dat){
     #rdinates.
     assign(x = "rims" ,value = do.call(c,list(rims,ribs[2])) ,envir = e)
 
-    if (trace.level > 1) {
+    if (trace > 1) {
       lines(ribs[[2]],col="purple")
     }
     .spatial_div(do.dat, root = iteration)
@@ -723,11 +723,11 @@ generalize.f <- function(plot.dat){
   }} else{
     #Jei tinkamo padalino nerasta, grizta tuscias masyvas
     if (testid>1){
-      if (trace.level > 0)
+      if (trace > 0)
       print("There were no suitable points on the polygon perimeter
             to generate straight-split lines")
     } else{
-      if (trace.level > 0)
+      if (trace > 0)
       print("There were no suitable points on the polygon perimeter
             to generate straight-split lines")
     }
