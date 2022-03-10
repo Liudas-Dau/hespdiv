@@ -396,10 +396,6 @@ generalize.f <- function(plot.dat){
   maxid <- 0
 
   if (nrow(pairs_pts)!=0){
-    if (trace > 0 ) {
-      points(pairs_pts[,c(1:2)], col = "green", pch=19)
-      points(pairs_pts[,c(3:4)], col = "green", pch=19)
-    }
     #pjaustymo ir testavimo ciklas
     {
       for (i in 1:nrow(pairs_pts)){
@@ -424,16 +420,11 @@ generalize.f <- function(plot.dat){
 
         # padalinami duomenys i dvi dalis pagal pjuvio koordinates
         Puses <- list(.get_data(po,samp.dat),.get_data(virs,samp.dat))
-        if (any(trace == c(5,7)) ) {
-          readline(prompt = paste0('Going to test straight split-line No. : ',i))
-          points(pairs_pts[i,c(3,4)],col = 4, pch = 19, cex = 1.5)
-          lines(x = pairs_pts[i,c(1,3)], y = pairs_pts[i,c(2,4)],
-                col = "yellow", pch = 19)
-          # filtravimas spalvu su get.dat - imanoma, bet gal nereikia?
-          points(Puses[[1]]$x,Puses[[1]]$y,col="darkgreen",pch=19)
-          readline(prompt = "Press enter, to see points from other polygon")
-          points(Puses[[2]]$x,Puses[[2]]$y,col=6,pch=19)
-        }
+
+        environment(.visualise_splits) <- environment()
+        .visualise_splits(what = trace.object,level = trace.level,
+                          when = "try.straight")
+
         if (all(c(nrow(Puses[[1]]),
                   nrow(Puses[[2]]))>N.crit)){
           if (S.crit > 0){
@@ -450,6 +441,9 @@ generalize.f <- function(plot.dat){
             any.split <- c(any.split,Skirtumas)
             #Paskaiciuojam plotus padalintu bloku
             if (Skirtumas > maxdif){
+              environment(.visualise_splits) <- environment()
+              .visualise_splits(what = trace.object,level = trace.level,
+                                when = "good.straight")
               if (any(trace == c(2,4,5,7)) ) {
                 lines(x = pairs_pts[i,c(1,3)], y = pairs_pts[i,c(2,4)],
                       col = "blue", pch = 19)
@@ -463,36 +457,28 @@ generalize.f <- function(plot.dat){
               maxdif <- Skirtumas
               maxid <- i
             } else {
-              if (any(trace == c(5,7)) ) {
-                lines(x = pairs_pts[i,c(1,3)], y = pairs_pts[i,c(2,4)],
-                      col = "gray60", pch = 19)
-                points(pairs_pts[i,c(3,4)],col = "gray60", pch = 19, cex = 1.5)
-                print("Estimated difference was too small.")
-                print(paste0("Required: ",round(maxdif,2)))
-                print(paste0("Was obatained: ",round(Skirtumas,2)))
-              }
+              message <- paste0("Poor split quality./n","Obtained: ",
+                                round(Skirtumas,2),
+                                ";/nRequired: ",round(maxdif,2))
+              environment(.visualise_splits) <- environment()
+              .visualise_splits(what = trace.object,level = trace.level,
+                                when = "bad.straight")
             }
           } else {
-            if (any(trace == c(5,7)) ){
-              print("The obtained polygons were too small.")
-              lines(x = pairs_pts[i,c(1,3)], y = pairs_pts[i,c(2,4)],
-                    col = "gray60", pch = 19)
-              points(pairs_pts[i,c(3,4)],col = "gray60", pch = 19, cex = 1.5)
-              print(paste0("Required area: ",round(S.cond,2)))
-              print(paste0("S_pol1: ", round(SpjuvioI,2)))
-              print(paste0("S_pol2: ", round(SpjuvioII,2)))
-            }
+            message <- paste0("One of the areas was too small./n","Obtained: ",
+                              round(SpjuvioI,2), round(SpjuvioII,2),
+                              ";/nRequired: ",S.cond)
+            environment(.visualise_splits) <- environment()
+            .visualise_splits(what = trace.object,level = trace.level,
+                              when = "bad.straight")
           }
         } else {
-          if (any(trace == c(5,7)) ){
-            lines(x = pairs_pts[i,c(1,3)], y = pairs_pts[i,c(2,4)],
-                  col = "gray60", pch = 19)
-            points(pairs_pts[i,c(3,4)],col = "gray60", pch = 19, cex = 1.5)
-            print("Not enough data points in at least one of the polygons.")
-            print(paste0("N required: ", N.crit))
-            print(paste0("N1: ",nrow(Puses[[1]])))
-            print(paste0("N2: ",nrow(Puses[[2]])))
-          }
+          message <- paste0("Not enough observations in one of the areas.",
+          "/nObtained: ", c(nrow(Puses[[1]]), nrow(Puses[[2]])),
+                            ";/nRequired: ",N.crit)
+          environment(.visualise_splits) <- environment()
+          .visualise_splits(what = trace.object,level = trace.level,
+                            when = "bad.straight")
         }
       }
     }
@@ -530,7 +516,9 @@ generalize.f <- function(plot.dat){
     #issaugom duomenis ir ziurim ar galima skaidyti toliau
     if (maxid>0) {
       if ( c.splits) {
-
+        environment(.visualise_splits) <- environment()
+        .visualise_splits(what = trace.object,level = trace.level,
+                          when = "best.straight")
         best.curve <- .curvial_split(
 
           poly.x = perim_pts[[2]]$x.poly,
@@ -541,15 +529,12 @@ generalize.f <- function(plot.dat){
       data = samp.dat,
       c.X.knots = c.X.knots,
       c.Y.knots = c.Y.knots,
-      N.cond = N.crit,
+      N.crit = N.crit,
       S.cond = S.cond,
       c.iter.no = c.iter.no,
       c.corr.term = c.corr.term
 
       )
-    if (trace > 2) {
-      lines(best.curve[[1]],col=2,lwd=3)
-    }
     if ( max(best.curve[[2]],maxdif) < upper.Q.crit ){ # vel santykinis base line. Be to,
       # galima gi reikalaut, kad atotrukis nuo base line butu tam tikro dydzio. Dar vienas P.crit
       # argumentas reikalingas?
@@ -576,6 +561,9 @@ generalize.f <- function(plot.dat){
       best.splitl <- data.frame(x=as.numeric(c(pairs_pts[maxid,c(1,3)])),
                                 y=as.numeric(c(pairs_pts[maxid,c(2,4)])))
     }
+    environment(.visualise_splits) <- environment()
+    .visualise_splits(what = trace.object,level = trace.level,
+                      when = "best.split")
     assign(x = "splits" ,value = do.call(c,list(splits,list(best.splitl))),
            envir = e)
     assign(x = "split.quality" ,
@@ -616,10 +604,7 @@ generalize.f <- function(plot.dat){
     )
     do.dat <- .get_data(do.pol,samp.dat)
 
-    if (trace > 0) {
-      lines(up.pol,col=5,lwd=4)
-      lines(do.pol,col=5,lwd=4)
-    }
+    .visualise_splits(what = trace.object, level = trace.level, when = "best")
 
     #issaugom duomenis padalinimo
     ribs <- list(up.pol,do.pol)
@@ -671,11 +656,6 @@ generalize.f <- function(plot.dat){
     assign(x = "plot.id",value = do.call(c,list(plot.id,iteration)),
            envir = e)
 
-    # where to next?
-    if (trace > 1) {
-      lines(ribs[[1]],col="purple")
-    }
-
 
     .spatial_div(up.dat, root = iteration)
 
@@ -688,21 +668,17 @@ generalize.f <- function(plot.dat){
     #Jei pavyksta rasti pjuvi, updatinam duomenis, jei ne trinam null bobolis ir priklijuotas koo-
     #rdinates.
     assign(x = "rims" ,value = do.call(c,list(rims,ribs[2])) ,envir = e)
-
-    if (trace > 1) {
-      lines(ribs[[2]],col="purple")
-    }
     .spatial_div(do.dat, root = iteration)
     print(paste("griztam i", testid, "padalinima [po aukstu koord bloko (gogolis exists)]", sep=" "))
 
   }} else{
     #Jei tinkamo padalino nerasta, grizta tuscias masyvas
     if (testid>1){
-      if (trace > 0)
+      if (!is.null(trace.object))
       print("There were no suitable points on the polygon perimeter
             to generate straight-split lines")
     } else{
-      if (trace > 0)
+      if (!is.null(trace.object))
       print("There were no suitable points on the polygon perimeter
             to generate straight-split lines")
     }

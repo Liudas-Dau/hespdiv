@@ -144,10 +144,14 @@
                       S.cond,c.Y.knots,c.X.knots,rot.poli.up,
                       rot.poli.do,rot.data,c.iter.no=c.iter.no,
                       c.corr.term){
+  environment(.visualise_splits) <- environment()
+  .visualise_splits(what = trace.object,level = trace.level,
+                    when = "add.knots")
   best.y.knots<-numeric(c.X.knots)
   SSk<-numeric(c.Y.knots-2)
   SSks<-numeric(c.X.knots-2)
   knot.y.matrix<-knot.y.matrix[-c(1,c.Y.knots),-c(1,c.X.knots)]
+  counter <- 0
   for (it in seq(c.iter.no)){
     if(it%%2==1){
       if(it==1){
@@ -171,11 +175,27 @@
         #kartojam splina
         curve<-.spline_corrections(curve,Xup,Xdown,Yup,Ydown,best.y.knots,
                                  split.line.x,c.corr.term=c.corr.term)
+        counter <- counter + 1
+        environment(.visualise_splits) <- environment()
+        .visualise_splits(what = trace.object,level = trace.level,
+                          when = "try.curve")
         #ivertinam poligono padalinimo su sugeneruota kreive kokybe
         SS<-.curve_quality(curve=curve,rot.poli.up, rot.poli.do, rot.data,
                           N.cond,S.cond)
         #fiksuojam verte
         SSk[k]<-SS
+        if (max(SSk) == SS){
+        environment(.visualise_splits) <- environment()
+        .visualise_splits(what = trace.object,level = trace.level,
+                          when = "good.curve")
+        } else {
+          message <- paste0("Poor split quality./n","Obtained: ",
+                            round(SS,2),
+                            ";/nRequired: ",round(max(SSk),2))
+          environment(.visualise_splits) <- environment()
+          .visualise_splits(what = trace.object,level = trace.level,
+                            when = "bad.curve")
+        }
       }
       #sugeneruojam spline, kurio X asyje yra knotu Y koordinates, o Y asyje
       #padalinimo kreives kokybe
@@ -196,9 +216,11 @@
   curve.final<-.spline_corrections(curve.final,Xup,Xdown,Yup,Ydown,best.y.knots,
                                  split.line.x,c.corr.term = c.corr.term)
   #ivertinam galutines padalinimo kreives kokybe
-  lines(curve.final,col=3)
   SS<-.curve_quality(curve.final,rot.poli.up, rot.poli.do, rot.data, N.cond,
                     S.cond)
+  environment(.visualise_splits) <- environment()
+  .visualise_splits(what = trace.object,level = trace.level,
+                    when = "best.curve")
   #grazinam padalinimo kreive, jos kokybes iverti ir visu kitu lokaliai
   # geriausiu kreiviu ivercius - SSk
   #SSk tik tam, kad pasizeti, ar tikrai grizta pati geriausia kreive
@@ -237,6 +259,9 @@
   if(min(nrow(I.poli.data),nrow(II.poli.data))>N.cond&min(S1,S2)>S.cond){
     SS<-.dif_fun(I.poli.data[,1],II.poli.data[,1])
   } else{
+    environment(.visualise_splits) <- environment()
+    .visualise_splits(what = trace.object,level = trace.level,
+                      when = "bad.curve")
     SS<-0
   }
   SS
