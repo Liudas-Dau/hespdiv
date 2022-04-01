@@ -13,6 +13,10 @@
 #' @param N.condminimum minimum number of fossils required to establish subdivision of a plot
 #' @param S.cond minimum area required to establish subdivision of a plot
 #' @param c.iter.no number of c.iter.no
+#' @param trace.level Sting indicating the trace level. Can be one of the
+#' following: "best", "main", "all"
+#' @param trace.object String that informs what graphical information to show.
+#' Can be either "curves", "straight" or "both".
 #' @param c.corr.term term that defines how much the a problematic spline
 #' will be corrected (in terms of proportion of polygon width where spline
 #' intersects the polygon boundary) if the spline is not contained within the
@@ -24,7 +28,9 @@
 .curvial_split<-function(poly.x,poly.y,min.x.id,max.x.id,b,
                          data,c.X.knots=20,c.Y.knots=20,
                          N.cond,S.cond,c.iter.no,
-                         c.corr.term){
+                         c.corr.term,
+                         trace.object = trace.object,
+                         trace.level = trace.level){
   #nustatau, kuris padalinimo linijos id yra kairej, kuris desinej
   # length of a split line
   AE<-sqrt(sum((c(poly.x[min.x.id],
@@ -99,7 +105,8 @@
     knot.y.matrix,split.line.x,Xup=upper.inner.poli[[1]]$x,
     Xdown=bottom.inner.poli[[1]]$x,Yup=upper.inner.poli[[1]]$y,Ydown=bottom.inner.poli[[1]]$y,
     N.cond,S.cond,c.Y.knots,c.X.knots,rot.poli.up,rot.poli.do,
-    rot.data,c.iter.no =c.iter.no,c.corr.term = c.corr.term
+    rot.data,c.iter.no =c.iter.no,c.corr.term = c.corr.term,
+    trace.object = trace.object, trace.level = trace.level
     )
 
 # Up --> Yup, Down --> Ydown; xp --> x; yp --> y.  visur pakeist
@@ -137,13 +144,18 @@
 #' will be corrected (in terms of proportion of polygon width where spline
 #' intersects the polygon boundary) if the spline is not contained within the
 #' plot. Small values recommended (default is 0.05).
+#' @param trace.level Sting indicating the trace level. Can be one of the
+#' following: "best", "main", "all"
+#' @param trace.object String that informs what graphical information to show.
+#' Can be either "curves", "straight" or "both".
 #' @return A list of two elements: 1) rotated (not suitable for the original polygon) curve in shape of a spline that produces the best data separation; 2) quality of the division
 #' @author Liudas Daumantas
 #' @noRd
 .curvi_split<-function(knot.y.matrix,split.line.x,Xup,Xdown,Yup,Ydown,N.cond,
                       S.cond,c.Y.knots,c.X.knots,rot.poli.up,
                       rot.poli.do,rot.data,c.iter.no=c.iter.no,
-                      c.corr.term){
+                      c.corr.term,trace.object = trace.object,
+                      trace.level = trace.level){
   environment(.visualise_splits) <- environment()
   .visualise_splits(what = trace.object,level = trace.level,
                     when = "add.knots")
@@ -180,21 +192,28 @@
         .visualise_splits(what = trace.object,level = trace.level,
                           when = "try.curve")
         #ivertinam poligono padalinimo su sugeneruota kreive kokybe
-        SS<-.curve_quality(curve=curve,rot.poli.up, rot.poli.do, rot.data,
-                          N.cond,S.cond)
+        cq<-.curve_quality(curve=curve,rot.poli.up, rot.poli.do, rot.data,
+                           N.cond,S.cond)
         #fiksuojam verte
-        SSk[k]<-SS
-        if (max(SSk) == SS){
-        environment(.visualise_splits) <- environment()
-        .visualise_splits(what = trace.object,level = trace.level,
-                          when = "good.curve")
-        } else {
-          message <- paste0("Poor split quality./n","Obtained: ",
-                            round(SS,2),
-                            ";/nRequired: ",round(max(SSk),2))
+        SSk[k]<-cq[[1]]
+        if ( cq[[2]] != "" ){
+          message <- cq[[2]]
           environment(.visualise_splits) <- environment()
           .visualise_splits(what = trace.object,level = trace.level,
                             when = "bad.curve")
+        } else{
+          if (max(SSk) == cq[[1]]){
+            environment(.visualise_splits) <- environment()
+            .visualise_splits(what = trace.object,level = trace.level,
+                              when = "good.curve")
+          } else {
+            message <- paste0("Poor split quality./n","Obtained: ",
+                              round(cq[[1]],2),
+                              ";/nRequired: ",round(max(SSk),2))
+            environment(.visualise_splits) <- environment()
+            .visualise_splits(what = trace.object,level = trace.level,
+                              when = "bad.curve")
+          }
         }
       }
       #sugeneruojam spline, kurio X asyje yra knotu Y koordinates, o Y asyje
@@ -216,7 +235,7 @@
   curve.final<-.spline_corrections(curve.final,Xup,Xdown,Yup,Ydown,best.y.knots,
                                  split.line.x,c.corr.term = c.corr.term)
   #ivertinam galutines padalinimo kreives kokybe
-  SS<-.curve_quality(curve.final,rot.poli.up, rot.poli.do, rot.data, N.cond,
+  fcq<-.curve_quality(curve.final,rot.poli.up, rot.poli.do, rot.data, N.cond,
                     S.cond)
   environment(.visualise_splits) <- environment()
   .visualise_splits(what = trace.object,level = trace.level,
@@ -224,10 +243,10 @@
   #grazinam padalinimo kreive, jos kokybes iverti ir visu kitu lokaliai
   # geriausiu kreiviu ivercius - SSk
   #SSk tik tam, kad pasizeti, ar tikrai grizta pati geriausia kreive
-  if (any(SSks>SS)){
+  if (any(SSks>fcq[[1]])){
     warning("Intermediate curves performed better than the final curve")
   }
-  return(list(curve.final,SS))
+  return(list(curve.final,fcq[[1]]))
 }
 
 #' Evaluate the quality of curve in terms of data spatial separation
@@ -256,15 +275,22 @@
   #atliekam plotu palyginima, t.y. padalinimo gerumo ivertinima, jei kreive netenkina minimaliu kriteriju - padalinimo kokybe nuline
   S1<-abs(pracma::polyarea(I.poli$x,I.poli$y))
   S2<-abs(pracma::polyarea(II.poli$x,II.poli$y))
-  if(min(nrow(I.poli.data),nrow(II.poli.data))>N.cond&min(S1,S2)>S.cond){
+  message <- ""
+  if(min(nrow(I.poli.data),nrow(II.poli.data))>=N.cond & min(S1,S2) >= S.cond){
     SS<-.dif_fun(I.poli.data[,1],II.poli.data[,1])
   } else{
-    environment(.visualise_splits) <- environment()
-    .visualise_splits(what = trace.object,level = trace.level,
-                      when = "bad.curve")
-    SS<-0
+    if (min(nrow(I.poli.data),nrow(II.poli.data)) < N.cond){
+      message <-  paste0("Not enough observations in one of the areas.",
+                         "/nObtained: ", nrow(I.poli.data), nrow(II.poli.data),
+                         ";/nRequired: ",N.cond)
+    } else {
+      message <-  paste0("One of the areas was too small./n","Obtained: ",
+                         round(S1,2), round(S2,2),
+                         ";/nRequired: ",S.cond)
+    }
+    SS <- 0
   }
-  SS
+  return(list( SS, message ))
 }
 
 #' Correct the curve

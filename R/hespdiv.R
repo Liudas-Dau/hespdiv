@@ -444,14 +444,6 @@ generalize.f <- function(plot.dat){
               environment(.visualise_splits) <- environment()
               .visualise_splits(what = trace.object,level = trace.level,
                                 when = "good.straight")
-              if (any(trace == c(2,4,5,7)) ) {
-                lines(x = pairs_pts[i,c(1,3)], y = pairs_pts[i,c(2,4)],
-                      col = "blue", pch = 19)
-                print(paste0('Difference obtained between polygons: ',round(Skirtumas,2)))
-                print(paste0('Old best difference: ',round(maxdif,2)))
-                readline(prompt = "The blue line is currently the
-                         best straight split-line. Press enter to continue...")
-              }
 
               #Jei padalinimas patenkina minimalias saligas ir yra geresnis nei pries tai - pasizymim ir issisaugom ji
               maxdif <- Skirtumas
@@ -529,10 +521,12 @@ generalize.f <- function(plot.dat){
       data = samp.dat,
       c.X.knots = c.X.knots,
       c.Y.knots = c.Y.knots,
-      N.crit = N.crit,
+      N.cond = N.crit,
       S.cond = S.cond,
       c.iter.no = c.iter.no,
-      c.corr.term = c.corr.term
+      c.corr.term = c.corr.term,
+      trace.object = trace.object,
+      trace.level = trace.level
 
       )
     if ( max(best.curve[[2]],maxdif) < upper.Q.crit ){ # vel santykinis base line. Be to,

@@ -26,16 +26,17 @@
       points(centras[1],centras[2],col=2,pch=19,cex=0.65)
       points(centras[1],centras[2],col=2,cex=1.5)
       lines(rims[[1]])
-      readline(prompt = cat(paste0('\nGoing to test polygon No.: '
-                                   ,testid,
-                                   "\n\nPress enter to continue...\n")))
+
       if (testid>1) {
         for (i in 2:c(testid)){
           lines(x=rims[[i]][,1],y=rims[[i]][,2],col=1,lwd=2)
         }}
       if (what != "curves")
         points(perim_pts[[1]],pch=19,col="black")
-    } else {
+      readline(prompt = cat(paste0('\nGoing to test polygon No.: '
+                                   ,testid,
+                                   "\n\nPress enter to continue...\n")))
+      } else {
       if (when == "best.straight" & what != "curves"){
         lines(pairs_pts[maxid,c(1,3)],pairs_pts[maxid,c(2,4)],lwd=1.75)
         readline(prompt = cat(paste0('\nThe best straight split-line',
