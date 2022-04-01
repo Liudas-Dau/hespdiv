@@ -38,30 +38,30 @@
                                    "\n\nPress enter to continue...\n")))
       } else {
       if (when == "best.straight" & what != "curves"){
-        lines(pairs_pts[maxid,c(1,3)],pairs_pts[maxid,c(2,4)],lwd=1.75)
+        lines(pairs_pts[maxid,c(1,3)],pairs_pts[maxid,c(2,4)],lwd=2)
         readline(prompt = cat(paste0('\nThe best straight split-line',
                                      ' is displayed.\nIt\'s quality is: ',
                                      round(maxdif,2),
                                      "\n\nPress enter to continue...\n")))
       } else {
         if (when == "best.curve" & what != 'straight'){
-          lines(curve.final,lwd=1.75)
+          lines(curve.final,lwd=2)
           readline(prompt = cat(paste0('\nThe best curvial split-line',
                                        ' is displayed.\nIt\'s quality is: ',
-                                       round(SS,2),
+                                       round(SS[[1]],2),
                                        "\n\nPress enter to continue...\n")))
         } else {
           if (when == 'good.curve' & level != 'best' & what != 'straight'){
-            lines(curve,lwd=1.75, col = 'gray70')
+            lines(curve,lwd=2, col = 'gray70')
             readline(prompt = cat(paste0('\nThe displayed curvial split-line',
                                          ' is so far the best.',
                                          '\nIt\'s quality is: ',
-                                         round(SS,2),
+                                         round(SS[[1]],2),
                                          "\n\nPress enter to continue...\n")))
           } else {
             if (when == 'good.straight' & level != 'best' &
-                what != 'straight'){
-              lines(x= pairs_pts[i,c(1,3)], y = pairs_pts[i,c(2,4)],lwd=1.75,
+                what != 'curves'){
+              lines(x= pairs_pts[i,c(1,3)], y = pairs_pts[i,c(2,4)],lwd=2,
                     col = 'gray70')
               readline(prompt = cat(paste0('\nThe displayed straigth split-line',
                                            ' is so far the best.',
@@ -80,7 +80,7 @@
                   lines(x = pairs_pts[i,c(1,3)], y = pairs_pts[i,c(2,4)],
                         col = "gray70")
                   readline(prompt = cat(paste0("\nSplit-line was not selected.",
-                                               ' Reason: ',message,
+                                               '\nReason: ',message,
                                                "\n\nPress enter to continue...\n")))
                 } else {
                   if (when == 'try.curve' & what != "straight" & level == "all"){
@@ -93,11 +93,11 @@
                     if (when == 'bad.curve' & what != "straight" & level == "all"){
                       lines(curve, col = 'gray70')
                       readline(prompt = cat(paste0("\nSplit-line was not selected.",
-                                                   ' Reason: ',message,
+                                                   ' \nReason: ',message,
                                                    "\n\nPress enter to continue...\n")))
                     } else {
                       if (when == "best"){
-                        lines(best.splitl,col = "gold", lwd=1.75)
+                        lines(best.splitl,col = "gold", lwd=2)
                         readline(prompt = cat(paste0('\nThe best split-line',
                                                      ' that will be used to',
                                                      ' divide polygon',

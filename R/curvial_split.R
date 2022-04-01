@@ -155,7 +155,7 @@
                       S.cond,c.Y.knots,c.X.knots,rot.poli.up,
                       rot.poli.do,rot.data,c.iter.no=c.iter.no,
                       c.corr.term,trace.object = trace.object,
-                      trace.level = trace.level){
+                      trace.level = trace.level, teta = teta){
   environment(.visualise_splits) <- environment()
   .visualise_splits(what = trace.object,level = trace.level,
                     when = "add.knots")
@@ -192,23 +192,23 @@
         .visualise_splits(what = trace.object,level = trace.level,
                           when = "try.curve")
         #ivertinam poligono padalinimo su sugeneruota kreive kokybe
-        cq<-.curve_quality(curve=curve,rot.poli.up, rot.poli.do, rot.data,
+        SS<-.curve_quality(curve=curve,rot.poli.up, rot.poli.do, rot.data,
                            N.cond,S.cond)
         #fiksuojam verte
-        SSk[k]<-cq[[1]]
-        if ( cq[[2]] != "" ){
-          message <- cq[[2]]
+        SSk[k]<-SS[[1]]
+        if ( SS[[2]] != "" ){
+          message <- SS[[2]]
           environment(.visualise_splits) <- environment()
           .visualise_splits(what = trace.object,level = trace.level,
                             when = "bad.curve")
         } else{
-          if (max(SSk) == cq[[1]]){
+          if (max(SSk) == SS[[1]]){
             environment(.visualise_splits) <- environment()
             .visualise_splits(what = trace.object,level = trace.level,
                               when = "good.curve")
           } else {
             message <- paste0("Poor split quality./n","Obtained: ",
-                              round(cq[[1]],2),
+                              round(SS[[1]],2),
                               ";/nRequired: ",round(max(SSk),2))
             environment(.visualise_splits) <- environment()
             .visualise_splits(what = trace.object,level = trace.level,
@@ -235,7 +235,7 @@
   curve.final<-.spline_corrections(curve.final,Xup,Xdown,Yup,Ydown,best.y.knots,
                                  split.line.x,c.corr.term = c.corr.term)
   #ivertinam galutines padalinimo kreives kokybe
-  fcq<-.curve_quality(curve.final,rot.poli.up, rot.poli.do, rot.data, N.cond,
+  SS<-.curve_quality(curve.final,rot.poli.up, rot.poli.do, rot.data, N.cond,
                     S.cond)
   environment(.visualise_splits) <- environment()
   .visualise_splits(what = trace.object,level = trace.level,
@@ -243,10 +243,10 @@
   #grazinam padalinimo kreive, jos kokybes iverti ir visu kitu lokaliai
   # geriausiu kreiviu ivercius - SSk
   #SSk tik tam, kad pasizeti, ar tikrai grizta pati geriausia kreive
-  if (any(SSks>fcq[[1]])){
+  if (any(SSks>SS[[1]])){
     warning("Intermediate curves performed better than the final curve")
   }
-  return(list(curve.final,fcq[[1]]))
+  return(list(curve.final,SS[[1]]))
 }
 
 #' Evaluate the quality of curve in terms of data spatial separation
@@ -281,11 +281,11 @@
   } else{
     if (min(nrow(I.poli.data),nrow(II.poli.data)) < N.cond){
       message <-  paste0("Not enough observations in one of the areas.",
-                         "/nObtained: ", nrow(I.poli.data), nrow(II.poli.data),
-                         ";/nRequired: ",N.cond)
+                         "\nObtained: ", nrow(I.poli.data), ' and ',  nrow(II.poli.data),
+                         ";\nRequired: ",N.cond)
     } else {
       message <-  paste0("One of the areas was too small./n","Obtained: ",
-                         round(S1,2), round(S2,2),
+                         round(S1,2), ' and ', round(S2,2),
                          ";/nRequired: ",S.cond)
     }
     SS <- 0

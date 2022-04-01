@@ -273,7 +273,7 @@ generalize.f <- function(plot.dat){
     n.splits <- numeric()
     mean.difs <- numeric()
   }
-  S.cond <- abs(pracma::polyarea(x,y)) * S.crit
+  S.cond <- round(abs(pracma::polyarea(x,y)) * S.crit,2)
   splits <- numeric()
 
   iteration <- 1
@@ -449,25 +449,25 @@ generalize.f <- function(plot.dat){
               maxdif <- Skirtumas
               maxid <- i
             } else {
-              message <- paste0("Poor split quality./n","Obtained: ",
+              message <- paste0("Poor split quality.\n","Obtained: ",
                                 round(Skirtumas,2),
-                                ";/nRequired: ",round(maxdif,2))
+                                ";\nRequired: ",round(maxdif,2))
               environment(.visualise_splits) <- environment()
               .visualise_splits(what = trace.object,level = trace.level,
                                 when = "bad.straight")
             }
           } else {
-            message <- paste0("One of the areas was too small./n","Obtained: ",
-                              round(SpjuvioI,2), round(SpjuvioII,2),
-                              ";/nRequired: ",S.cond)
+            message <- paste0("One of the areas was too small.\n","Obtained: ",
+                              round(SpjuvioI,2), ' and ', round(SpjuvioII,2),
+                              ";\nRequired: ",S.cond)
             environment(.visualise_splits) <- environment()
             .visualise_splits(what = trace.object,level = trace.level,
                               when = "bad.straight")
           }
         } else {
           message <- paste0("Not enough observations in one of the areas.",
-          "/nObtained: ", c(nrow(Puses[[1]]), nrow(Puses[[2]])),
-                            ";/nRequired: ",N.crit)
+          "\nObtained: ", nrow(Puses[[1]]), ' and ', nrow(Puses[[2]]),
+                            ";\nRequired: ",N.crit)
           environment(.visualise_splits) <- environment()
           .visualise_splits(what = trace.object,level = trace.level,
                             when = "bad.straight")
