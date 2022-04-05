@@ -31,8 +31,6 @@
         for (i in 2:c(testid)){
           lines(x=rims[[i]][,1],y=rims[[i]][,2],col=1,lwd=2)
         }}
-      if (what != "curves")
-        points(perim_pts[[1]],pch=19,col="black")
       readline(prompt = cat(paste0('\nGoing to test polygon No.: '
                                    ,testid,
                                    "\n\nPress enter to continue...\n")))
