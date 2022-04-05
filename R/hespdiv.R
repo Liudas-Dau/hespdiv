@@ -511,6 +511,7 @@ generalize.f <- function(plot.dat){
         environment(.visualise_splits) <- environment()
         .visualise_splits(what = trace.object,level = trace.level,
                           when = "best.straight")
+
         best.curve <- .curvial_split(
 
           poly.x = perim_pts[[2]]$x.poly,
@@ -526,7 +527,8 @@ generalize.f <- function(plot.dat){
       c.iter.no = c.iter.no,
       c.corr.term = c.corr.term,
       trace.object = trace.object,
-      trace.level = trace.level
+      trace.level = trace.level,
+      pnts.col = pnts.col
 
       )
     if ( max(best.curve[[2]],maxdif) < upper.Q.crit ){ # vel santykinis base line. Be to,
@@ -695,7 +697,7 @@ generalize.f <- function(plot.dat){
 #' the quality of a split-line.
 #' @author Liudas Daumantas
 #' @note Function inherits the environment of \code{hespdiv} function. Also,
-#' it forces this environment to inherited by generalize.f and compare.f
+#' it forces this environment to be inherited by generalize.f and compare.f
 #' functions.
 #' @noRd
 .dif_fun <- function(dat1,dat2) {

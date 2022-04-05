@@ -21,16 +21,19 @@
 #' will be corrected (in terms of proportion of polygon width where spline
 #' intersects the polygon boundary) if the spline is not contained within the
 #' plot. Small values recommended (default is 0.05).
+#' @param pnts.col Color of data points, default is 1. Argument is used when
+#' \code{trace} > 0. If set to NULL, data points will not be displayed.
 #' @return A list of two elements: 1) curve in shape of a spline that produces the best data separation; 2) quality of the division
 #' @author Liudas Daumantas
 #' @importFrom DescTools Rotate
 #' @noRd
-.curvial_split<-function(poly.x,poly.y,min.x.id,max.x.id,b,
-                         data,c.X.knots=20,c.Y.knots=20,
-                         N.cond,S.cond,c.iter.no,
-                         c.corr.term,
-                         trace.object = trace.object,
-                         trace.level = trace.level){
+.curvial_split <- function(poly.x,poly.y,min.x.id,max.x.id,b,
+                           data,c.X.knots=20,c.Y.knots=20,
+                           N.cond,S.cond,c.iter.no,
+                           c.corr.term,
+                           trace.object = trace.object,
+                           trace.level = trace.level,
+                           pnts.col = pnts.col){
   #nustatau, kuris padalinimo linijos id yra kairej, kuris desinej
   # length of a split line
   AE<-sqrt(sum((c(poly.x[min.x.id],
@@ -45,8 +48,8 @@
                           my=poly.y[min.x.id],theta=-teta)
   #pastumiu duomenis ir poligona, kad padalinimo linijos kairinis taskas butu
   # koordinaciu sistemos pradzioje
-  rot.data<-data.frame(data[,1],rot.dat.cords$x-poly.x[min.x.id],
-                       rot.dat.cords$y-poly.y[min.x.id])
+  rot.data<-data.frame(data[,1],x = rot.dat.cords$x-poly.x[min.x.id],
+                       y = rot.dat.cords$y-poly.y[min.x.id])
   #sukuriu duomenu masyva pasukto poligono
   rot.poli<-data.frame(x= rot.pol.cords$x-poly.x[min.x.id],
                        y= rot.pol.cords$y-poly.y[min.x.id])
@@ -100,6 +103,9 @@
   # koordinate dali - virsutines eilutes apatine poligono dalis
   knot.y.matrix<-matrix(B,c.Y.knots,1)%*%matrix(range,1,c.X.knots)+
     matrix(rep(do.y,each=c.Y.knots),c.Y.knots,c.X.knots)
+
+  environment(.visualise_splits) <- environment()
+  .visualise_splits(when = "curve.start",what = trace.object, level = trace.level)
   #randam geriausia padalinimo kreive
   best_curvi_split<-.curvi_split(
     knot.y.matrix,split.line.x,Xup=upper.inner.poli[[1]]$x,
@@ -267,11 +273,11 @@
 #' @noRd
 .curve_quality<-function(curve,rot.poli.up,rot.poli.do,rot.data,N.cond,S.cond){
   #sudarom poligonus padalintus kreive
-  I.poli<-data.frame(x=c(rot.poli.up$xp,rev(curve$x)[-1]),y=c(rot.poli.up$yp,rev(curve$y)[-1]))
-  II.poli<-data.frame(x=c(rot.poli.do$xp,rev(curve$x)[-1]),y=c(rot.poli.do$yp,rev(curve$y)[-1]))
+  I.poli<-data.frame(x=c(rot.poli.up$x,rev(curve$x)[-1]),y=c(rot.poli.up$y,rev(curve$y)[-1]))
+  II.poli<-data.frame(x=c(rot.poli.do$x,rev(curve$x)[-1]),y=c(rot.poli.do$y,rev(curve$y)[-1]))
   #atrenkam taskus patenkancius i skirtingas poligono dalis, padalintas kreive
-  I.poli.data<-rot.data[which(sp::point.in.polygon(point.x = rot.data$X.rot,point.y =rot.data$Y.rot ,pol.x = I.poli$x,pol.y =I.poli$y)!=0),]
-  II.poli.data<-rot.data[which(sp::point.in.polygon(point.x = rot.data$X.rot,point.y = rot.data$Y.rot,pol.x =II.poli$x ,pol.y =II.poli$y)!=0),]
+  I.poli.data<-rot.data[which(sp::point.in.polygon(point.x = rot.data$x,point.y =rot.data$y ,pol.x = I.poli$x,pol.y =I.poli$y)!=0),]
+  II.poli.data<-rot.data[which(sp::point.in.polygon(point.x = rot.data$x,point.y = rot.data$y,pol.x =II.poli$x ,pol.y =II.poli$y)!=0),]
   #atliekam plotu palyginima, t.y. padalinimo gerumo ivertinima, jei kreive netenkina minimaliu kriteriju - padalinimo kokybe nuline
   S1<-abs(pracma::polyarea(I.poli$x,I.poli$y))
   S2<-abs(pracma::polyarea(II.poli$x,II.poli$y))
