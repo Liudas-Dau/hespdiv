@@ -87,7 +87,7 @@
   # atitinkanciom padalinimo linijos atkarpu galus
   up.y<-numeric(c.X.knots)
   do.y<-numeric(c.X.knots)
-  for(i in 1:length(split.line.x)){
+  for(i in 2:(length(split.line.x)-1)){
     up.y[i]<-.y.online(x=upper.inner.poli[[1]]$x,y=upper.inner.poli[[1]]$y,
                        x3=split.line.x[i])
     do.y[i]<-.y.online(x=bottom.inner.poli[[1]]$x,y=bottom.inner.poli[[1]]$y,
@@ -107,6 +107,7 @@
   environment(.visualise_splits) <- environment()
   .visualise_splits(when = "curve.start",what = trace.object, level = trace.level)
   #randam geriausia padalinimo kreive
+  environment(.curvi_split) <- environment()
   best_curvi_split<-.curvi_split(
     knot.y.matrix,split.line.x,Xup=upper.inner.poli[[1]]$x,
     Xdown=bottom.inner.poli[[1]]$x,Yup=upper.inner.poli[[1]]$y,Ydown=bottom.inner.poli[[1]]$y,
@@ -162,9 +163,6 @@
                       rot.poli.do,rot.data,c.iter.no=c.iter.no,
                       c.corr.term,trace.object = trace.object,
                       trace.level = trace.level, teta = teta){
-  environment(.visualise_splits) <- environment()
-  .visualise_splits(what = trace.object,level = trace.level,
-                    when = "add.knots")
   best.y.knots<-numeric(c.X.knots)
   SSk<-numeric(c.Y.knots-2)
   SSks<-numeric(c.X.knots-2)
@@ -198,6 +196,7 @@
         .visualise_splits(what = trace.object,level = trace.level,
                           when = "try.curve")
         #ivertinam poligono padalinimo su sugeneruota kreive kokybe
+        environment(.curve_quality) <- environment()
         SS<-.curve_quality(curve=curve,rot.poli.up, rot.poli.do, rot.data,
                            N.cond,S.cond)
         #fiksuojam verte
@@ -241,6 +240,7 @@
   curve.final<-.spline_corrections(curve.final,Xup,Xdown,Yup,Ydown,best.y.knots,
                                  split.line.x,c.corr.term = c.corr.term)
   #ivertinam galutines padalinimo kreives kokybe
+  environment(.curve_quality) <- environment()
   SS<-.curve_quality(curve.final,rot.poli.up, rot.poli.do, rot.data, N.cond,
                     S.cond)
   environment(.visualise_splits) <- environment()
@@ -283,7 +283,8 @@
   S2<-abs(pracma::polyarea(II.poli$x,II.poli$y))
   message <- ""
   if(min(nrow(I.poli.data),nrow(II.poli.data))>=N.cond & min(S1,S2) >= S.cond){
-    SS<-.dif_fun(I.poli.data[,1],II.poli.data[,1])
+    environment(.dif_fun) <- environment()
+    SS<-.dif_fun(I.poli.data,II.poli.data)
   } else{
     if (min(nrow(I.poli.data),nrow(II.poli.data)) < N.cond){
       message <-  paste0("Not enough observations in one of the areas.",

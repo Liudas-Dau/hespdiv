@@ -218,11 +218,11 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
 generalize.f <- function(plot.dat){
       x <- table(as.numeric(paste(subset(plot.dat, select = -c(x, y))[,1])))
       p <- x/sum(x)
-      H <- -sum(log(p)*p)
+      -sum(log(p)*p)
     }
     compare.f <- function(eveness1,eveness2) {
       base.eveness <- poly.obj[[testid]]
-      (1 - mean(eveness1, eveness2) / base.eveness) * 100 # percent change in eveness
+      (1 - mean(c(eveness1, eveness2)) / base.eveness) * 100 # percent change in eveness
     }
   }
 
@@ -511,7 +511,7 @@ generalize.f <- function(plot.dat){
         environment(.visualise_splits) <- environment()
         .visualise_splits(what = trace.object,level = trace.level,
                           when = "best.straight")
-
+        environment(.curvial_split) <- environment()
         best.curve <- .curvial_split(
 
           poly.x = perim_pts[[2]]$x.poly,
