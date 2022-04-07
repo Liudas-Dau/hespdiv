@@ -215,7 +215,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
            multiple rows should be dedicated for the same location in data.")
     }
 
-generalize.f <- function(plot.dat){
+    generalize.f <- function(plot.dat){
       x <- table(as.numeric(paste(subset(plot.dat, select = -c(x, y))[,1])))
       p <- x/sum(x)
       -sum(log(p)*p)
@@ -226,53 +226,43 @@ generalize.f <- function(plot.dat){
     }
   }
 
-
-  ##### pirmas data stulpelis turi buti rusis - faktorius, antras X, trecias Y., dependencies = dplyr
-  #S.cond pateikti kaip proporcija ploto
-  #require(dplyr)
-  #library(gstat)
-  #library(sp)
-  #library(spatstat)
-  #duomenys pirminiai
-  {
-    if( all(names(data) != "x") | all(names(data) != "y") ){
-      stop("data should contain columns named \"x\" and \"y\" that contain
+  if( all(names(data) != "x") | all(names(data) != "y") ){
+    stop("data should contain columns named \"x\" and \"y\" that contain
            coordinate information")
-    }
-    if (is.null(study.pol)){
-
-      ch <- chull(data$x, data$y)
-      ids <- c(ch,ch[1])
-      x <- data$x[ids]
-      y <- data$y[ids]
-      study.pol <- data.frame(x=x,y=y)
-    }
-
-    rims <- list(study.pol)
-    poly.info <- data.frame(mean.dif = numeric(), # mean spatial heterogeneity irrespective of split-line position
-                         sd.dif = numeric(), # anizotropy of heterogeneity based on straight split-lines
-                         str.z.score = numeric(), # level of outstandingness. Are there other competetive candidate splits?
-                         iteration=numeric(),
-                         root=numeric() )
-    poly.obj <- list()
-    plot.id <- numeric()
-    split.z.score <- numeric()
-    split.quality <- numeric()
-
-    if (n.m.test){
-      p.val1 <- numeric()
-      p.val2 <- numeric()
-      sim1.difs <- numeric()
-      sim2.difs <- numeric()
-      if (n.m.keep){
-        n.m.sims1 <- list()
-        n.m.sims2 <- list()
-      }
-    }
-
-    n.splits <- numeric()
-    mean.difs <- numeric()
   }
+  if (is.null(study.pol)){
+
+    ch <- chull(data$x, data$y)
+    ids <- c(ch,ch[1])
+    x <- data$x[ids]
+    y <- data$y[ids]
+    study.pol <- data.frame(x=x,y=y)
+  }
+
+  rims <- list(study.pol)
+  poly.info <- data.frame(mean.dif = numeric(), # mean spatial heterogeneity irrespective of split-line position
+                          sd.dif = numeric(), # anizotropy of heterogeneity based on straight split-lines
+                          str.z.score = numeric(), # level of outstandingness. Are there other competetive candidate splits?
+                          iteration=numeric(),
+                          root=numeric() )
+  poly.obj <- list()
+  plot.id <- numeric()
+  split.z.score <- numeric()
+  split.quality <- numeric()
+
+  if (n.m.test){
+    p.val1 <- numeric()
+    p.val2 <- numeric()
+    sim1.difs <- numeric()
+    sim2.difs <- numeric()
+    if (n.m.keep){
+      n.m.sims1 <- list()
+      n.m.sims2 <- list()
+    }
+  }
+
+  n.splits <- numeric()
+  mean.difs <- numeric()
   S.cond <- round(abs(pracma::polyarea(x,y)) * S.crit,2)
   splits <- numeric()
 
@@ -300,8 +290,8 @@ generalize.f <- function(plot.dat){
         plot.id = plot.id,
         n.splits = n.splits,
         z.score = split.z.score,
-        mean.p.red = mean.difs,
-        split.p.red = split.quality,
+        mean.en.p.red = mean.difs,
+        entropy.p.red = split.quality,
         parent.E = parent.E,
         delta.E = -parent.E * split.quality/100
       )
@@ -350,8 +340,11 @@ generalize.f <- function(plot.dat){
   }
 
 
-  return(print.hespdiv(result,n.m.test))
+  return(print.hespdiv(result))
 }
+
+
+
 #' Main recursive hespdiv inner helper function
 #'
 #' @description  During each recursive iteration this function fits straight and
@@ -498,11 +491,6 @@ generalize.f <- function(plot.dat){
       root = root
     ))
     ,envir = e)
-
-    print(paste0("poly.info: ", poly.info))
-    print(paste0("mean quality of straight splits: ", mean.dif))
-    print(paste0("anysotropy of quality of straight splits: ", sd.dif))
-    print((maxdif - mean.dif) / sd.dif)
     # duomenu saugojimas
     #Jei rastas tinkamas padalinimas - ieskom geriausios padalinimo kreives,
     #issaugom duomenis ir ziurim ar galima skaidyti toliau
@@ -604,7 +592,6 @@ generalize.f <- function(plot.dat){
 
     #issaugom duomenis padalinimo
     ribs <- list(up.pol,do.pol)
-    print(paste0('total max Skirtumas =', maxdif))
 
     #maisom duomenis ir vertinam aptiktu erdviniu strukturu patimuma
     if (n.m.test){
@@ -706,23 +693,6 @@ generalize.f <- function(plot.dat){
   compare.f( generalize.f(dat1), generalize.f(dat2) )
 }
 
-#' Print the results of hespdiv object
-#'
-#' @description  Function formats and prints the results
-#' of R object of class "hespdiv". It prints rounded split.stats data frame.
-#' @param x hespdiv object
-#' @param n.m.test logical - were splits tested using null model simulations?
-#' @return x
-#' @author Liudas Daumantas
-#' @noRd
-print.hespdiv <- function(x, n.m.test){
-  cat("\n","Information about the splits:", "\n","\n")
-  print(round(x$split.stats,2))
-  if (n.m.test){
-    cat("\n", "Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1")
-  }
-  invisible(x)
-}
 
 
 

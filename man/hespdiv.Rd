@@ -15,8 +15,8 @@ hespdiv(
   lower.Q.crit = -Inf,
   upper.Q.crit = -Inf,
   c.splits = TRUE,
-  c.axis.knots = 5,
-  c.ort.knots = 10,
+  c.X.knots = 5,
+  c.Y.knots = 10,
   c.iter.no = 2,
   c.corr.term = 0.05,
   n.m.test = FALSE,
@@ -24,7 +24,8 @@ hespdiv(
   n.m.seed = 1,
   n.m.keep = FALSE,
   study.pol = NULL,
-  trace.level = 0,
+  trace.level = NULL,
+  trace.object = NULL,
   pnts.col = 1
 )
 }
@@ -103,14 +104,14 @@ best split-line would be established. Default is -Inf.}
 \item{c.splits}{Logical (default TRUE).
 Should curvi-linear split-lines be estimated?}
 
-\item{c.axis.knots}{Curve parameter. The number of columns in the net of
+\item{c.X.knots}{Curve parameter. The number of columns in the net of
 spline knots. These columns are distributed regularly along to the straight
 split-line. This parameter controls wiggliness (wave length) of the
 curvi-linear split-lines. Higher values allow  wigglier curves, thus
 increasing the fit to the data, but increases the optimization time of
 curvi-linear split-lines. Default value is 5.}
 
-\item{c.ort.knots}{Curve parameter. The number of rows in the net of
+\item{c.Y.knots}{Curve parameter. The number of rows in the net of
 spline knots. These rows are distributed regularly orthogonal to the straight
 split-line. This parameter controls wiggliness (resolution of tested wave
 amplitudes) of the curvi-linear split-lines. Higher values allow higher
@@ -171,16 +172,14 @@ of a polygon that encompasses the locations of \code{data}. If not
 provided (default is NULL), convex hull of \code{data} will be used a
 study area polygon.}
 
-\item{trace.level}{Integer from 0 to 7, indicates how much information should
-the algorithm communicate during computations. 0 (default) - no algorithm
-tracing; 1 - only the best split-lines are reported; 2 - best
-intermediate straight split-lines are reported; 3 - best intermediate
-curvi-linear split-lines are reported; 4 - best intermediate split-lines are
-reported; 5 - all straight split lines are reported; 6 - all curvi-linear
-split lines are reported; 7 - all split-lines are reported.}
+\item{trace.level}{Sting indicating the trace level. Can be one of the
+following: "best", "main", "all"}
+
+\item{trace.object}{String that informs what graphical information to show.
+Can be either "curves", "straight" or "both".}
 
 \item{pnts.col}{Color of data points, default is 1. Argument is used when
-\code{trace.level} > 0. If set to NULL, data points will not be displayed.}
+\code{trace} > 0. If set to NULL, data points will not be displayed.}
 }
 \value{
 hespdiv class object, a list of at least 5 elements (see details):
