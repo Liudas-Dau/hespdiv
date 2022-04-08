@@ -18,9 +18,6 @@ x
 Function formats and prints the results
 of R object of class "hespdiv". It prints rounded split.stats data frame.
 }
-\details{
-ss
-}
 \author{
 Liudas Daumantas
 }

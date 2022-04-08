@@ -19,6 +19,7 @@ hespdiv(
   c.Y.knots = 10,
   c.iter.no = 2,
   c.corr.term = 0.05,
+  filter.all = TRUE,
   n.m.test = FALSE,
   n.m.N = 1000,
   n.m.seed = 1,
@@ -135,6 +136,11 @@ spline, that crosses the boundary of polygon, should be shifted away from the
 boundary, inside the polygon, in direction orthogonal to the straight
 split-line, in  terms of proportion of polygon width where spline intersects
 the polygon boundary.}
+
+\item{filter.all}{logical (default TRUE). Defines which data points are
+filtered by polygons. FALSE - only points strictly inside the polygon are
+filtered by polygons. TRUE - points located on a split-line are filtered as
+well in addition to those strictly inside a polygon.}
 
 \item{n.m.test}{Logical (default is FALSE). Should the established
 split-lines be tested with null models? These test are made by counting the

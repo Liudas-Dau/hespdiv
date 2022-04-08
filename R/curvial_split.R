@@ -268,7 +268,6 @@
 #' @param S.cond minimum area required to establish subdivision of a plot
 #' @return A list of two elements: 1) rotated (not suitable for the original polygon) curve in shape of a spline that produces the best data separation; 2) quality of the division
 #' @author Liudas Daumantas
-#' @importFrom sp point.in.polygon
 #' @importFrom pracma polyarea
 #' @noRd
 .curve_quality<-function(curve,rot.poli.up,rot.poli.do,rot.data,N.cond,S.cond){
@@ -276,8 +275,10 @@
   I.poli<-data.frame(x=c(rot.poli.up$x,rev(curve$x)[-1]),y=c(rot.poli.up$y,rev(curve$y)[-1]))
   II.poli<-data.frame(x=c(rot.poli.do$x,rev(curve$x)[-1]),y=c(rot.poli.do$y,rev(curve$y)[-1]))
   #atrenkam taskus patenkancius i skirtingas poligono dalis, padalintas kreive
-  I.poli.data<-rot.data[which(sp::point.in.polygon(point.x = rot.data$x,point.y =rot.data$y ,pol.x = I.poli$x,pol.y =I.poli$y)!=0),]
-  II.poli.data<-rot.data[which(sp::point.in.polygon(point.x = rot.data$x,point.y = rot.data$y,pol.x =II.poli$x ,pol.y =II.poli$y)!=0),]
+  I.poli.data <- .get_data(I.poli,rot.data,first.p,
+                           data.frame(curve)[c(1,1000),c(1,2)])
+  II.poli.data<- .get_data(II.poli,rot.data,first.p,
+                           data.frame(curve)[c(1,1000),c(1,2)])
   #atliekam plotu palyginima, t.y. padalinimo gerumo ivertinima, jei kreive netenkina minimaliu kriteriju - padalinimo kokybe nuline
   S1<-abs(pracma::polyarea(I.poli$x,I.poli$y))
   S2<-abs(pracma::polyarea(II.poli$x,II.poli$y))

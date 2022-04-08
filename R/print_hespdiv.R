@@ -1,6 +1,5 @@
 #' Print the results of hespdiv object
 #'
-#' ss
 #' @method print hespdiv
 #' @description  Function formats and prints the results
 #' of R object of class "hespdiv". It prints rounded split.stats data frame.

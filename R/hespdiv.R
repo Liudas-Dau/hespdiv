@@ -118,6 +118,10 @@
 #' boundary, inside the polygon, in direction orthogonal to the straight
 #' split-line, in  terms of proportion of polygon width where spline intersects
 #' the polygon boundary.
+#' @param filter.all logical (default TRUE). Defines which data points are
+#' filtered by polygons. FALSE - only points strictly inside the polygon are
+#' filtered by polygons. TRUE - points located on a split-line are filtered as
+#' well in addition to those strictly inside a polygon.
 #' @param n.m.test Logical (default is FALSE). Should the established
 #' split-lines be tested with null models? These test are made by counting the
 #' proportion of how many times the established boundaries worked better with
@@ -197,7 +201,8 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
                   compare.f = NULL, method = "Pielou_biozonation", N.crit = 0,
                   S.crit = 0, lower.Q.crit = -Inf, upper.Q.crit = -Inf,
                   c.splits = TRUE, c.X.knots = 5, c.Y.knots = 10,
-                  c.iter.no = 2, c.corr.term = 0.05, n.m.test = FALSE,
+                  c.iter.no = 2, c.corr.term = 0.05, filter.all = TRUE,
+                  n.m.test = FALSE,
                   n.m.N = 1000, n.m.seed = 1,  n.m.keep = FALSE,
                   study.pol = NULL, trace.level = NULL,
                   trace.object = NULL, pnts.col = 1){
@@ -237,6 +242,39 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
     x <- data$x[ids]
     y <- data$y[ids]
     study.pol <- data.frame(x=x,y=y)
+  }
+  first.p <- study.pol[1,]
+  if (filter.all) {
+    .get_data <- function(polygon, data, ...){
+      data.frame(data[sp::point.in.polygon(pol.x = polygon[,1],
+                                           pol.y = polygon[,2],
+                                           point.x = data$x,
+                                           point.y = data$y)!=0,])
+    }
+  } else {
+    .get_data <- function(polygon, data,first.p,split_endpnts){
+      if (any((first.p[,1] == split_endpnts[c(1,2),1]) &
+              (first.p[,2] == split_endpnts[c(1,2),2])) ){
+        del.id <- which(data$x == first.p[,1] &
+                          data$y == first.p[,2])
+        if (length(del.id)>0) {
+          data.frame(data[sp::point.in.polygon(pol.x = polygon[,1],
+                                               pol.y = polygon[,2],
+                                               point.x = data$x[-del.id],
+                                               point.y = data$y[-del.id])!=0,])
+        } else {
+          data.frame(data[sp::point.in.polygon(pol.x = polygon[,1],
+                                               pol.y = polygon[,2],
+                                               point.x = data$x,
+                                               point.y = data$y)!=0,])
+        }
+      } else {
+        data.frame(data[sp::point.in.polygon(pol.x = polygon[,1],
+                                             pol.y = polygon[,2],
+                                             point.x = data$x,
+                                             point.y = data$y)!=0,])
+      }
+    }
   }
 
   rims <- list(study.pol)
@@ -412,14 +450,18 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
             ))
 
         # padalinami duomenys i dvi dalis pagal pjuvio koordinates
-        Puses <- list(.get_data(po,samp.dat),.get_data(virs,samp.dat))
+        Puses <- list(
+          .get_data(po,samp.dat,first.p, data.frame(
+          x = unlist(pairs_pts[i,c(1,3)]), y = unlist(pairs_pts[i,c(2,4)]))),
+          .get_data(virs,samp.dat,first.p, data.frame(
+            x = unlist(pairs_pts[i,c(1,3)]), y = unlist(pairs_pts[i,c(2,4)])))
+        )
 
         environment(.visualise_splits) <- environment()
         .visualise_splits(what = trace.object,level = trace.level,
                           when = "try.straight")
 
-        if (all(c(nrow(Puses[[1]]),
-                  nrow(Puses[[2]]))>N.crit)){
+        if (all(c(nrow(Puses[[1]]), nrow(Puses[[2]])) > N.crit)){
           if (S.crit > 0){
             SpjuvioI <- abs(pracma::polyarea(x=virs[,1],y=virs[,2]))
             SpjuvioII <- abs(pracma::polyarea(x=po[,1],y=po[,2]))
@@ -572,7 +614,8 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
         ),
       close.line = best.splitl
     )
-    up.dat <- .get_data(up.pol,samp.dat)
+    up.dat <- .get_data(up.pol,samp.dat,first.p, data.frame(
+      x = unlist(pairs_pts[maxid,c(1,3)]), y = unlist(pairs_pts[maxid,c(2,4)])))
 
     do.pol <- .close_poly(
       open.poly =
@@ -586,7 +629,8 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
         ),
       close.line = best.splitl
     )
-    do.dat <- .get_data(do.pol,samp.dat)
+    do.dat <- .get_data(do.pol,samp.dat,first.p, data.frame(
+      x = unlist(pairs_pts[maxid,c(1,3)]), y = unlist(pairs_pts[maxid,c(2,4)])))
 
     .visualise_splits(what = trace.object, level = trace.level, when = "best")
 
