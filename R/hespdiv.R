@@ -206,9 +206,32 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
                   n.m.N = 1000, n.m.seed = 1,  n.m.keep = FALSE,
                   study.pol = NULL, trace.level = NULL,
                   trace.object = NULL, pnts.col = 1){
+  OBJECTS <- c("straight", "curve", "both")
+  matched.i <- pmatch(trace.object, OBJECTS)
+  if(is.na(matched.i))
+    stop("invalid trace object ", paste0("'", trace.object,"'"),
+         paste('\nPlease select viable option: '),
+         paste(OBJECTS,collapse = ", ",sep = "'"))
+  trace.object <- OBJECTS[matched.i]
+
+  METHODS <- c("Pielou_biozonation")
+  matched.i <- pmatch(method, METHODS)
+  if(is.na(matched.i))
+    stop("invalid method ", paste0("'", method,"'"),
+         paste('\nPlease select viable option: '),
+         paste(METHODS,collapse = ", ",sep = "'"))
+  method <- METHODS[matched.i]
+
+  LEVELS <- c("all","main","best")
+  matched.i <- pmatch(trace.level, LEVELS)
+  if(is.na(matched.i))
+    stop("invalid trace level ", paste0("'", trace.level,"'"),
+         paste('\nPlease select viable option: '),
+         paste(LEVELS,collapse = ", ",sep = "'"))
+  trace.level <- LEVELS[matched.i]
 
     if (c.splits == FALSE & upper.Q.crit != lower.Q.crit) {
-    print(paste("Since 'c.splits' is FALSE, 'lower.Q.crit' is set equal to
+    warning(paste("Since 'c.splits' is FALSE, 'lower.Q.crit' is set equal to
           'upper.Q.crit'"))
       lower.Q.crit <- upper.Q.crit
   }
