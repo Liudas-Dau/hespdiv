@@ -206,54 +206,83 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
                   n.m.N = 1000, n.m.seed = 1,  n.m.keep = FALSE,
                   study.pol = NULL, trace.level = NULL,
                   trace.object = NULL, pnts.col = 1){
-  OBJECTS <- c("straight", "curve", "both")
-  matched.i <- pmatch(trace.object, OBJECTS)
-  if(is.na(matched.i))
-    stop("invalid trace object ", paste0("'", trace.object,"'"),
-         paste('\nPlease select viable option: '),
-         paste(OBJECTS,collapse = ", ",sep = "'"))
-  trace.object <- OBJECTS[matched.i]
+  if (!is.null(trace.object)){
+    OBJECTS <- c("straight", "curve", "both")
+    matched.i <- pmatch(trace.object, OBJECTS)
+    if(is.na(matched.i))
+      stop("invalid trace object ", paste0("'", trace.object,"'"),
+           paste('\nPlease select viable option: '),
+           paste(OBJECTS,collapse = ", ",sep = "'"))
+    trace.object <- OBJECTS[matched.i]
+  }
+  if (!is.null(trace.level)){
+    LEVELS <- c("all","main","best")
+    matched.i <- pmatch(trace.level, LEVELS)
+    if(is.na(matched.i))
+      stop("invalid trace level ", paste0("'", trace.level,"'"),
+           paste('\nPlease select viable option: '),
+           paste(LEVELS,collapse = ", ",sep = "'"))
+    trace.level <- LEVELS[matched.i]
+  }
 
-  METHODS <- c("Pielou_biozonation")
-  matched.i <- pmatch(method, METHODS)
-  if(is.na(matched.i))
-    stop("invalid method ", paste0("'", method,"'"),
-         paste('\nPlease select viable option: '),
-         paste(METHODS,collapse = ", ",sep = "'"))
-  method <- METHODS[matched.i]
+  if (!((!is.null(trace.level) & !is.null(trace.object)) |
+      (is.null(trace.level) & is.null(trace.object)))){
+    warning(paste("Conflicting arguments: trace.level, trace.object"),
+            paste("\ntrace.object and trace.level were both set to NULL."))
+    trace.level <- NULL
+    trace.object <- NULL
+  }
 
-  LEVELS <- c("all","main","best")
-  matched.i <- pmatch(trace.level, LEVELS)
-  if(is.na(matched.i))
-    stop("invalid trace level ", paste0("'", trace.level,"'"),
-         paste('\nPlease select viable option: '),
-         paste(LEVELS,collapse = ", ",sep = "'"))
-  trace.level <- LEVELS[matched.i]
+  if (!is.null(method)){
+    METHODS <- c("Pielou_biozonation")
+    matched.i <- pmatch(method, METHODS)
+    if(is.na(matched.i))
+      stop("invalid method ", paste0("'", method,"'"),
+           paste('\nPlease select viable option: '),
+           paste(METHODS,collapse = ", ",sep = "'"))
+    method <- METHODS[matched.i]
+  }
 
+  if (is.null(method) & is.null(generalize.f) & is.null(compare.f) ){
+    stop("No method provided. Please specify either 1) 'method' or 2) data",
+         " generalization and comparison functions ",
+         "('generalize.f' and 'compare.f')")
+  }
+  if (!is.null(method) & (!is.null(generalize.f) | !is.null(compare.f))){
+    stop("Conflincting arguments: method, generalize.f, compare.f",
+      "\n Please specify either 1) one of the viable ",
+      paste("methods ("),paste(METHODS,collapse = ", ",sep = "'"),
+      ") 2) or generalize.f and compare.f functions")
+  }
+  if (is.null(method) & (is.null(generalize.f) | is.null(compare.f)) ){
+    stop("Missing argument: both 'generalize.f' and 'compare.f' must be provided")
+  }
     if (c.splits == FALSE & upper.Q.crit != lower.Q.crit) {
-    warning(paste("Since 'c.splits' is FALSE, 'lower.Q.crit' is set equal to
+    warning(paste("Since 'c.splits' is FALSE, 'lower.Q.crit' was set equal to
           'upper.Q.crit'"))
       lower.Q.crit <- upper.Q.crit
-  }
-  if (method == "Pielou_biozonation") {
-    if (ncol(data) != 3){
-      stop("There should be one column in data besides 'x' and 'y' columns that
+    }
+
+  if (!is.null(method)){
+    if (method == "Pielou_biozonation") {
+      if (ncol(data) != 3){
+        stop("There should be one column in data besides 'x' and 'y' columns that
            records which taxa is present at a given location. Taxa should be
            coded numerically. If multiple taxa is present at the same location,
            multiple rows should be dedicated for the same location in data.")
-    }
+      }
 
-    generalize.f <- function(plot.dat){
-      x <- table(as.numeric(paste(subset(plot.dat, select = -c(x, y))[,1])))
-      p <- x/sum(x)
-      -sum(log(p)*p)
-    }
-    compare.f <- function(eveness1,eveness2) {
-      base.eveness <- poly.obj[[testid]]
-      (1 - mean(c(eveness1, eveness2)) / base.eveness) * 100 # percent change in eveness
+      generalize.f <- function(plot.dat){
+        x <- table(as.numeric(paste(subset(plot.dat, select = -c(x, y))[,1])))
+        p <- x/sum(x)
+        -sum(log(p)*p)
+      }
+      compare.f <- function(eveness1,eveness2) {
+        base.eveness <- poly.obj[[testid]]
+        (1 - mean(c(eveness1, eveness2)) / base.eveness) * 100 # percent change in eveness
+      }
     }
   }
-
   if( all(names(data) != "x") | all(names(data) != "y") ){
     stop("data should contain columns named \"x\" and \"y\" that contain
            coordinate information")
