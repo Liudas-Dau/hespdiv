@@ -227,10 +227,9 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
 
   if (!((!is.null(trace.level) & !is.null(trace.object)) |
       (is.null(trace.level) & is.null(trace.object)))){
-    warning(paste("Conflicting arguments: trace.level, trace.object"),
-            paste("\ntrace.object and trace.level were both set to NULL."))
-    trace.level <- NULL
-    trace.object <- NULL
+    stop(paste("Conflicting arguments: trace.level, trace.object"),
+            paste("\ntrace.object and trace.level must be both set to 'NULL'"),
+         paste( ' or asigned a viable value'))
   }
 
   if (!is.null(method)){

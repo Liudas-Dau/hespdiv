@@ -42,7 +42,7 @@
                                      round(maxdif,2),
                                      "\n\nPress enter to continue...\n")))
       } else {
-        if (when == "curve.start") {
+        if (when == "curve.start" & what != 'straight') {
           dev.new()
           if(!is.null(pnts.col)){
             plot(rot.data$x, rot.data$y, col=pnts.col,xlab = "shifted & rotated X coordinate",
