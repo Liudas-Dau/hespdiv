@@ -464,9 +464,8 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
 
   perim_pts <- .perimeter_pts(polygon = margins,n.pts = n.split.pts)
 
-  environment(.visualise_splits) <- environment()
-  .visualise_splits(what = trace.object,level = trace.level,
-                    when = "start")
+  .visualise_splits.start(what = trace.object,
+                          pnts.col, data, margins, rims, testid)
 
   #testavimui pjuviai paruosiami
 
@@ -508,9 +507,8 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
             x = unlist(pairs_pts[i,c(1,3)]), y = unlist(pairs_pts[i,c(2,4)])))
         )
 
-        environment(.visualise_splits) <- environment()
-        .visualise_splits(what = trace.object,level = trace.level,
-                          when = "try.straight")
+        .visualise_splits.try_straight(what = trace.object, level = trace.level,
+                                       pairs_pts, i)
 
         if (all(c(nrow(Puses[[1]]), nrow(Puses[[2]])) > N.crit)){
           if (S.crit > 0){
@@ -527,36 +525,34 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
             any.split <- c(any.split,Skirtumas)
             #Paskaiciuojam plotus padalintu bloku
             if (Skirtumas > maxdif){
-              environment(.visualise_splits) <- environment()
-              .visualise_splits(what = trace.object,level = trace.level,
-                                when = "good.straight")
 
-              #Jei padalinimas patenkina minimalias saligas ir yra geresnis nei pries tai - pasizymim ir issisaugom ji
+              .visualise_splits.good_straight(what = trace.object,
+                                              level = trace.level,
+                                              pairs_pts, Skirtumas, i)
+
+              #Jei padalinimas patenkina minimalias saligas ir yra
+              # geresnis nei pries tai - pasizymim ir issisaugom ji
               maxdif <- Skirtumas
               maxid <- i
             } else {
               message <- paste0("Poor split quality.\n","Obtained: ",
                                 round(Skirtumas,2),
                                 ";\nRequired: ",round(maxdif,2))
-              environment(.visualise_splits) <- environment()
-              .visualise_splits(what = trace.object,level = trace.level,
-                                when = "bad.straight")
             }
           } else {
             message <- paste0("One of the areas was too small.\n","Obtained: ",
                               round(SpjuvioI,2), ' and ', round(SpjuvioII,2),
                               ";\nRequired: ",S.cond)
-            environment(.visualise_splits) <- environment()
-            .visualise_splits(what = trace.object,level = trace.level,
-                              when = "bad.straight")
           }
         } else {
           message <- paste0("Not enough observations in one of the areas.",
           "\nObtained: ", nrow(Puses[[1]]), ' and ', nrow(Puses[[2]]),
                             ";\nRequired: ",N.crit)
-          environment(.visualise_splits) <- environment()
-          .visualise_splits(what = trace.object,level = trace.level,
-                            when = "bad.straight")
+        }
+        if (maxid != i) {
+          .visualise_splits.bad_straight(what = trace.object,
+                                         level = trace.level,
+                                         pairs_pts, message, i)
         }
       }
     }
@@ -589,9 +585,8 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
     #issaugom duomenis ir ziurim ar galima skaidyti toliau
     if (maxid>0) {
       if ( c.splits) {
-        environment(.visualise_splits) <- environment()
-        .visualise_splits(what = trace.object,level = trace.level,
-                          when = "best.straight")
+        .visualise_splits.best_straight(what = trace.object,
+                                        pairs_pts, maxid, maxdif)
         environment(.curvial_split) <- environment()
         best.curve <- .curvial_split(
 
@@ -638,9 +633,9 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
       best.splitl <- data.frame(x=as.numeric(c(pairs_pts[maxid,c(1,3)])),
                                 y=as.numeric(c(pairs_pts[maxid,c(2,4)])))
     }
-    environment(.visualise_splits) <- environment()
-    .visualise_splits(what = trace.object,level = trace.level,
-                      when = "best.split")
+    .visualise_splits.best_split(what = trace.object,
+                                 best.splitl, maxdif)
+
     assign(x = "splits" ,value = do.call(c,list(splits,list(best.splitl))),
            envir = e)
     assign(x = "split.quality" ,
@@ -682,8 +677,6 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
     )
     do.dat <- .get_data(do.pol,samp.dat,first.p, data.frame(
       x = unlist(pairs_pts[maxid,c(1,3)]), y = unlist(pairs_pts[maxid,c(2,4)])))
-
-    .visualise_splits(what = trace.object, level = trace.level, when = "best")
 
     #issaugom duomenis padalinimo
     ribs <- list(up.pol,do.pol)

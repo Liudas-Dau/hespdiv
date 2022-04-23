@@ -104,8 +104,9 @@
   knot.y.matrix<-matrix(B,c.Y.knots,1)%*%matrix(range,1,c.X.knots)+
     matrix(rep(do.y,each=c.Y.knots),c.Y.knots,c.X.knots)
 
-  environment(.visualise_splits) <- environment()
-  .visualise_splits(when = "curve.start",what = trace.object, level = trace.level)
+  .visualise_splits.curve_start(what = trace.object,
+                                rot.data, pnts.col, rot.poli, AE, c.X.knots,
+                                split.line.x, c.Y.knots, knot.y.matrix)
   #randam geriausia padalinimo kreive
   environment(.curvi_split) <- environment()
   best_curvi_split<-.curvi_split(
@@ -192,9 +193,8 @@
         curve<-.spline_corrections(curve,Xup,Xdown,Yup,Ydown,best.y.knots,
                                  split.line.x,c.corr.term=c.corr.term)
         counter <- counter + 1
-        environment(.visualise_splits) <- environment()
-        .visualise_splits(what = trace.object,level = trace.level,
-                          when = "try.curve")
+        .visualise_splits.try_curve(what = trace.object,level = trace.level,
+                          counter, curve)
         #ivertinam poligono padalinimo su sugeneruota kreive kokybe
         environment(.curve_quality) <- environment()
         SS<-.curve_quality(curve=curve,rot.poli.up, rot.poli.do, rot.data,
@@ -203,21 +203,19 @@
         SSk[k]<-SS[[1]]
         if ( SS[[2]] != "" ){
           message <- SS[[2]]
-          environment(.visualise_splits) <- environment()
-          .visualise_splits(what = trace.object,level = trace.level,
-                            when = "bad.curve")
+          .visualise_splits.bad_curve(what = trace.object,level = trace.level,
+                                      curve, message)
         } else{
           if (max(SSk) == SS[[1]]){
-            environment(.visualise_splits) <- environment()
-            .visualise_splits(what = trace.object,level = trace.level,
-                              when = "good.curve")
+            .visualise_splits.good_curve(what = trace.object,
+                                         level = trace.level,
+                                         curve, SS)
           } else {
             message <- paste0("Poor split quality./n","Obtained: ",
                               round(SS[[1]],2),
                               ";/nRequired: ",round(max(SSk),2))
-            environment(.visualise_splits) <- environment()
-            .visualise_splits(what = trace.object,level = trace.level,
-                              when = "bad.curve")
+            .visualise_splits.bad_curve(what = trace.object,level = trace.level,
+                                        curve, message)
           }
         }
       }
@@ -243,9 +241,8 @@
   environment(.curve_quality) <- environment()
   SS<-.curve_quality(curve.final,rot.poli.up, rot.poli.do, rot.data, N.cond,
                     S.cond)
-  environment(.visualise_splits) <- environment()
-  .visualise_splits(what = trace.object,level = trace.level,
-                    when = "best.curve")
+  .visualise_splits.best_curve(what = trace.object,
+                               curve.final, SS)
   #grazinam padalinimo kreive, jos kokybes iverti ir visu kitu lokaliai
   # geriausiu kreiviu ivercius - SSk
   #SSk tik tam, kad pasizeti, ar tikrai grizta pati geriausia kreive
@@ -272,14 +269,17 @@
 #' @noRd
 .curve_quality<-function(curve,rot.poli.up,rot.poli.do,rot.data,N.cond,S.cond){
   #sudarom poligonus padalintus kreive
-  I.poli<-data.frame(x=c(rot.poli.up$x,rev(curve$x)[-1]),y=c(rot.poli.up$y,rev(curve$y)[-1]))
-  II.poli<-data.frame(x=c(rot.poli.do$x,rev(curve$x)[-1]),y=c(rot.poli.do$y,rev(curve$y)[-1]))
+  I.poli<-data.frame(x=c(rot.poli.up$x,rev(curve$x)[-1]),y=c(rot.poli.up$y,
+                                                             rev(curve$y)[-1]))
+  II.poli<-data.frame(x=c(rot.poli.do$x,rev(curve$x)[-1]),y=c(rot.poli.do$y,
+                                                              rev(curve$y)[-1]))
   #atrenkam taskus patenkancius i skirtingas poligono dalis, padalintas kreive
   I.poli.data <- .get_data(I.poli,rot.data,first.p,
                            data.frame(curve)[c(1,1000),c(1,2)])
   II.poli.data<- .get_data(II.poli,rot.data,first.p,
                            data.frame(curve)[c(1,1000),c(1,2)])
-  #atliekam plotu palyginima, t.y. padalinimo gerumo ivertinima, jei kreive netenkina minimaliu kriteriju - padalinimo kokybe nuline
+  #atliekam plotu palyginima, t.y. padalinimo gerumo ivertinima, jei kreive
+  #netenkina minimaliu kriteriju - padalinimo kokybe nuline
   S1<-abs(pracma::polyarea(I.poli$x,I.poli$y))
   S2<-abs(pracma::polyarea(II.poli$x,II.poli$y))
   message <- ""
@@ -289,7 +289,8 @@
   } else{
     if (min(nrow(I.poli.data),nrow(II.poli.data)) < N.cond){
       message <-  paste0("Not enough observations in one of the areas.",
-                         "\nObtained: ", nrow(I.poli.data), ' and ',  nrow(II.poli.data),
+                         "\nObtained: ", nrow(I.poli.data), ' and ',
+                         nrow(II.poli.data),
                          ";\nRequired: ",N.cond)
     } else {
       message <-  paste0("One of the areas was too small./n","Obtained: ",
