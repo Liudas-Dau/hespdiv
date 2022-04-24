@@ -31,6 +31,21 @@
                                  ,testid,
                                  "\n\nPress enter to continue...\n")))
   }}
+.visualise_splits.end <- function(pnts.col, data, rims) {
+    if(!is.null(pnts.col)){
+      plot(data$x, data$y, col=pnts.col,xlab = "x coordinate",
+           ylab = "y coordinate" ,pch=19)
+    } else {
+      plot(NULL,xlim = range(data$x),ylim = range(data$y),col=0,
+           xlab = "x coordinate", ylab = "y coordinate")
+    }
+    lines(rims[[1]])
+
+    if (length(rims)>1) {
+      for (i in 2:length(rims)){
+        lines(x=rims[[i]][,1],y=rims[[i]][,2],col=1,lwd=2)
+      }}
+}
 .visualise_splits.best_straight <- function(what,
                                             pairs_pts, maxid, maxdif) {
   if (!is.null(what)){
@@ -95,7 +110,7 @@
 .visualise_splits.good_straight <- function(what, level,
                                             pairs_pts, Skirtumas, i) {
   if (!is.null(what)){
-    if (level != 'best' & what != 'curves'){
+    if (level != 'best' & what != 'curve'){
       lines(x= pairs_pts[i,c(1,3)], y = pairs_pts[i,c(2,4)],lwd=2,
             col = 'gray70')
       readline(prompt = cat(paste0('\nThe displayed straigth split-line',
@@ -106,7 +121,7 @@
     }}}
 .visualise_splits.try_straight <- function(what, level, pairs_pts, i) {
   if (!is.null(what)){
-    if (what != "curves" & level == "all"){
+    if (what != "curve" & level == "all"){
       lines(x = pairs_pts[i,c(1,3)], y = pairs_pts[i,c(2,4)],
             col = "orange")
       readline(prompt = cat(paste0("\nTesting straight split-line",
@@ -116,7 +131,7 @@
 .visualise_splits.bad_straight <- function(what, level,
                                            pairs_pts, message, i) {
   if (!is.null(what)){
-    if (what != "curves" & level == "all"){
+    if (what != "curve" & level == "all"){
       lines(x = pairs_pts[i,c(1,3)], y = pairs_pts[i,c(2,4)],
             col = "gray70")
       readline(prompt = cat(paste0("\nSplit-line was not selected.",

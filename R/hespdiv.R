@@ -159,6 +159,7 @@
 #' Can be either "curves", "straight" or "both".
 #' @param pnts.col Color of data points, default is 1. Argument is used when
 #' \code{trace} > 0. If set to NULL, data points will not be displayed.
+#' @param display logical. Display the resulting polygons at the output?
 #' @return hespdiv class object, a list of at least 5 elements (see details):
 #' \describe{
 #'   \item{\code{split.lines}}{ a list containing data frames of
@@ -205,7 +206,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
                   n.m.test = FALSE,
                   n.m.N = 1000, n.m.seed = 1,  n.m.keep = FALSE,
                   study.pol = NULL, trace.level = NULL,
-                  trace.object = NULL, pnts.col = 1){
+                  trace.object = NULL, pnts.col = 1, display = TRUE){
   if (!is.null(trace.object)){
     OBJECTS <- c("straight", "curve", "both")
     matched.i <- pmatch(trace.object, OBJECTS)
@@ -428,7 +429,9 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
     }
   }
 
-
+  if (display){
+    .visualise_splits.end(pnts.col, data, rims)
+  }
   return(print.hespdiv(result))
 }
 
@@ -537,17 +540,17 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
             } else {
               message <- paste0("Poor split quality.\n","Obtained: ",
                                 round(Skirtumas,2),
-                                ";\nRequired: ",round(maxdif,2))
+                                "\nRequired: >",round(maxdif,2))
             }
           } else {
             message <- paste0("One of the areas was too small.\n","Obtained: ",
                               round(SpjuvioI,2), ' and ', round(SpjuvioII,2),
-                              ";\nRequired: ",S.cond)
+                              "\nRequired: >",S.cond)
           }
         } else {
           message <- paste0("Not enough observations in one of the areas.",
           "\nObtained: ", nrow(Puses[[1]]), ' and ', nrow(Puses[[2]]),
-                            ";\nRequired: ",N.crit)
+                            "\nRequired: >",N.crit)
         }
         if (maxid != i) {
           .visualise_splits.bad_straight(what = trace.object,
@@ -564,9 +567,9 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
       # if all are equal, then complete randomness: no anisotropy - no splits present
       if( all(any.split==any.split[1]) & length(any.split) > 1  ){
         warning(paste(c(
-          "All tested splits are of equal quality. No anisotropy - no spilts in"
-          , iteration, "iteration.")))
-        maxid<-0
+          "All tested splits were of equal quality in "
+          , iteration, " iteration. A random split were selected as it meets",
+          " all provided criteria")))
       }
     } else {
       mean.dif <- NA # negalejom ivertinti ne vieno padalinimo, taigi performance lygu max.
@@ -720,7 +723,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
            envir = e)
 
     assign(x = "mean.difs",
-           value = do.call(c,list(mean.dif,mean.dif)),
+           value = do.call(c,list(mean.difs,mean.dif)),
            envir = e)
     # kaip su situo rims blet?
     assign(x = "rims" ,value = do.call(c,list(rims,ribs[1])) ,envir = e)

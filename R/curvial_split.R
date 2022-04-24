@@ -199,25 +199,26 @@
         environment(.curve_quality) <- environment()
         SS<-.curve_quality(curve=curve,rot.poli.up, rot.poli.do, rot.data,
                            N.cond,S.cond)
-        #fiksuojam verte
-        SSk[k]<-SS[[1]]
+
         if ( SS[[2]] != "" ){
           message <- SS[[2]]
           .visualise_splits.bad_curve(what = trace.object,level = trace.level,
                                       curve, message)
         } else{
-          if (max(SSk) == SS[[1]]){
+          if (max(SSk) < SS[[1]]){
             .visualise_splits.good_curve(what = trace.object,
                                          level = trace.level,
                                          curve, SS)
           } else {
-            message <- paste0("Poor split quality./n","Obtained: ",
+            message <- paste0("Poor split quality.\n","Obtained: ",
                               round(SS[[1]],2),
-                              ";/nRequired: ",round(max(SSk),2))
+                              "\nRequired: >",round(max(SSk),2))
             .visualise_splits.bad_curve(what = trace.object,level = trace.level,
                                         curve, message)
           }
         }
+        #fiksuojam verte
+        SSk[k]<-SS[[1]]
       }
       #sugeneruojam spline, kurio X asyje yra knotu Y koordinates, o Y asyje
       #padalinimo kreives kokybe
@@ -283,7 +284,7 @@
   S1<-abs(pracma::polyarea(I.poli$x,I.poli$y))
   S2<-abs(pracma::polyarea(II.poli$x,II.poli$y))
   message <- ""
-  if(min(nrow(I.poli.data),nrow(II.poli.data))>=N.cond & min(S1,S2) >= S.cond){
+  if(min(nrow(I.poli.data),nrow(II.poli.data))>N.cond & min(S1,S2) > S.cond){
     environment(.dif_fun) <- environment()
     SS<-.dif_fun(I.poli.data,II.poli.data)
   } else{
@@ -291,11 +292,11 @@
       message <-  paste0("Not enough observations in one of the areas.",
                          "\nObtained: ", nrow(I.poli.data), ' and ',
                          nrow(II.poli.data),
-                         ";\nRequired: ",N.cond)
+                         "\nRequired: >",N.cond)
     } else {
-      message <-  paste0("One of the areas was too small./n","Obtained: ",
+      message <-  paste0("One of the areas was too small.\n","Obtained: ",
                          round(S1,2), ' and ', round(S2,2),
-                         ";/nRequired: ",S.cond)
+                         "\nRequired: >",S.cond)
     }
     SS <- 0
   }
