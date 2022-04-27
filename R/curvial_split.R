@@ -69,6 +69,9 @@
                                        trivial_side = TRUE,poli_side = FALSE))
 
   #randu vidinio pataisyto poligono apatine ir virsutine dali
+ print(iteration)
+ # if (iteration == 17)
+  #  browser()
   bottom.inner.poli<-.inner_poly_hull(polygon = rot.poli.do)
   upper.inner.poli<-.inner_poly_hull(polygon = rot.poli.up)
   if( bottom.inner.poli[[2]] == 1 ){
@@ -109,6 +112,8 @@
                                 split.line.x, c.Y.knots, knot.y.matrix)
   #randam geriausia padalinimo kreive
   environment(.curvi_split) <- environment()
+  #if (testid == 6)
+    #debug(.curvi_split)
   best_curvi_split<-.curvi_split(
     knot.y.matrix,split.line.x,Xup=upper.inner.poli[[1]]$x,
     Xdown=bottom.inner.poli[[1]]$x,Yup=upper.inner.poli[[1]]$y,Ydown=bottom.inner.poli[[1]]$y,
@@ -165,8 +170,10 @@
                       c.corr.term,trace.object = trace.object,
                       trace.level = trace.level, teta = teta){
   best.y.knots<-numeric(c.X.knots)
-  SSk<-numeric(c.Y.knots-2)
-  SSks<-numeric(c.X.knots-2)
+  y.cord.quality<-numeric(c.Y.knots-2)
+  best.y.coords<-numeric(c.X.knots-2)
+  best.qual <- 0
+  best.y <- 0
   knot.y.matrix<-knot.y.matrix[-c(1,c.Y.knots),-c(1,c.X.knots)]
   counter <- 0
   for (it in seq(c.iter.no)){
@@ -205,29 +212,52 @@
           .visualise_splits.bad_curve(what = trace.object,level = trace.level,
                                       curve, message)
         } else{
-          if (max(SSk) < SS[[1]]){
+          if (best.qual < SS[[1]]){
             .visualise_splits.good_curve(what = trace.object,
                                          level = trace.level,
                                          curve, SS)
+            best.qual <- SS[[1]]
+            best.y.coords[l] <- knot.y.matrix[k,l]
           } else {
             message <- paste0("Poor split quality.\n","Obtained: ",
                               round(SS[[1]],2),
-                              "\nRequired: >",round(max(SSk),2))
+                              "\nRequired: >",round(best.qual,2))
             .visualise_splits.bad_curve(what = trace.object,level = trace.level,
                                         curve, message)
           }
         }
         #fiksuojam verte
-        SSk[k]<-SS[[1]]
+        y.cord.quality[k]<-SS[[1]]
+
       }
       #sugeneruojam spline, kurio X asyje yra knotu Y koordinates, o Y asyje
       #padalinimo kreives kokybe
       #skirta interpoliuojant aproksimuoti tarpiniu Y koordinaciu vertes
-      proj<-spline(knot.y.matrix[,l],SSk,n=1000)
-      SSks[l]<-proj$y[which.max(proj$y)]
-      #issaugom, kaip geriausia Y koordinate X koordinates knotui ta, kuri turi
-      # didziausia kokybe
-      best.y.knots[1+l]<-proj$x[which.max(proj$y)]
+      proj<-spline(knot.y.matrix[,l],y.cord.quality,n=1000)
+      if (max(proj$y) > best.qual){
+        test.knots <- best.y.knots
+        test.knots[1+l] <- proj$x[which.max(proj$y)]
+        curve.test <- spline(split.line.x,test.knots,n=1000)
+        curve.test<-.spline_corrections(curve.test,Xup,Xdown,Yup,Ydown,test.knots,
+                                        split.line.x,c.corr.term = c.corr.term)
+        environment(.curve_quality) <- environment()
+        SS<-.curve_quality(curve.test,rot.poli.up, rot.poli.do, rot.data, N.cond,
+                           S.cond)
+        if (SS[[1]]> best.qual){
+          .visualise_splits.good_curve(what = trace.object,
+                                       level = trace.level,
+                                       curve.test, SS)
+          best.y.coords[l] <- proj$x[which.max(proj$y)]
+          best.qual <- SS[[1]]
+          #issaugom, kaip geriausia Y koordinate X koordinates knotui ta, kuri turi
+          # didziausia kokybe
+          best.y.knots[1+l] <- proj$x[which.max(proj$y)]
+        } else {
+          best.y.knots[1+l] <- best.y.coords[l]
+        }
+      } else {
+        best.y.knots[1+l] <- best.y.coords[l]
+      }
     }
   }
   #siame etape kiekvienam X koordinates knotui turime po geriausia Y koordinate
@@ -247,7 +277,7 @@
   #grazinam padalinimo kreive, jos kokybes iverti ir visu kitu lokaliai
   # geriausiu kreiviu ivercius - SSk
   #SSk tik tam, kad pasizeti, ar tikrai grizta pati geriausia kreive
-  if (any(SSks>SS[[1]])){
+  if (any(best.y.coords>SS[[1]])){
     warning("Intermediate curves performed better than the final curve")
   }
   return(list(curve.final,SS[[1]]))

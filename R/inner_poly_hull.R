@@ -119,6 +119,7 @@
 #' @author Liudas Daumantas
 #' @noRd
 .cut_by_x_margins <- function(polygon) {
+  # XXXX atein uzdaras polygonas- galima atverti iskart nestestavus
   if (all(polygon[1,]==polygon[nrow(polygon),])){
     polygon <- polygon[-nrow(polygon),]
   }
@@ -140,34 +141,107 @@
 .segment_filter <- function(intervals) {
   if (nrow(intervals)>1){
     intervals <- round(intervals,6)
+    # XXXX CHeezz Liudai! @.@ :O...  intervals[,c(1,3)] is enough for range | ARBA NE, JEI SVARBU, KAD BUTU MAZENIS KAIREJE
     int_x_ranges <- cbind(t(apply(intervals[,c(1,3)],1,range)),1:nrow(intervals))
-
+    # kaip su tom nelygybem lygybem? Po @.@ atrodo gerai pirmos dvi salygos,
+    # nes intervalai lyg ir turi buti su tais paciais endpointas,
+    # tai kai kurie endpointai logiska, kad sutampa, bet abieju pradzios
+    # negali sutapti (int_x_ranges pirmas stulpelis mazesnieji),
+    # kaip ir abieju pabaigos.
+    # Tuo tarpu trecia salyga atrodo pertekline, nes neisivaizduoju, kur imanoma
+    # kad vienos atkarpos pirmas endpointas butu kairiau kitos ir tuo paciu jos
+    # antras endpointas butu desiniau kitos. Tai tarsi diktuoja, kad endpointai
+    # nesiliecia. Tas gali butu imanoma tik tada, jei intervalai butu prafiltruoti.
+    # Ir taip, jie filtruoti su create_ints() ir is_x_shifted(), bet tai
+    # nufiltruoja tik tas vietas, kur x nesikeicia
+    # Taigi, endopointai turetu visur tureti bent viena lygybe. Tikrinu: Gavosi butent taip.
+    # Taip pat, reikalinga butu ir kita salyga, jei trecia yra reikalinga -
+    # kur viena o atkarpa butu praryta, o ne apziotu kaip numato dabar paskutine
+    # salyga. Taip trecia reikalinga ir reikalinga butent tais atvejais, kai
+    # persidengia negretimos atkarpos. TY. persidengti gali artimos atkarpos, jei
+    # suka linija ten is kur atejo, bet gali ir toliau uzklisti.
+    # Ketvirta salyga kazkodel pertekline.... Pasirodo gal ir viskas buvo gerai :-(
+    # ISVADA: palieku kol kas papildoma salyga, veliau reiks su ja ir be jos padaryt
+    # ir pazet ar ji reikalinga, ar ne. NES - be trecios neveikia, o ketvirta neitakoja
+    # sio atvejo. Taigi, trecia ir ketvirta neanalogiska, tik nera atveju ketvirtos
     overlap_log <-  apply(int_x_ranges[,1:2], 1,function(o) {
       (o[1] >= int_x_ranges[,1] & o[1] < int_x_ranges[,2] ) |
         ( o[2] > int_x_ranges[,1] & o[2] <= int_x_ranges[,2] ) |
-        (o[1] <= int_x_ranges[,1] & o[2] >= int_x_ranges[,2])
+        (o[1] <= int_x_ranges[,1] & o[2] >= int_x_ranges[,2]) |
+        (o[1] >= int_x_ranges[,1] & o[2] <= int_x_ranges[,2])
     })
     diag(overlap_log) <- FALSE
+    # stulpeliai atitinka obs. (eilutes int_x_ranges). eilutes - su kuo persidengia siu obs eilutes
+    # noverlap_int_log - indikatoriai intervalu, kurie nepersidengia su niekuo
+    # overlap_int_ranges - intervalai, kurie persidengia su kitais intervalais
     noverlap_int_log <- apply(!overlap_log,2,all)
     if (any(noverlap_int_log)) {
       overlap_int_ranges <- int_x_ranges[-which(noverlap_int_log),]
     } else {
       overlap_int_ranges <- int_x_ranges
     }
-
+    # Jei nera persidengianciu intervalu, grazinam nekoreguotus intervalus atitransformuotus i taskus
     if (nrow(overlap_int_ranges)==0) {
       return(.ints_to_pnts(intervals))
     }
-
+    # Isruosiuoti intervalu endpoitai, be duplikatu (taskai isilgai x)
     x_end_points <- sort(unique(c(overlap_int_ranges[,1:2])))
+    # intervalai isrusiuoti x didejimo tvarka,o ne taip kaip poligonas nupaisytas
     x_ranges <- cbind(x_end_points[-length(x_end_points)],x_end_points[-1])
+    # is end_points sukurtuose x_ranges gali buti intervalai, kur persidengimo
+    # su overlap_int_ranges nera
+
+    # TOKIU INTERVALO ISMETIMO KODAS:
+    id_interval_gap <- which((overlap_int_ranges[-1,3] - overlap_int_ranges[-nrow(overlap_int_ranges),3]) != 1)
+    if (length(id_interval_gap)>0){
+      # imanoma, kad overlap_int_ranges gapinis intervalas nera butinai mazesnio x. x_ranges isrusiuotas, overlap_int_ranges ne
+      # id_interval_gap + 1
+      # PROBLEMA: gali gautis ir taip, kad x_ranges intervalai isrusiuoti
+      # visai nebera salia tie, kurie buvo salia su overlap_int_ranges ir ties
+      # rastu luziu, pvz. veliau ar pries poligono atkarpai patekus i ta gapini
+      # intervala. tokiu atveju sprendimas butu, intervalus ismetines is x_ranges
+      # pagal x_ranges_int_id rezultata (jei sarasas - randi tuscius id ir
+      # istrini atitinkamus x_ranges, tada kartoji x_ranges_int_id)
+      # Taciau kita vertus, tas gapinis intervalas atsiranda del to, kad
+      # tame intervale nera persidengianciu intervalu, tai gal ir negali isiterpti
+      # niekas i ji
+      # gali buti daugiau nei vienas id_del
+      gap_del <- data.frame(x1 = numeric(length(id_interval_gap)),
+                            x2 = numeric(length(id_interval_gap)))
+      for (i in 1:length(id_interval_gap)){
+        if (overlap_int_ranges[id_interval_gap[i],2] <
+            overlap_int_ranges[id_interval_gap[i]+1,1]){
+          gap_del[i,] <- c(overlap_int_ranges[id_interval_gap[i],2],
+                           overlap_int_ranges[id_interval_gap[i]+1,1])
+        } else {
+      gap_del[i,] <-  c(overlap_int_ranges[id_interval_gap[i]+1,2],
+                          overlap_int_ranges[id_interval_gap[i],1])
+}
+      x_ranges <- x_ranges[-(which(x_ranges[,1] == gap_del[i,1] &
+                        x_ranges[,2] == gap_del[i,2])),]
+      }
+    }
     x_ranges_int_id <-  apply(x_ranges, 1,function(o) {
-      ids <- which((o[1] >= overlap_int_ranges[,1] &
-                      o[1] < overlap_int_ranges[,2] ) |
-                     ( o[2] > overlap_int_ranges[,1] &
-                         o[2] <= overlap_int_ranges[,2] ) |
-                     (o[1] <= overlap_int_ranges[,1] &
-                        o[2] >= overlap_int_ranges[,2]))
+      # su kuriais poligono nerusiuotais persidengianciais intervalais, persidengia
+      # kiekvienas rusiuotas persidengiantis intervalas (o arba x_ranges obs, eilute)
+      # su savimi paciu aisku ir plius gal dar kazkas dar (nes intervalai,
+      # kurie tik su savimi persidengia nufiltruoti --> diag(overlap_log) <- FALSE,
+      # taciau overlap_int_ranges isdalies persidengiantys intervalai gali
+      # tureti x_ranges atkarpas, kurios nepersidengia su daugiau niekuo.
+      # Pastariosios gaunamos isrusiavus persidengianciu intervalu endpointus ir
+      # is ju padarius intervalus)
+      # cia vel galimai truksta dar ketvirtos salygos, kur o intervalas yra prarytas
+      # Iterpiu salyga, bet niekas nesikeicia. BUTINA BUS PRATIKRINTI
+      ids <- which(
+        (o[1] >= overlap_int_ranges[,1] & o[1] < overlap_int_ranges[,2] ) |
+        (o[2] > overlap_int_ranges[,1] & o[2] <= overlap_int_ranges[,2] ) |
+        (o[1] <= overlap_int_ranges[,1] & o[2] >= overlap_int_ranges[,2]) |
+          (o[1] >= overlap_int_ranges[,1] & o[2] <= overlap_int_ranges[,2]))
+      # is visu su o intervalu persidengianciu nerusiuotu intervalu
+      # atrenkam ID to nerusiuoto intervalo, kurio y, o intervalo (su kuriuo
+      # persidengia) viduryje yra arciausiai nulio. Taigi, gaunam
+      # overlap_int_ranges id, kurie yra prarusiuoti ir kuriu Y galima naudoti
+      # x_ranges intervalams priskirti
       overlap_int_ranges[ids[which.min(abs(.pt_on_line(
         x1 = intervals$x1[overlap_int_ranges[ids,3]],
         x2 = intervals$x2[overlap_int_ranges[ids,3]],
@@ -175,26 +249,74 @@
         y2 = intervals$y2[overlap_int_ranges[ids,3]],
         x3 = rep(o[1]+(o[2]-o[1])/2,length(ids)))))],3]
     })
-    if (is.list(x_ranges_int_id)) { # then this side should not be the one
+    #if (is.list(x_ranges_int_id)) { # then this side should not be the one
       # needed. Could be improved by returning indicator and moving on to
       # the next side. If both sides gets indicator, then abort
-      return(NULL)
-    }
+     # x_ranges<- x_ranges[-which(unlist(lapply(x_ranges_int_id, function(o)
+     #   {length(o)<1}))),]
+     #x_ranges_int_id <-  apply(x_ranges, 1,function(o) {
+        # su kuriais poligono nerusiuotais persidengianciais intervalais, persidengia
+        # kiekvienas rusiuotas persidengiantis intervalas (o arba x_ranges obs, eilute)
+        # su savimi paciu aisku ir plius gal dar kazkas dar (nes intervalai,
+        # kurie tik su savimi persidengia nufiltruoti --> diag(overlap_log) <- FALSE,
+        # taciau overlap_int_ranges isdalies persidengiantys intervalai gali
+        # tureti x_ranges atkarpas, kurios nepersidengia su daugiau niekuo.
+        # Pastariosios gaunamos isrusiavus persidengianciu intervalu endpointus ir
+        # is ju padarius intervalus)
+        # cia vel galimai truksta dar ketvirtos salygos, kur o intervalas yra prarytas
+        # Iterpiu salyga, bet niekas nesikeicia. BUTINA BUS PRATIKRINTI
+       # ids <- which(
+       #   (o[1] >= overlap_int_ranges[,1] & o[1] < overlap_int_ranges[,2] ) |
+        #    (o[2] > overlap_int_ranges[,1] & o[2] <= overlap_int_ranges[,2] ) |
+         #   (o[1] <= overlap_int_ranges[,1] & o[2] >= overlap_int_ranges[,2]) |
+          #  (o[1] >= overlap_int_ranges[,1] & o[2] <= overlap_int_ranges[,2]))
+        # is visu su o intervalu persidengianciu nerusiuotu intervalu
+        # atrenkam ID to nerusiuoto intervalo, kurio y, o intervalo (su kuriuo
+        # persidengia) viduryje yra arciausiai nulio. Taigi, gaunam
+        # overlap_int_ranges id, kurie yra prarusiuoti ir kuriu Y galima naudoti
+        # x_ranges intervalams priskirti
+        #overlap_int_ranges[ids[which.min(abs(.pt_on_line(
+         # x1 = intervals$x1[overlap_int_ranges[ids,3]],
+          #x2 = intervals$x2[overlap_int_ranges[ids,3]],
+          #y1 = intervals$y1[overlap_int_ranges[ids,3]],
+          #y2 = intervals$y2[overlap_int_ranges[ids,3]],
+          #x3 = rep(o[1]+(o[2]-o[1])/2,length(ids)))))],3]
+    #  })
+    #}
     if (any(noverlap_int_log)) {
+      # suklijuojam x_ranges_int_id ( overlap_int_ranges pateiktus teisinga eiles
+      # tvarka kiekvienam x_ranges) su intervalais, kurie su niekuo nepersidenge
       x_ranges_int_id <- c(x_ranges_int_id,which(noverlap_int_log))
 
+      # x_ranges naujieji intervalai is isriuotu endpointu, persidengianciu
+      # intervalu, gali tureti dirbtinai sukurtus intervalus sutampancius su
+      # nerusiuotais, nepersidengianciais intervalais. Tokius intervalus reiketu
+      # aptikti ir istrinti, o ju vieton iterpti buvusius nepersidengiancius
+      # intervalus.
 
+      # grazina tvarka intervalu, kuri isrusiuota pagal intervalu pradzias.
+      # Jei intervalai nepersidengiantys tai turetu issirusiuoti taip, kad
+      # gretimu atkarpu x intervalai sugultu salia, einant is kaires i desine.
+      # Dirbtiniai intervalai sukuria persindengiancius intervalus. Tai yra beda.
+      #
       x_ranges_int_id_order <- order(sapply(x_ranges_int_id,
                                             function(o){
                                               min(intervals[
                                                 o,c(1,3)])}))
+      # naudojant gauta tvarka, persusiuojami intervalu indeksai
+      # gaunam rusiavimo indeksus skirtus perrusiuoti intervalus
+      #
+
       x_ranges_int_id <- x_ranges_int_id[x_ranges_int_id_order]
+      # x_ranges sudedamas su analogiskos strukturos nepersidengianciais
+      # intervalais ir isrusiuojami pagal x_ranges_int_id_order tvarka
+      #  nesuprantu, kodel tik.
       x_ranges <- rbind(x_ranges,t(apply(intervals[which(noverlap_int_log),
                                                    c(1,3)]
                                          ,1,range)))[x_ranges_int_id_order,]
 
     }
-
+   # apsukam intervalus (cia kaip ir aisku)
     intervals_selected <- t(apply(intervals[x_ranges_int_id,],1,
                                   function(o){
                                     id <- which.min(c(o[1],o[3]))
@@ -202,6 +324,8 @@
                                   }))
 
     #intervals_selected <- intervals_selected[paste(x_ranges_int_id),]
+    # kiekienam x intervalui, paimam atrinkta intervala poligono ir panaudojam
+    # sugeneruoti taskus
     inters <- data.frame(x1 = x_ranges[,1],y1 = .pt_on_line(
       x1 = intervals_selected[,1],
       x2 = intervals_selected[,3],

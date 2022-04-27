@@ -273,7 +273,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
       }
 
       generalize.f <- function(plot.dat){
-        x <- table(as.numeric(paste(subset(plot.dat, select = -c(x, y))[,1])))
+        x <- table(factor(plot.dat[,-which(colnames(plot.dat) %in% c('x','y'))]))
         p <- x/sum(x)
         -sum(log(p)*p)
       }
