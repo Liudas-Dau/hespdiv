@@ -283,61 +283,87 @@
           x3 = rep(o[1]+(o[2]-o[1])/2,length(ids)))))],3]
       })
     }
+    inters <- data.frame(x1 = x_ranges[,1],y1 = .pt_on_line(
+      x1 = intervals[x_ranges_int_id,1],
+      x2 = intervals[x_ranges_int_id,3],
+      y1 = intervals[x_ranges_int_id,2],
+      y2 = intervals[x_ranges_int_id,4],
+      x3 = x_ranges[,1]), x2 = x_ranges[,2],
+      y2 = .pt_on_line(
+        x1 = intervals[x_ranges_int_id,1],
+        x2 = intervals[x_ranges_int_id,3],
+        y1 = intervals[x_ranges_int_id,2],
+        y2 = intervals[x_ranges_int_id,4],
+        x3 = x_ranges[,2]))
     if (any(noverlap_int_log)) {
+      # turim x_ranges x intervalus, kurie tvarkingai isrusiuoti. Kiekvienam
+      # tokiam intervalui, zimone kuria poligono atkarpa naudoti
+      # (turim x_ranges_int_id)
+      #
       # suklijuojam x_ranges_int_id ( overlap_int_ranges pateiktus teisinga eiles
       # tvarka kiekvienam x_ranges) su intervalais, kurie su niekuo nepersidenge
-      x_ranges_int_id <- c(x_ranges_int_id,which(noverlap_int_log))
-
-      # x_ranges naujieji intervalai is isriuotu endpointu, persidengianciu
-      # intervalu, gali tureti dirbtinai sukurtus intervalus sutampancius su
-      # nerusiuotais, nepersidengianciais intervalais. Tokius intervalus reiketu
-      # aptikti ir istrinti, o ju vieton iterpti buvusius nepersidengiancius
-      # intervalus.
+      # PASTARIEJI NERUSIUOTI, NETVARKINGI
+      #
+      # MANO SIULYMAS: X_RANGES X INTERVALAMS SUGENERUOTI Y VERTES IR GAUTI
+      # GERAI RUSIUOTAS ATKARPAS PERSIDENGIMU SRITYJE
+      # TADA SUJUNGI SU ATKARPOMIS, KURIOS NEOVERLAPINA, IR NUKREIPTOS I DESINE
+      # GALIAUSIAI ISRUSIUOTI PAGAL INTERVALU PRADZIAS.
+      # ARBA JEI DARYT PANASIAI KAIP BUVO, TAI:
+      # GAUNAM NEOVERLAPINANCIU INTERVALU x_RANGES
+      #
+      inters_nover <- t(apply(intervals[which(noverlap_int_log),],1,function(o){
+        id <- which.min(c(o[1],o[3]))
+        if (id == 1 ) o else o[c(3,4,1,2)]
+      }))
+      inters <- rbind(inters,inters_nover)
+      id_ord <- order(inters[,1])
+      inters <- inters[id_ord,]
+     # x_ranges_int_id <- c(x_ranges_int_id,which(noverlap_int_log))
 
       # grazina tvarka intervalu, kuri isrusiuota pagal intervalu pradzias.
       # Jei intervalai nepersidengiantys tai turetu issirusiuoti taip, kad
       # gretimu atkarpu x intervalai sugultu salia, einant is kaires i desine.
-      # Dirbtiniai intervalai sukuria persindengiancius intervalus. Tai yra beda.
       #
-      x_ranges_int_id_order <- order(sapply(x_ranges_int_id,
-                                            function(o){
-                                              min(intervals[
-                                                o,c(1,3)])}))
+      # ID PERRUSIUOJAMI PAGAL poligono atkarpu kairinius taskus
+     # x_ranges_int_id_order <- order(sapply(x_ranges_int_id,
+           #                                 function(o){
+          #                                    min(intervals[
+         #                                       o,c(1,3)])}))
       # naudojant gauta tvarka, persusiuojami intervalu indeksai
       # gaunam rusiavimo indeksus skirtus perrusiuoti intervalus
       #
 
-      x_ranges_int_id <- x_ranges_int_id[x_ranges_int_id_order]
+     # x_ranges_int_id <- x_ranges_int_id[x_ranges_int_id_order]
       # x_ranges sudedamas su analogiskos strukturos nepersidengianciais
       # intervalais ir isrusiuojami pagal x_ranges_int_id_order tvarka
       #  nesuprantu, kodel tik.
-      x_ranges <- rbind(x_ranges,t(apply(intervals[which(noverlap_int_log),
-                                                   c(1,3)]
-                                         ,1,range)))[x_ranges_int_id_order,]
+      #x_ranges <- rbind(x_ranges,t(apply(intervals[which(noverlap_int_log),
+       #                                            c(1,3)]
+        #                                 ,1,range)))[x_ranges_int_id_order,]
 
     }
-   # apsukam intervalus (cia kaip ir aisku)
-    intervals_selected <- t(apply(intervals[x_ranges_int_id,],1,
-                                  function(o){
-                                    id <- which.min(c(o[1],o[3]))
-                                    if (id == 1 ) o else o[c(3,4,1,2)]
-                                  }))
+   # apsukam intervalus (cia kaip ir aisku) (galiMAI NEBUTINAS VEIKSMAS)
+   # intervals_selected <- t(apply(intervals[x_ranges_int_id,],1,
+    #                              function(o){
+     #                               id <- which.min(c(o[1],o[3]))
+      #                              if (id == 1 ) o else o[c(3,4,1,2)]
+       #                           }))
 
     #intervals_selected <- intervals_selected[paste(x_ranges_int_id),]
     # kiekienam x intervalui, paimam atrinkta intervala poligono ir panaudojam
     # sugeneruoti taskus
-    inters <- data.frame(x1 = x_ranges[,1],y1 = .pt_on_line(
-      x1 = intervals_selected[,1],
-      x2 = intervals_selected[,3],
-      y1 = intervals_selected[,2],
-      y2 = intervals_selected[,4],
-      x3 = x_ranges[,1]), x2 = x_ranges[,2],
-      y2 = .pt_on_line(
-        x1 = intervals_selected[,1],
-        x2 = intervals_selected[,3],
-        y1 = intervals_selected[,2],
-        y2 = intervals_selected[,4],
-        x3 = x_ranges[,2]))
+  #  inters <- data.frame(x1 = x_ranges[,1],y1 = .pt_on_line(
+   #   x1 = intervals_selected[,1],
+    #  x2 = intervals_selected[,3],
+     # y1 = intervals_selected[,2],
+    #  y2 = intervals_selected[,4],
+    #  x3 = x_ranges[,1]), x2 = x_ranges[,2],
+    #  y2 = .pt_on_line(
+    #    x1 = intervals_selected[,1],
+    #    x2 = intervals_selected[,3],
+    #    y1 = intervals_selected[,2],
+    #    y2 = intervals_selected[,4],
+    #    x3 = x_ranges[,2]))
 
   } else{
     inters <- intervals

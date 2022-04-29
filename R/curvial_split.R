@@ -70,8 +70,8 @@
 
   #randu vidinio pataisyto poligono apatine ir virsutine dali
  print(iteration)
- # if (iteration == 17)
-  #  browser()
+ # if (iteration == 22)
+ #   browser()
   bottom.inner.poli<-.inner_poly_hull(polygon = rot.poli.do)
   upper.inner.poli<-.inner_poly_hull(polygon = rot.poli.up)
   if( bottom.inner.poli[[2]] == 1 ){
@@ -172,7 +172,7 @@
   best.y.knots<-numeric(c.X.knots)
   y.cord.quality<-numeric(c.Y.knots-2)
   best.y.coords<-numeric(c.X.knots-2)
-  best.qual <- 0
+  best.qual <- upper.Q.crit
   best.y <- 0
   knot.y.matrix<-knot.y.matrix[-c(1,c.Y.knots),-c(1,c.X.knots)]
   counter <- 0
@@ -202,6 +202,8 @@
         counter <- counter + 1
         .visualise_splits.try_curve(what = trace.object,level = trace.level,
                           counter, curve)
+         #if (iteration == 22 & counter == 22)
+          #browser()
         #ivertinam poligono padalinimo su sugeneruota kreive kokybe
         environment(.curve_quality) <- environment()
         SS<-.curve_quality(curve=curve,rot.poli.up, rot.poli.do, rot.data,
@@ -328,7 +330,7 @@
                          round(S1,2), ' and ', round(S2,2),
                          "\nRequired: >",S.cond)
     }
-    SS <- 0
+    SS <- upper.Q.crit
   }
   return(list( SS, message ))
 }

@@ -227,14 +227,14 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
   }
 
   if (!((!is.null(trace.level) & !is.null(trace.object)) |
-      (is.null(trace.level) & is.null(trace.object)))){
+        (is.null(trace.level) & is.null(trace.object)))){
     stop(paste("Conflicting arguments: trace.level, trace.object"),
-            paste("\ntrace.object and trace.level must be both set to 'NULL'"),
+         paste("\ntrace.object and trace.level must be both set to 'NULL'"),
          paste( ' or asigned a viable value'))
   }
 
   if (!is.null(method)){
-    METHODS <- c("Pielou_biozonation")
+    METHODS <- c("Pielou_biozonation","Sorensen_biozonation")
     matched.i <- pmatch(method, METHODS)
     if(is.na(matched.i))
       stop("invalid method ", paste0("'", method,"'"),
@@ -250,18 +250,18 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
   }
   if (!is.null(method) & (!is.null(generalize.f) | !is.null(compare.f))){
     stop("Conflincting arguments: method, generalize.f, compare.f",
-      "\n Please specify either 1) one of the viable ",
-      paste("methods ("),paste(METHODS,collapse = ", ",sep = "'"),
-      ") 2) or generalize.f and compare.f functions")
+         "\n Please specify either 1) one of the viable ",
+         paste("methods ("),paste(METHODS,collapse = ", ",sep = "'"),
+         ") 2) or generalize.f and compare.f functions")
   }
   if (is.null(method) & (is.null(generalize.f) | is.null(compare.f)) ){
     stop("Missing argument: both 'generalize.f' and 'compare.f' must be provided")
   }
-    if (c.splits == FALSE & upper.Q.crit != lower.Q.crit) {
+  if (c.splits == FALSE & upper.Q.crit != lower.Q.crit) {
     warning(paste("Since 'c.splits' is FALSE, 'lower.Q.crit' was set equal to
           'upper.Q.crit'"))
-      lower.Q.crit <- upper.Q.crit
-    }
+    lower.Q.crit <- upper.Q.crit
+  }
 
   if (!is.null(method)){
     if (method == "Pielou_biozonation") {
@@ -281,8 +281,28 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
         base.eveness <- poly.obj[[testid]]
         (1 - mean(c(eveness1, eveness2)) / base.eveness) * 100 # percent change in eveness
       }
-    }
-  }
+    } else {
+      if (method == "Sorensen_biozonation"){
+        if (ncol(data) != 3){
+          stop("There should be one column in data besides 'x' and 'y' columns that
+           records which taxa is present at a given location. Taxa should be
+           coded numerically. If multiple taxa is present at the same location,
+           multiple rows should be dedicated for the same location in data.")
+        }
+        generalize.f <- function(plot.dat){
+          unique(plot.dat[,-which(colnames(plot.dat) %in% c('x','y'))])
+        }
+        compare.f <- function(uniq_tax1,uniq_tax2) {
+          sum <- length(uniq_tax1) + length(uniq_tax2)
+          int_2x <- length(which(duplicated(c(uniq_tax1,uniq_tax2))))*2
+          if (length(int_2x)!=0){
+            -int_2x/sum
+          } else {
+            0
+          }
+        }
+      }
+    }}
   if( all(names(data) != "x") | all(names(data) != "y") ){
     stop("data should contain columns named \"x\" and \"y\" that contain
            coordinate information")
@@ -389,21 +409,39 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
     class = "hespdiv"
     )
   } else {
-    result <- structure(list(
-      split.lines = splits,
-      polygons.xy = rims,
-      poly.stats = poly.info,
-      poly.obj = poly.obj,
-      split.stats = data.frame(
-        plot.id = plot.id,
-        n.splits = n.splits,
-        z.score = split.z.score,
-        mean.dif = mean.difs,
-        split.quality = split.quality
+    if (method == "Sorensen_biozonation"){
+      result <- structure(list(
+        split.lines = splits,
+        polygons.xy = rims,
+        poly.stats = poly.info,
+        poly.obj = poly.obj,
+        split.stats = data.frame(
+          plot.id = plot.id,
+          n.splits = n.splits,
+          z.score = -split.z.score,
+          mean.sorence = -mean.difs,
+          sorence.sim = -split.quality
+        )
+      ),
+      class = "hespdiv"
       )
-    ),
-    class = "hespdiv"
-    )
+    } else {
+      result <- structure(list(
+        split.lines = splits,
+        polygons.xy = rims,
+        poly.stats = poly.info,
+        poly.obj = poly.obj,
+        split.stats = data.frame(
+          plot.id = plot.id,
+          n.splits = n.splits,
+          z.score = split.z.score,
+          mean.dif = mean.difs,
+          split.quality = split.quality
+        )
+      ),
+      class = "hespdiv"
+      )
+    }
   }
 
   if (n.m.test){
@@ -415,13 +453,13 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
                       symbols = c("***", "**", "*", ".", " "))
 
     result$split.stats <- cbind(result$split.stats,
-                               data.frame(p.val1 = p.val1,
-                                          signif.1 = format(Signif1),
-                                          p.val2 = p.val2,
-                                          signif.2 = format(Signif2)))
+                                data.frame(p.val1 = p.val1,
+                                           signif.1 = format(Signif1),
+                                           p.val2 = p.val2,
+                                           signif.2 = format(Signif2)))
     result <- do.call(c,list(result,
-                            list(n.m.rez =
-                                   list(sim1.difs = sim1.difs, sim2.difs))))
+                             list(n.m.rez =
+                                    list(sim1.difs = sim1.difs, sim2.difs))))
 
     if (n.m.keep){
       result <- do.call(c,list(result,
@@ -456,6 +494,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
 #' @noRd
 
 .spatial_div <- function(samp.dat, root=2){
+
   #testuojamas plotas
   testid <- length(rims)
   margins <- rims[[testid]]
@@ -466,7 +505,10 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
          envir = e)
 
   perim_pts <- .perimeter_pts(polygon = margins,n.pts = n.split.pts)
-
+  #if (iteration == 28){
+  #trace.object <- "both"
+   # trace.level <- "all"
+  #}
   .visualise_splits.start(what = trace.object,
                           pnts.col, data, margins, rims, testid)
 
