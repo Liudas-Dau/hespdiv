@@ -234,7 +234,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
   }
 
   if (!is.null(method)){
-    METHODS <- c("Pielou_biozonation","Sorensen_biozonation")
+    METHODS <- c("Pielou_biozonation","Sorensen_biozonation", "Morisita_biozonation")
     matched.i <- pmatch(method, METHODS)
     if(is.na(matched.i))
       stop("invalid method ", paste0("'", method,"'"),
@@ -299,6 +299,27 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
             -int_2x/sum
           } else {
             0
+          }
+        }
+      } else {
+        if (method == "Morisita_biozonation"){
+          if (ncol(data) != 3){
+            stop("There should be one column in data besides 'x' and 'y' columns that
+           records which taxa is present at a given location. Taxa should be
+           coded numerically. If multiple taxa is present at the same location,
+           multiple rows should be dedicated for the same location in data.")
+          }
+          generalize.f <- function(plot.dat){
+            plot.dat[,-which(colnames(plot.dat) %in% c('x','y'))]
+          }
+
+          compare.f <- function(x,y) {
+            all_sp <- unique(c(x,y))
+            x_f <- factor(x,levels = all_sp)
+            y_f <- factor(y,levels = all_sp)
+            -(2*sum(table(x_f) * table(y_f)))/(length(x) * length(y) *
+              ((sum(table(x_f)*(table(x_f)-1)) / (length(x)* (length(x)-1))) +
+                (sum(table(y_f)*(table(y_f)-1)) / (length(y)* (length(y)-1)))))
           }
         }
       }
@@ -426,6 +447,23 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
       class = "hespdiv"
       )
     } else {
+      if (method == "Morisita_biozonation"){
+      result <- structure(list(
+        split.lines = splits,
+        polygons.xy = rims,
+        poly.stats = poly.info,
+        poly.obj = poly.obj,
+        split.stats = data.frame(
+          plot.id = plot.id,
+          n.splits = n.splits,
+          z.score = -split.z.score,
+          mean.morisita = -mean.difs,
+          morisita.sim = -split.quality
+        )
+      ),
+      class = "hespdiv"
+      )
+    } else{
       result <- structure(list(
         split.lines = splits,
         polygons.xy = rims,
@@ -442,7 +480,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
       class = "hespdiv"
       )
     }
-  }
+  }}
 
   if (n.m.test){
     Signif1 <- symnum(p.val1, corr = FALSE, na = FALSE,
