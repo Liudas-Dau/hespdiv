@@ -105,7 +105,12 @@
 #' the cost of optimization time. Default value is 10.
 #' @param c.max.iter.no the maximum number of allowed iterations through the
 #' columns of spline knots (default 5). Setting higher values (eg Inf) increases
-#' the odds of convergence to the best possible curve.
+#' the odds of convergence to the best possible curve. Higher values recommended
+#' if c.fast.optim is FALSE, because then only one spline knot can be
+#' changed each iteration.
+#' @param c.fast.optim Logical (default TRUE). Determines when spline knots
+#' are selected: TRUE - when first better curve than before is obtained, FALSE -
+#' when the best curve is obtained (after all spline knots are checked).
 #' @param c.corr.term The term that defines the correction size of problematic
 #' curvi-linear split-lines which intersect the boundary of the polygon.
 #' Possible values are between 0 and 1, though small values are recommended
@@ -198,7 +203,8 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
                   compare.f = NULL, method = "Pielou_biozonation", N.crit = 0,
                   S.crit = 0, lower.Q.crit = -Inf, upper.Q.crit = -Inf,
                   c.splits = TRUE, c.X.knots = 5, c.Y.knots = 10,
-                  c.max.iter.no = 5, c.corr.term = 0.05, filter.all = TRUE,
+                  c.max.iter.no = 5, c.fast.optim = TRUE,
+                  c.corr.term = 0.05, filter.all = TRUE,
                   n.m.test = FALSE,
                   n.m.N = 1000, n.m.seed = 1,  n.m.keep = FALSE,
                   study.pol = NULL, trace.level = NULL,
@@ -681,6 +687,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
       N.cond = N.crit,
       S.cond = S.cond,
       c.max.iter.no = c.max.iter.no,
+      c.fast.optim = c.fast.optim,
       c.corr.term = c.corr.term,
       trace.object = trace.object,
       trace.level = trace.level,
