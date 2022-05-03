@@ -103,13 +103,9 @@
 #' variety of wave amplitudes to be tested, when optimizing the shape of
 #' curvi-linear split-lines. Thus higher values increase the fit to the data at
 #' the cost of optimization time. Default value is 10.
-#' @param c.iter.no number of times the algorithm iterates through the net of
-#' spline knots (default 2). Odd number iterations iterate through the net
-#' of spline knots along the split-line in eastward direction, while even number
-#' iterations - in westward direction. Thus, it is recommended to
-#' set an even number for this parameter, in order to keep the balance between
-#' eastward and westward iteration biases. Higher values should increase the
-#' fit to the data, at the cost of optimization time.
+#' @param c.max.iter.no the maximum number of allowed iterations through the
+#' columns of spline knots (default 5). Setting higher values (eg Inf) increases
+#' the odds of convergence to the best possible curve.
 #' @param c.corr.term The term that defines the correction size of problematic
 #' curvi-linear split-lines which intersect the boundary of the polygon.
 #' Possible values are between 0 and 1, though small values are recommended
@@ -202,7 +198,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
                   compare.f = NULL, method = "Pielou_biozonation", N.crit = 0,
                   S.crit = 0, lower.Q.crit = -Inf, upper.Q.crit = -Inf,
                   c.splits = TRUE, c.X.knots = 5, c.Y.knots = 10,
-                  c.iter.no = 2, c.corr.term = 0.05, filter.all = TRUE,
+                  c.max.iter.no = 5, c.corr.term = 0.05, filter.all = TRUE,
                   n.m.test = FALSE,
                   n.m.N = 1000, n.m.seed = 1,  n.m.keep = FALSE,
                   study.pol = NULL, trace.level = NULL,
@@ -548,7 +544,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
    # trace.level <- "all"
   #}
   .visualise_splits.start(what = trace.object,
-                          pnts.col, data, margins, rims, testid)
+                          pnts.col, data, margins, rims,perim_pts, testid)
 
   #testavimui pjuviai paruosiami
 
@@ -611,7 +607,8 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
 
               .visualise_splits.good_straight(what = trace.object,
                                               level = trace.level,
-                                              pairs_pts, Skirtumas, i)
+                                              pairs_pts, Skirtumas, i,
+                                              maxid)
 
               #Jei padalinimas patenkina minimalias saligas ir yra
               # geresnis nei pries tai - pasizymim ir issisaugom ji
@@ -683,11 +680,12 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
       c.Y.knots = c.Y.knots,
       N.cond = N.crit,
       S.cond = S.cond,
-      c.iter.no = c.iter.no,
+      c.max.iter.no = c.max.iter.no,
       c.corr.term = c.corr.term,
       trace.object = trace.object,
       trace.level = trace.level,
-      pnts.col = pnts.col
+      pnts.col = pnts.col,
+      straight.qual = maxdif
 
       )
     if ( max(best.curve[[2]],maxdif) < upper.Q.crit ){ # vel santykinis base line. Be to,

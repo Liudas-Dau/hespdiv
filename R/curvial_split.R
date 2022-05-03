@@ -12,7 +12,8 @@
 #' @param c.Y.knots number of spline knots orthogonal to the split line
 #' @param N.condminimum minimum number of fossils required to establish subdivision of a plot
 #' @param S.cond minimum area required to establish subdivision of a plot
-#' @param c.iter.no number of c.iter.no
+#' @param c.max.iter.no maximum number of allowed iterations through the spline
+#' knots.
 #' @param trace.level Sting indicating the trace level. Can be one of the
 #' following: "best", "main", "all"
 #' @param trace.object String that informs what graphical information to show.
@@ -23,17 +24,19 @@
 #' plot. Small values recommended (default is 0.05).
 #' @param pnts.col Color of data points, default is 1. Argument is used when
 #' \code{trace} > 0. If set to NULL, data points will not be displayed.
+#' @param straight.qual Quality of the best straight split-line.
 #' @return A list of two elements: 1) curve in shape of a spline that produces the best data separation; 2) quality of the division
 #' @author Liudas Daumantas
 #' @importFrom DescTools Rotate
 #' @noRd
 .curvial_split <- function(poly.x,poly.y,min.x.id,max.x.id,b,
                            data,c.X.knots=20,c.Y.knots=20,
-                           N.cond,S.cond,c.iter.no,
+                           N.cond,S.cond,c.max.iter.no,
                            c.corr.term,
                            trace.object = trace.object,
                            trace.level = trace.level,
-                           pnts.col = pnts.col){
+                           pnts.col = pnts.col,
+                           straight.qual){
   #nustatau, kuris padalinimo linijos id yra kairej, kuris desinej
   # length of a split line
   AE<-sqrt(sum((c(poly.x[min.x.id],
@@ -116,10 +119,12 @@
     #debug(.curvi_split)
   best_curvi_split<-.curvi_split(
     knot.y.matrix,split.line.x,Xup=upper.inner.poli[[1]]$x,
-    Xdown=bottom.inner.poli[[1]]$x,Yup=upper.inner.poli[[1]]$y,Ydown=bottom.inner.poli[[1]]$y,
+    Xdown=bottom.inner.poli[[1]]$x,Yup=upper.inner.poli[[1]]$y,
+    Ydown=bottom.inner.poli[[1]]$y,
     N.cond,S.cond,c.Y.knots,c.X.knots,rot.poli.up,rot.poli.do,
-    rot.data,c.iter.no =c.iter.no,c.corr.term = c.corr.term,
-    trace.object = trace.object, trace.level = trace.level
+    rot.data,c.max.iter.no = c.max.iter.no,c.corr.term = c.corr.term,
+    trace.object = trace.object, trace.level = trace.level,
+    straight.qual = straight.qual
     )
 
 # Up --> Yup, Down --> Ydown; xp --> x; yp --> y.  visur pakeist
@@ -133,7 +138,7 @@
 #' Find the curve that divides the polygon best (recursive function)
 #'
 #' @description At this stage of an algorithm, polygon is rotated so that the split line is horizontal and positioned along X axis (at Y = 0), and split line starts at X = 0.
-#' Function iterates trough knot matrix several times (number of times is defined by c.iter.no argument) and tries different splines to seperate data in space.
+#' Function iterates trough knot matrix several times (maximum allowed number of times is defined by c.max.iter.no argument) and tries different splines to seperate data in space.
 #' Iteration through knots starts from left to right along the split line. For each position along the split line several positions orthogonal to the split line are tried.
 #' The best orthogonal positions are estimated from a spline model (Split Quality ~ Y coordinate of a knot for a given X coordinate)
 #' So the best Y knot coordinate is provided for each knot along X. Thus, knots along the split line are fixated, but along Y are not. When one iteration is complete, the next
@@ -152,7 +157,8 @@
 #' @param rot.poli.up rotated, but not standartized, full upper polygon
 #' @param rot.poli.do rotated, but not standartized, full lower polygon
 #' @param rot.data rotated data that is analyzed
-#' @param c.iter.no number of c.iter.no
+#' @param c.max.iter.no allowed number of iterations trough columns of spline
+#' knots
 #' @param c.corr.term term that defines how much the a problematic spline
 #' will be corrected (in terms of proportion of polygon width where spline
 #' intersects the polygon boundary) if the spline is not contained within the
@@ -161,31 +167,39 @@
 #' following: "best", "main", "all"
 #' @param trace.object String that informs what graphical information to show.
 #' Can be either "curves", "straight" or "both".
+#' @param straight.qual Quality of the best straight split-line.
 #' @return A list of two elements: 1) rotated (not suitable for the original polygon) curve in shape of a spline that produces the best data separation; 2) quality of the division
 #' @author Liudas Daumantas
 #' @noRd
 .curvi_split<-function(knot.y.matrix,split.line.x,Xup,Xdown,Yup,Ydown,N.cond,
                       S.cond,c.Y.knots,c.X.knots,rot.poli.up,
-                      rot.poli.do,rot.data,c.iter.no=c.iter.no,
+                      rot.poli.do,rot.data,c.max.iter.no = c.max.iter.no,
                       c.corr.term,trace.object = trace.object,
-                      trace.level = trace.level, teta = teta){
+                      trace.level = trace.level, teta = teta, straight.qual){
   best.y.knots<-numeric(c.X.knots)
   y.cord.quality<-numeric(c.Y.knots-2)
   best.y.coords<-numeric(c.X.knots-2)
-  best.qual <- upper.Q.crit
+  best.qual <- straight.qual
+  best.old.curve <- data.frame(x=numeric(0),y=numeric(0))
   best.y <- 0
   knot.y.matrix<-knot.y.matrix[-c(1,c.Y.knots),-c(1,c.X.knots)]
+  knot.state <- !logical(c.X.knots-2)
   counter <- 0
-  for (it in seq(c.iter.no)){
+  it <- 1
+  while(it <= c.max.iter.no) {
+    if (all(!knot.state)) {break}
     if(it%%2==1){
       if(it==1){
-        seq.of.x.knots <- 1:(c.X.knots-2)
+        seq.of.x.knots <- (1:(c.X.knots-2))[knot.state]
       } else {
-        seq.of.x.knots <- 2:(c.X.knots-2)
+        seq.of.x.knots <- (2:(c.X.knots-2))[knot.state[-1]]
       }} else {
-        seq.of.x.knots <- (c.X.knots-3):1
+        seq.of.x.knots <- ((c.X.knots-3):1)[rev(knot.state)[-1]]
       }
     for (l in seq.of.x.knots) {
+      print(l)
+      print(seq.of.x.knots)
+      print(knot.state)
       for (k in 1:(c.Y.knots-2)) {
         #isbandom vis kita Y koordinate knotui su duota x koordinate
         best.y.knots[1+l]<-knot.y.matrix[k,l]
@@ -217,9 +231,16 @@
           if (best.qual < SS[[1]]){
             .visualise_splits.good_curve(what = trace.object,
                                          level = trace.level,
-                                         curve, SS)
+                                         curve, SS, best.old.curve)
+            best.old.curve <- curve
             best.qual <- SS[[1]]
+            .visualise_splits.selected_knot(what = trace.object,
+                                            level = trace.level,
+                                            x = split.line.x[l+1],
+                                            y = knot.y.matrix[k,l],
+                                            old.knot.y = best.y.coords[l])
             best.y.coords[l] <- knot.y.matrix[k,l]
+            knot.state <- rep(TRUE, c.X.knots-2)
           } else {
             message <- paste0("Poor split quality.\n","Obtained: ",
                               round(SS[[1]],2),
@@ -228,6 +249,7 @@
                                         curve, message)
           }
         }
+        knot.state[l] <- FALSE
         #fiksuojam verte
         y.cord.quality[k]<-SS[[1]]
 
@@ -248,9 +270,18 @@
         if (SS[[1]]> best.qual){
           .visualise_splits.good_curve(what = trace.object,
                                        level = trace.level,
-                                       curve.test, SS)
+                                       curve.test, SS,best.old.curve)
+          best.old.curve <- curve.test
+          .visualise_splits.interpol_knot(what = trace.object,
+                                          level = trace.level,
+                                          x = split.line.x[l+1],
+                                          y = proj$x[which.max(proj$y)],
+                                          old.knot.y = best.y.coords[l])
           best.y.coords[l] <- proj$x[which.max(proj$y)]
+          knot.state <- rep(TRUE, c.X.knots-2)
+          knot.state[l] <- FALSE
           best.qual <- SS[[1]]
+
           #issaugom, kaip geriausia Y koordinate X koordinates knotui ta, kuri turi
           # didziausia kokybe
           best.y.knots[1+l] <- proj$x[which.max(proj$y)]
@@ -261,6 +292,7 @@
         best.y.knots[1+l] <- best.y.coords[l]
       }
     }
+    it <- it + 1
   }
   #siame etape kiekvienam X koordinates knotui turime po geriausia Y koordinate
   #sugeneruojam per siuos knotus kreive
@@ -279,7 +311,7 @@
   #grazinam padalinimo kreive, jos kokybes iverti ir visu kitu lokaliai
   # geriausiu kreiviu ivercius - SSk
   #SSk tik tam, kad pasizeti, ar tikrai grizta pati geriausia kreive
-  if (any(best.y.coords>SS[[1]])){
+  if (any(y.cord.quality>SS[[1]])){
     warning("Intermediate curves performed better than the final curve")
   }
   return(list(curve.final,SS[[1]]))
