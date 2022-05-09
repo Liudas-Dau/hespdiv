@@ -30,7 +30,6 @@
 #' @param straight.qual Quality of the best straight split-line.
 #' @return A list of two elements: 1) curve in shape of a spline that produces the best data separation; 2) quality of the division
 #' @author Liudas Daumantas
-#' @importFrom DescTools Rotate
 #' @noRd
 .curvial_split <- function(poly.x,poly.y,min.x.id,max.x.id,b,
                            data,c.X.knots=20,c.Y.knots=20,
@@ -48,9 +47,9 @@
   # horizontali
   teta<-atan(b)
   #paverciu poligona ir duomenis
-  rot.pol.cords <- Rotate(x=poly.x,y=poly.y,mx=poly.x[min.x.id],
+  rot.pol.cords <- DescTools::Rotate(x=poly.x,y=poly.y,mx=poly.x[min.x.id],
                           my=poly.y[min.x.id],theta=-teta)
-  rot.dat.cords <- Rotate(x=data$x,y=data$y,mx=poly.x[min.x.id],
+  rot.dat.cords <- DescTools::Rotate(x=data$x,y=data$y,mx=poly.x[min.x.id],
                           my=poly.y[min.x.id],theta=-teta)
   #pastumiu duomenis ir poligona, kad padalinimo linijos kairinis taskas butu
   # koordinaciu sistemos pradzioje
@@ -146,7 +145,7 @@
 # Up --> Yup, Down --> Ydown; xp --> x; yp --> y.  visur pakeist
   best.curve<-data.frame(x=best_curvi_split[[1]]$x+poly.x[min.x.id],
                          y=best_curvi_split[[1]]$y+poly.y[min.x.id])
-  best.curve<-Rotate(x=best.curve$x,y=best.curve$y,mx=poly.x[min.x.id],
+  best.curve<-DescTools::Rotate(x=best.curve$x,y=best.curve$y,mx=poly.x[min.x.id],
                      my=poly.y[min.x.id],theta=teta)
   return(list(best.curve,best_curvi_split[[2]]))
 }

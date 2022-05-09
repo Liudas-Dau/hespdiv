@@ -6,7 +6,6 @@
 #' @param what String that informs what graphical information to show. Can be
 #' either "curve", "straight" or "both".
 #' @author Liudas Daumantas
-#' @importFrom pracma poly_center
 #' @noRd
 .visualise_splits.start <- function(what,
                                     pnts.col, data, margins, rims, perim_pts,

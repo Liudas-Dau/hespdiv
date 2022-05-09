@@ -1,5 +1,3 @@
-#' @importFrom grDevices colors
-#' @importFrom RColorBrewer brewer.pal.info brewer.pal
 #' @noRd
 .generate_cols.splits<-function(split.stats,seed){
   set.seed(seed)

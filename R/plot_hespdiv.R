@@ -17,9 +17,7 @@
 #' @param pnts.col color of data points.
 #' @param ... other arguments
 #' @return ggplot object
-#' @importFrom ggplot2 ggplot aes geom_point geom_path guides guide_legend theme_set theme_bw theme element_blank element_text scale_size_area guide_colourbar
-#' @importFrom ggrepel geom_label_repel
-#' @importFrom viridis scale_color_viridis
+#' @importFrom ggplot2 aes geom_point geom_path guides guide_legend
 #' @author Liudas Daumantas
 #' @export
 ggplot_hespdiv <- function(obj, data, type = "color",n.loc = FALSE,pnts.col =
@@ -88,9 +86,10 @@ ggplot_hespdiv <- function(obj, data, type = "color",n.loc = FALSE,pnts.col =
   }
   df$group <- factor(rep(1:length(split.lines),times=npt.in.split))
 
-  base <- ggplot(data,aes(x,y),xlab = 'x', ylab = 'y') +
-    geom_path(data= obj$polygons.xy[[1]],aes(x,y), size=.5,
-              lineend = "round",linejoin = "round")
+  base <- ggplot2::ggplot(data,aes(x,y),xlab = 'x', ylab = 'y') +
+    geom_path(data= obj$polygons.xy[[1]],aes(x,y), size=0.5,
+              lineend = "round",linejoin = "round",color = 1)
+
   if (n.loc){
     scale_id <- 2
     if (type == "color"){
@@ -99,12 +98,12 @@ ggplot_hespdiv <- function(obj, data, type = "color",n.loc = FALSE,pnts.col =
         guides(size=guide_legend(title=paste0("Number of", "\nobservations" ,
        "\nin a location"),title.hjust = 0.5,label.position = "left",
        label.hjust = 1))+
-        scale_size_area(max_size = 8)
+        ggplot2::scale_size_area(max_size = 8)
     } else {
       base <- base + geom_point(data=uni.loc.n,aes(x=x,y=y,color=n),
                                 pch =rep(19,nrow(uni.loc.n)),size =2) +
         viridis::scale_color_viridis(guide ="colourbar",trans = "log") +
-        guides(color = guide_colourbar(
+        guides(color = ggplot2::guide_colourbar(
           title = paste0("Number of", "\nobservations" ,
                          "\nin a location"),label.position = "left",
           label.hjust = 1, title.hjust = 0.5,title.vjust = 1))
@@ -138,7 +137,7 @@ ggplot_hespdiv <- function(obj, data, type = "color",n.loc = FALSE,pnts.col =
     df$color <- color
     base<-base + geom_path(data = df, aes(x,y,group=group, color=color),size = 2) +
       viridis::scale_color_viridis(guide ="colourbar") +
-    guides(color = guide_colourbar(title = title, title.hjust = 0.5,
+    guides(color = ggplot2::guide_colourbar(title = title, title.hjust = 0.5,
                                    label.position = "left",label.hjust = 1))
   }
   if (similarity) {
@@ -158,9 +157,11 @@ ggplot_hespdiv <- function(obj, data, type = "color",n.loc = FALSE,pnts.col =
     color <- self$palette(uniq)
   }
   base <- base +
-    theme_set(theme_bw() + theme(legend.key=element_blank())) +
-    theme(legend.title = element_text(hjust = 0.5),
-          panel.grid = element_blank(),panel.background = element_blank())
+    ggplot2::theme_set(ggplot2::theme_bw())  +
+    ggplot2::theme(legend.key= ggplot2::element_rect(fill = "white"),
+          legend.title = ggplot2::element_text(hjust = 0.5),
+          panel.grid = ggplot2::element_blank(),panel.background =
+            ggplot2::element_rect(colour = "black", size=0.5,fill = "white"))
 
   mid.pt <- data.frame(x=numeric(),y=numeric())
   for (a in 1:length(obj$split.lines)){
@@ -189,4 +190,3 @@ ggplot_hespdiv <- function(obj, data, type = "color",n.loc = FALSE,pnts.col =
   }
   base
 }
-rm(plot.hespdiv)
