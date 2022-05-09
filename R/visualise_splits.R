@@ -127,7 +127,7 @@
       invisible(dev.set(dev.list()[length(dev.list())]))
       points(x,y,col="#D55E00", pch = 8,cex= 2 )
       points(x,old.knot.y,col="gray70", pch = 8,cex= 2 )
-      cat(paste0('\nSelected knot is displayed\n'))
+      cat(paste0('\nSelected knot is displayed.\n'))
 
     }}}
 
@@ -139,7 +139,7 @@
       invisible(dev.set(dev.list()[length(dev.list())]))
       points(x,y,col="purple", pch = 8,cex= 2 )
       points(x,old.knot.y,col="gray70", pch = 8,cex= 2 )
-      cat(paste0('\nInterpolated knot is displayed\n'))
+      cat(paste0('\nInterpolated knot is displayed.\n'))
 
     }}}
 
