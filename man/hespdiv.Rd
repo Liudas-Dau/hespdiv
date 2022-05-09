@@ -17,7 +17,8 @@ hespdiv(
   c.splits = TRUE,
   c.X.knots = 5,
   c.Y.knots = 10,
-  c.iter.no = 2,
+  c.max.iter.no = 5,
+  c.fast.optim = TRUE,
   c.corr.term = 0.05,
   filter.all = TRUE,
   n.m.test = FALSE,
@@ -27,7 +28,8 @@ hespdiv(
   study.pol = NULL,
   trace.level = NULL,
   trace.object = NULL,
-  pnts.col = 1
+  pnts.col = 1,
+  display = TRUE
 )
 }
 \arguments{
@@ -120,13 +122,15 @@ variety of wave amplitudes to be tested, when optimizing the shape of
 curvi-linear split-lines. Thus higher values increase the fit to the data at
 the cost of optimization time. Default value is 10.}
 
-\item{c.iter.no}{number of times the algorithm iterates through the net of
-spline knots (default 2). Odd number iterations iterate through the net
-of spline knots along the split-line in eastward direction, while even number
-iterations - in westward direction. Thus, it is recommended to
-set an even number for this parameter, in order to keep the balance between
-eastward and westward iteration biases. Higher values should increase the
-fit to the data, at the cost of optimization time.}
+\item{c.max.iter.no}{the maximum number of allowed iterations through the
+columns of spline knots (default 5). Setting higher values (eg Inf) increases
+the odds of convergence to the best possible curve. Higher values recommended
+if c.fast.optim is FALSE, because then only one spline knot can be
+changed each iteration.}
+
+\item{c.fast.optim}{Logical (default TRUE). Determines when spline knots
+are selected: TRUE - when first better curve than before is obtained, FALSE -
+when the best curve is obtained (after all spline knots are checked).}
 
 \item{c.corr.term}{The term that defines the correction size of problematic
 curvi-linear split-lines which intersect the boundary of the polygon.
@@ -186,6 +190,8 @@ Can be either "curves", "straight" or "both".}
 
 \item{pnts.col}{Color of data points, default is 1. Argument is used when
 \code{trace} > 0. If set to NULL, data points will not be displayed.}
+
+\item{display}{logical. Display the resulting polygons at the output?}
 }
 \value{
 hespdiv class object, a list of at least 5 elements (see details):

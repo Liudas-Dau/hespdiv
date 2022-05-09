@@ -1,6 +1,5 @@
 #' Plot the results of hespdiv object
 #'
-#' @method plot hespdiv
 #' @description  Function prints the results of hespdiv object.
 #' @param obj hespdiv object
 #' @param data data points used in hespdiv.
@@ -18,11 +17,12 @@
 #' @param pnts.col color of data points.
 #' @param ... other arguments
 #' @return ggplot object
-#' @importFrom ggplot2 ggplot aes geom_point geom_path guides guide_legend theme_set theme_bw theme element_blank element_text
+#' @importFrom ggplot2 ggplot aes geom_point geom_path guides guide_legend theme_set theme_bw theme element_blank element_text scale_size_area guide_colourbar
 #' @importFrom ggrepel geom_label_repel
+#' @importFrom viridis scale_color_viridis
 #' @author Liudas Daumantas
 #' @export
-plot.hespdiv <- function(obj, data, type = "color",n.loc = FALSE,pnts.col =
+ggplot_hespdiv <- function(obj, data, type = "color",n.loc = FALSE,pnts.col =
                            NULL,seed = 10,...){
   similarity <- FALSE
   if (n.loc){
@@ -63,7 +63,7 @@ plot.hespdiv <- function(obj, data, type = "color",n.loc = FALSE,pnts.col =
     if (names(split.stats)[5] == "morisita.sim") {
       title <- paste0("Morisita\n","overlap")
     } else {
-      title <- paste0("Sørensen–Dice\ncoefficient")
+      title <- paste0("S",rawToChar(as.raw(184)),"rensen-Dice\ncoefficient")
     }
   } else {
     if (names(split.stats)[5] == "entropy.p.red") {
@@ -96,14 +96,14 @@ plot.hespdiv <- function(obj, data, type = "color",n.loc = FALSE,pnts.col =
     if (type == "color"){
       base <- base + geom_point(data=uni.loc.n,aes(x=x,y=y,size=n),
                                 pch =rep(1,nrow(uni.loc.n)),color = pnts.col) +
-       guides(size=guide_legend(title=paste0("Number of", "\nobservations" ,
+        guides(size=guide_legend(title=paste0("Number of", "\nobservations" ,
        "\nin a location"),title.hjust = 0.5,label.position = "left",
        label.hjust = 1))+
         scale_size_area(max_size = 8)
     } else {
       base <- base + geom_point(data=uni.loc.n,aes(x=x,y=y,color=n),
                                 pch =rep(19,nrow(uni.loc.n)),size =2) +
-        scale_color_viridis(guide ="colourbar",trans = "log") +
+        viridis::scale_color_viridis(guide ="colourbar",trans = "log") +
         guides(color = guide_colourbar(
           title = paste0("Number of", "\nobservations" ,
                          "\nin a location"),label.position = "left",
@@ -137,7 +137,7 @@ plot.hespdiv <- function(obj, data, type = "color",n.loc = FALSE,pnts.col =
   } else {
     df$color <- color
     base<-base + geom_path(data = df, aes(x,y,group=group, color=color),size = 2) +
-      scale_color_viridis(guide ="colourbar") +
+      viridis::scale_color_viridis(guide ="colourbar") +
     guides(color = guide_colourbar(title = title, title.hjust = 0.5,
                                    label.position = "left",label.hjust = 1))
   }
@@ -172,14 +172,14 @@ plot.hespdiv <- function(obj, data, type = "color",n.loc = FALSE,pnts.col =
         }
   }
   if (is.null(split.stats$p.val)){
-    base<-base + geom_label_repel(data=mid.pt, aes(x,y),alpha=rep(3/5, nrow(mid.pt)),
+    base<-base + ggrepel::geom_label_repel(data=mid.pt, aes(x,y),alpha=rep(3/5, nrow(mid.pt)),
                                   label = paste0(ord,") ",
                                                 round(obj$split.stats[ord,5],2)),
                                   fill  = color, size = 4,
                                   direction="both",fontface='bold',
                                   colour  = rep(1, nrow(mid.pt)))
   } else {
-    base<-base + geom_label_repel(data=mid.pt, aes(x,y),alpha=rep((3/5), (nrow(mid.pt))),
+    base<-base + ggrepel::geom_label_repel(data=mid.pt, aes(x,y),alpha=rep((3/5), (nrow(mid.pt))),
                                   label = paste(ord,") p = ",
                                                 split.stats$p.val,
                                                 "\n  Div. qual. = ",
@@ -189,4 +189,4 @@ plot.hespdiv <- function(obj, data, type = "color",n.loc = FALSE,pnts.col =
   }
   base
 }
-
+rm(plot.hespdiv)
