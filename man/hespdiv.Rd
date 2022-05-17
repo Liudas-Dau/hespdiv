@@ -8,20 +8,26 @@ hespdiv(
   data,
   n.split.pts = 15,
   generalize.f = NULL,
+  method,
+  metric,
+  variant = "1",
+  maximize = NULL,
   compare.f = NULL,
-  method = "Pielou_biozonation",
   N.crit = 0,
   S.crit = 0,
-  lower.Q.crit = -Inf,
-  upper.Q.crit = -Inf,
+  lower.Q.crit,
+  upper.Q.crit,
   c.splits = TRUE,
+  C.crit.improv = 0,
   c.X.knots = 5,
   c.Y.knots = 10,
+  xy.dat = NULL,
   c.max.iter.no = 5,
   c.fast.optim = TRUE,
   c.corr.term = 0.05,
   filter.all = TRUE,
   n.m.test = FALSE,
+  similarity = NULL,
   n.m.N = 1000,
   n.m.seed = 1,
   n.m.keep = FALSE,
@@ -33,9 +39,8 @@ hespdiv(
 )
 }
 \arguments{
-\item{data}{a data frame with columns containing the variables analyzed and
-rows - observations, potentially from different locations. \code{data} must
-have columns named "x" and "y" that contain coordinate information.}
+\item{data}{an R object containing data to be analyzed. Required data
+structure depends on the method selected (see ...) or created.}
 
 \item{n.split.pts}{number of points that are used in creation of split-lines
 since these points serve as endings / origins of straight, as well as
@@ -55,6 +60,24 @@ an R object, that is recognized and used by \code{compare.f} function to
 estimate the quality of the split-lines (difference between two data groups
 separated in space by a split-line)}
 
+\item{method}{String. A name of a method. Should reflect the purpose of the
+study, if custom \code{compare.f} function is provided. Otherwise, method,
+metric and variant arguments must be selected from available
+options (see ...). Chosen combination of these arguments determines which
+preset \code{generalize.f} and \code{compare.f} functions will be used to
+perform hierarchical subdivisions of spatial data, if \code{compare.f}
+function is not provided.}
+
+\item{metric}{String. A name of a metric that method uses to measure the
+quality of data separation.}
+
+\item{variant}{String (default 1). A name of particular implementation of
+of some method-metric combination.}
+
+\item{maximize}{logical. Should the value returned by \code{compare.f} be
+maximized or minimized? Needs only to be provided when custom
+\code{compare.f} function is used.}
+
 \item{compare.f}{a function used to quantify the difference between two data
 groups separated in space by a split-line. The estimated difference
 represents the quality of a split-line. This function must have two
@@ -68,13 +91,6 @@ function other variables from \code{hespdiv} environment could be used,
 without requiring them as arguments (see the list of free variables
 available in \code{generalize.f} - list).}
 
-\item{method}{A pre-set combination of \code{generalize.f} and
-\code{compare.f} functions that serve some distinct purpose.
-Available methods:
- "Pielou_biozonation" - distinguishes paleoprovinces by maximum reductions in
- Pielou entropy that are observed in the occurrence data of fossil taxa, when
- the split-line manages to correctly separate different paleoprovinces.}
-
 \item{N.crit}{Subdivision stopping criteria - number of observations.
 Minimum number of observations (rows in data) that should
 be present in areas separated by a split-line in order to establish the
@@ -86,17 +102,14 @@ Minimum area expressed as a proportion of original study area
 separated by a split-line should have so that the split-line could be
 established. Default is 0.}
 
-\item{lower.Q.crit}{Subdivision stopping criteria - lower limit of split-line
-quality applied to the straight split-lines. This is a minimum difference as
-estimated by \code{compare.f} function that separated
-plots should exhibit, so that a straight split-line would be accepted. If
-the best straight split line has lower quality than \code{upper.Q.crit}, but
-passes this limit, then curvi-linear split-lines will be generated with
-expectation that they will improve the quality of a split above
- \code{upper.Q.crit}.
-If \code{c.splits} is FALSE, then \code{lower.Q.crit} is set equal to
-\code{upper.Q.crit}
-Default is -Inf.}
+\item{lower.Q.crit}{integer (default NULL). Only meaningful when c.splits is
+TRUE. lower.Q.crit determines the minimum performance that the best obtained
+straight-split line should have so that attempt would be made to generate
+from it a better non-linear split-line. Recommendation is to leave this value
+set to default (no performance requirement) and only use different value,
+when you are quite sure what are the limitations of improvements that
+non-linear split-lines can make over straight split-lines (e.g. if maximize
+is TRUE, lower.Q.crit = upper.Q.crit - MAX.c.improv).}
 
 \item{upper.Q.crit}{Subdivision stopping criteria - upper limit of split-line
 quality applied to the final split-line. This is a minimum difference as
@@ -105,7 +118,12 @@ plots should exhibit, so that a subdivision of a plot using the
 best split-line would be established. Default is -Inf.}
 
 \item{c.splits}{Logical (default TRUE).
-Should curvi-linear split-lines be estimated?}
+Should non-linear split-lines be estimated?}
+
+\item{C.crit.improv}{integer. How much non-linear split must be
+better than straight (in units of provided metric) for it to be selected?
+When 0 is set (default), then non-linear split-line still won't be selected
+if it performs the same as straight split line.}
 
 \item{c.X.knots}{Curve parameter. The number of columns in the net of
 spline knots. These columns are distributed regularly along to the straight
@@ -121,6 +139,10 @@ amplitudes) of the curvi-linear split-lines. Higher values allow higher
 variety of wave amplitudes to be tested, when optimizing the shape of
 curvi-linear split-lines. Thus higher values increase the fit to the data at
 the cost of optimization time. Default value is 10.}
+
+\item{xy.dat}{a matrix containing coordinates for objects in \code{data}. If
+\code{data} is data frame or matrix that has columns x or y, can be ignored
+(default NULL).}
 
 \item{c.max.iter.no}{the maximum number of allowed iterations through the
 columns of spline knots (default 5). Setting higher values (eg Inf) increases
@@ -165,6 +187,9 @@ boundary performance scores, then it may be either that clustering of data
 qualities is quite poor or that spatial autocorrelation structure caused by
 all these physical proccesses is responsible for the observed clusterization.
 TWO models (toroidal and totally random).}
+
+\item{similarity}{logical. Does the named metric reflect similarity? Needs
+only to be provided when custom \code{compare.f} function is used.}
 
 \item{n.m.N}{number of spatial simulations in null models. Default is
 1000.}
@@ -212,7 +237,7 @@ hespdiv class object, a list of at least 5 elements (see details):
   split-line is, when compared to other tested straight split-lines.
   \item \code{iteration} - ID of \code{hespdiv} iteration, in which a
   polygon was analyzed. Can be considered as the ID of a polygon.
-  \item \code{root} - the ID of \code{hespdiv} iteration, which produced the
+  \item \code{root.id} - the ID of \code{hespdiv} iteration, which produced the
   split-line, isolating a polygon. Can be considered as the ID of
   a polygon's parent-polygon.
   }

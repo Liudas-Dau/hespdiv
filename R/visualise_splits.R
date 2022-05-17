@@ -8,19 +8,19 @@
 #' @author Liudas Daumantas
 #' @noRd
 .visualise_splits.start <- function(what,
-                                    pnts.col, data, margins, rims, perim_pts,
+                                    pnts.col, xy.dat, rims, perim_pts,
                                     testid) {
   if (!is.null(what)){
 
-    plot(NULL,xlim = range(data$x),ylim = range(data$y),col=0,
+    plot(NULL,xlim = range(rims[[testid]]$x),ylim = range(rims[[testid]]$y),col=0,
          xlab = "x coordinate", ylab = "y coordinate")
 
     lines(rims[[1]])
     points(perim_pts[[1]],pch=17,col="darkgreen",cex = 2)
     if(!is.null(pnts.col)){
-      points(data$x, data$y, col=pnts.col,pch=19)
+      points(xy.dat$x, xy.dat$y, col=pnts.col,pch=19)
     }
-    centras <- pracma::poly_center(margins[,1],margins[,2])
+    centras <- pracma::poly_center(rims[[testid]][,1],rims[[testid]][,2])
     points(centras[1],centras[2],col=2,pch=19,cex=0.65)
     points(centras[1],centras[2],col=2,cex=1.5)
 
@@ -32,12 +32,12 @@
                                  ,testid,
                                  "\n\nPress enter to continue...\n")))
   }}
-.visualise_splits.end <- function(pnts.col, data, rims) {
+.visualise_splits.end <- function(pnts.col, xy.dat, rims) {
   if(!is.null(pnts.col)){
-    plot(data$x, data$y, col=pnts.col,xlab = "x coordinate",
+    plot(xy.dat$x, xy.dat$y, col=pnts.col,xlab = "x coordinate",
          ylab = "y coordinate" ,pch=19)
   } else {
-    plot(NULL,xlim = range(data$x),ylim = range(data$y),col=0,
+    plot(NULL,xlim = range(xy.dat$x),ylim = range(xy.dat$y),col=0,
          xlab = "x coordinate", ylab = "y coordinate")
   }
   lines(rims[[1]])
@@ -58,14 +58,14 @@
   }
 }
 .visualise_splits.curve_start <- function(what,
-                                          rot.data, pnts.col, rot.poli, AE,
+                                          rot.dat.cords, pnts.col, rot.poli, AE,
                                           c.X.knots, split.line.x, c.Y.knots,
                                           knot.y.matrix) {
   if (!is.null(what)){
     if (what != 'straight') {
       dev.new()
       if(!is.null(pnts.col)){
-        plot(rot.data$x, rot.data$y, col=pnts.col,
+        plot(rot.dat.cords$x, rot.dat.cords$y, col=pnts.col,
              xlab = "shifted & rotated X coordinate",
              ylab = "shifted & rotated Y coordinate" ,pch=19,
              xlim = range(rot.poli$x),ylim = range(rot.poli$y))
@@ -107,17 +107,64 @@
                                          curve, SS, best.old.curve) {
   if (!is.null(what)){
     if (level != 'best' & what != 'straight'){
-
+      invisible(dev.set(dev.list()[length(dev.list())]))
+      lines(best.old.curve,lwd=3, col = 'gray70')
+      lines(curve,lwd=2, col = '#56B4E9')
       readline(prompt = cat(paste0('\nThe displayed curvial split-line',
                                    ' is so far the best.',
                                    '\nIt\'s quality is: ',
                                    round(SS[[1]],2),
                                    "\n\nPress enter to continue...\n")))
+
+
+    }}}
+.visualise_splits.try_int_curve <- function(what, level,
+                                            curve, x, y) {
+  if (!is.null(what)){
+    if (what != "straight" & level == "all"){
+      invisible(dev.set(dev.list()[length(dev.list())]))
+      lines(curve, col = '#E69F00')
+      points(x,y,col="#E69F00", pch = 8,cex= 2 )
+      readline(prompt = cat(paste0("\nPotentially better curve was found by using",
+                                   " knot, interpolated from other knot performances",
+                                   ".\n\nPress enter to",
+                                   " test it...\n")))
+    }}}
+.visualise_splits.good_int_curve <- function(what, level,
+                                         curve, SS, best.old.curve,
+                                         x, y) {
+  if (!is.null(what)){
+    if (level != 'best' & what != 'straight'){
       invisible(dev.set(dev.list()[length(dev.list())]))
       lines(best.old.curve,lwd=3, col = 'gray70')
       lines(curve,lwd=2, col = '#56B4E9')
-    }}}
+      if (level == "main"){
+        points(x,y,col="#E69F00", pch = 8,cex= 2 )
+      }
+      readline(prompt = cat(paste0(
+        '\nThe curve produced by using interpolated, potentially better knot',
+                                   ' was indeed the best so far.',
+                                   '\nIt\'s quality is: ',
+                                   round(SS[[1]],2),
+                                   "\n\nPress enter to continue...\n")))
 
+
+    }}
+}
+.visualise_splits.bad_int_curve <- function(what, level,
+                                            curve, x, y, message) {
+  if (!is.null(what)){
+    if (level == 'all' & what != 'straight'){
+      invisible(dev.set(dev.list()[length(dev.list())]))
+      lines(curve, col = '#999999')
+      points(x, y, col="gray70", pch = 8,cex = 2 )
+      readline(prompt = cat(paste0("\nThe interpolated knot did not produce",
+                                   ' a better curve.',
+                                   ' \nReason: ',message,
+                                   "\n\nPress enter to continue...\n")))
+
+    }}
+}
 .visualise_splits.selected_knot <- function(what, level,
                                             x, y, old.knot.y) {
   if (!is.null(what)){

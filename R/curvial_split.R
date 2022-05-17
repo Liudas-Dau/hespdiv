@@ -7,7 +7,7 @@
 #' @param min.x.id index of split line vertex in poly.x and poly.y objects that has lower x coordinate
 #' @param max.x.id index of split line vertex in poly.x and poly.y objects that has lower y coordinate
 #' @param b slope of a split line
-#' @param data data frame of data being analized
+#' @param samp.dat spatial subset of data
 #' @param c.X.knots number of spline knots along the split line
 #' @param c.Y.knots number of spline knots orthogonal to the split line
 #' @param N.condminimum minimum number of fossils required to establish subdivision of a plot
@@ -32,7 +32,7 @@
 #' @author Liudas Daumantas
 #' @noRd
 .curvial_split <- function(poly.x,poly.y,min.x.id,max.x.id,b,
-                           data,c.X.knots=20,c.Y.knots=20,
+                           samp.dat,c.X.knots=20,c.Y.knots=20,
                            N.cond,S.cond,c.max.iter.no, c.fast.optim,
                            c.corr.term,
                            trace.object = trace.object,
@@ -49,12 +49,14 @@
   #paverciu poligona ir duomenis
   rot.pol.cords <- DescTools::Rotate(x=poly.x,y=poly.y,mx=poly.x[min.x.id],
                           my=poly.y[min.x.id],theta=-teta)
-  rot.dat.cords <- DescTools::Rotate(x=data$x,y=data$y,mx=poly.x[min.x.id],
+  rot.dat.cords <- DescTools::Rotate(x=samp.xy$x,y=samp.xy$y,mx=poly.x[min.x.id],
                           my=poly.y[min.x.id],theta=-teta)
   #pastumiu duomenis ir poligona, kad padalinimo linijos kairinis taskas butu
   # koordinaciu sistemos pradzioje
-  rot.data<-data.frame(data[,1],x = rot.dat.cords$x-poly.x[min.x.id],
-                       y = rot.dat.cords$y-poly.y[min.x.id])
+  rot.dat.cords <- data.frame(x = rot.dat.cords$x-poly.x[min.x.id],
+                              y = rot.dat.cords$y-poly.y[min.x.id])
+  #rot.data<-data.frame(data[,1],x = rot.dat.cords$x-poly.x[min.x.id],
+   #                    y = rot.dat.cords$y-poly.y[min.x.id])
   #sukuriu duomenu masyva pasukto poligono
   rot.poli<-data.frame(x= rot.pol.cords$x-poly.x[min.x.id],
                        y= rot.pol.cords$y-poly.y[min.x.id])
@@ -74,7 +76,6 @@
                                        trivial_side = TRUE,poli_side = FALSE))
 
   #randu vidinio pataisyto poligono apatine ir virsutine dali
- print(iteration)
  # if (iteration == 22)
  #   browser()
   bottom.inner.poli<-.inner_poly_hull(polygon = rot.poli.do)
@@ -87,14 +88,16 @@
     rot.poli.do<-rot.poli.up
     rot.poli.up<-change
   }
+  rot.poli.do <- rot.poli.do[-nrow(rot.poli.do),]
+  rot.poli.up <- rot.poli.up[-nrow(rot.poli.up),]
   #pasirupinam splino knot'ais pradiniais
 
-  split.line.x<-seq(0,AE,length.out = c.X.knots)
-  split.line.x[c.X.knots]<-AE
+  split.line.x <- seq(0,AE,length.out = c.X.knots)
+  split.line.x[c.X.knots] <- AE
   #ant pataisyto poligono reikia rasti Y koordinates duotom x koordinatem,
   # atitinkanciom padalinimo linijos atkarpu galus
-  up.y<-numeric(c.X.knots)
-  do.y<-numeric(c.X.knots)
+  up.y <- numeric(c.X.knots)
+  do.y <- numeric(c.X.knots)
   for(i in 2:(length(split.line.x)-1)){
     up.y[i]<-.y.online(x=upper.inner.poli[[1]]$x,y=upper.inner.poli[[1]]$y,
                        x3=split.line.x[i])
@@ -102,52 +105,53 @@
                        x3=split.line.x[i])
   }
   #randam ploti pataisyto poligono
-  range<-up.y-do.y
+  range <- up.y-do.y
   #nustatom i kiek daliu dalinsim polygona pagal Y koordinate
-  B<-seq(0,1,length.out = c.Y.knots)
+  B <- seq(0,1,length.out = c.Y.knots)
   #sugeneruojam matrica su testuojamu spline knotu y koordinatem.
   #Kiekvienas stulpelis atitinka skirtinga X verte ant padalinimo linijos
   #spit.line.x, kiekviena eilute atitinka skirtinga poligono pjuvio ties x
   # koordinate dali - virsutines eilutes apatine poligono dalis
-  knot.y.matrix<-matrix(B,c.Y.knots,1)%*%matrix(range,1,c.X.knots)+
-    matrix(rep(do.y,each=c.Y.knots),c.Y.knots,c.X.knots)
+  knot.y.matrix <- matrix(B, c.Y.knots, 1) %*% matrix(range, 1, c.X.knots) +
+    matrix(rep(do.y, each = c.Y.knots), c.Y.knots, c.X.knots)
 
   .visualise_splits.curve_start(what = trace.object,
-                                rot.data, pnts.col, rot.poli, AE, c.X.knots,
+                                rot.dat.cords, pnts.col, rot.poli, AE, c.X.knots,
                                 split.line.x, c.Y.knots, knot.y.matrix)
   #randam geriausia padalinimo kreive
   if (c.fast.optim){
   environment(.curvi_split.fast) <- environment()
   #if (testid == 6)
     #debug(.curvi_split)
-  best_curvi_split<-.curvi_split.fast(
+  best_curvi_split <- .curvi_split.fast(
     knot.y.matrix,split.line.x,Xup=upper.inner.poli[[1]]$x,
     Xdown=bottom.inner.poli[[1]]$x,Yup=upper.inner.poli[[1]]$y,
     Ydown=bottom.inner.poli[[1]]$y,
     N.cond,S.cond,c.Y.knots,c.X.knots,rot.poli.up,rot.poli.do,
-    rot.data,c.max.iter.no = c.max.iter.no, c.corr.term = c.corr.term,
+    rot.dat.cords,c.max.iter.no = c.max.iter.no, c.corr.term = c.corr.term,
     trace.object = trace.object, trace.level = trace.level,
-    straight.qual = straight.qual
+    straight.qual = straight.qual,samp.dat = samp.dat
     )
   } else {
     environment(.curvi_split) <- environment()
-    best_curvi_split<-.curvi_split(
+    best_curvi_split <- .curvi_split(
       knot.y.matrix,split.line.x,Xup=upper.inner.poli[[1]]$x,
       Xdown=bottom.inner.poli[[1]]$x,Yup=upper.inner.poli[[1]]$y,
       Ydown=bottom.inner.poli[[1]]$y,
       N.cond,S.cond,c.Y.knots,c.X.knots,rot.poli.up,rot.poli.do,
-      rot.data,c.max.iter.no = c.max.iter.no, c.corr.term = c.corr.term,
+      rot.dat.cords,c.max.iter.no = c.max.iter.no, c.corr.term = c.corr.term,
       trace.object = trace.object, trace.level = trace.level,
-      straight.qual = straight.qual
+      straight.qual = straight.qual,samp.dat = samp.dat
     )
   }
 
 # Up --> Yup, Down --> Ydown; xp --> x; yp --> y.  visur pakeist
-  best.curve<-data.frame(x=best_curvi_split[[1]]$x+poly.x[min.x.id],
-                         y=best_curvi_split[[1]]$y+poly.y[min.x.id])
-  best.curve<-DescTools::Rotate(x=best.curve$x,y=best.curve$y,mx=poly.x[min.x.id],
-                     my=poly.y[min.x.id],theta=teta)
-  return(list(best.curve,best_curvi_split[[2]]))
+  best.curve <- data.frame(x=best_curvi_split[[1]]$x+poly.x[min.x.id],
+                           y=best_curvi_split[[1]]$y+poly.y[min.x.id])
+  best.curve <- DescTools::Rotate(x=best.curve$x,y=best.curve$y,
+                                  mx=poly.x[min.x.id], my=poly.y[min.x.id],
+                                  theta=teta)
+  return(list(best.curve, best_curvi_split[[2]]))
 }
 
 #' Find the curve that divides the polygon best (recursive function)
@@ -169,9 +173,9 @@
 #' @param S.cond minimum area required to establish subdivision of a plot
 #' @param c.Y.knots number of spline knots orthogonal to the split line
 #' @param c.X.knots number of spline knots along the split line
-#' @param rot.poli.up rotated, but not standartized, full upper polygon
-#' @param rot.poli.do rotated, but not standartized, full lower polygon
-#' @param rot.data rotated data that is analyzed
+#' @param rot.poli.up rotated, but not standartized, open upper polygon
+#' @param rot.poli.do rotated, but not standartized, open lower polygon
+#' @param rot.dat.cords rotated coordinates of data
 #' @param c.max.iter.no allowed number of iterations trough columns of spline
 #' knots
 #' @param c.corr.term term that defines how much the a problematic spline
@@ -183,26 +187,30 @@
 #' @param trace.object String that informs what graphical information to show.
 #' Can be either "curves", "straight" or "both".
 #' @param straight.qual Quality of the best straight split-line.
+#' @param samp.dat spatial subset of data
 #' @return A list of two elements: 1) rotated (not suitable for the original polygon) curve in shape of a spline that produces the best data separation; 2) quality of the division
 #' @author Liudas Daumantas
 #' @noRd
-.curvi_split.fast<-function(knot.y.matrix,split.line.x,Xup,Xdown,Yup,Ydown,N.cond,
-                      S.cond,c.Y.knots,c.X.knots,rot.poli.up,
-                      rot.poli.do,rot.data,c.max.iter.no = c.max.iter.no,
-                      c.corr.term,trace.object = trace.object,
-                      trace.level = trace.level, teta = teta, straight.qual){
-  best.y.knots<-numeric(c.X.knots)
-  y.cord.quality<-numeric(c.Y.knots-2)
-  best.y.coords<-numeric(c.X.knots-2)
+.curvi_split.fast<-function(knot.y.matrix,split.line.x,Xup,Xdown,Yup,Ydown,
+                            N.cond,S.cond,c.Y.knots,c.X.knots,rot.poli.up,
+                            rot.poli.do,rot.dat.cords,c.max.iter.no = c.max.iter.no,
+                            c.corr.term,trace.object = trace.object,
+                            trace.level = trace.level, teta = teta, straight.qual,
+                            samp.dat){
+
+  best.y.knots <- numeric(c.X.knots)
+  y.cord.quality <- numeric(c.Y.knots-2)
+  best.y.coords <- numeric(c.X.knots-2)
   best.qual <- straight.qual
-  best.old.curve <- data.frame(x=numeric(0),y=numeric(0))
+  best.old.curve <- data.frame(x = numeric(0), y = numeric(0))
   best.y <- 0
-  knot.y.matrix<-knot.y.matrix[-c(1,c.Y.knots),-c(1,c.X.knots)]
+  knot.y.matrix <- knot.y.matrix[-c(1,c.Y.knots),-c(1,c.X.knots)]
   knot.state <- !logical(c.X.knots-2)
   counter <- 0
   it <- 1
+
   while(it <= c.max.iter.no) {
-    if (all(!knot.state)) {break}
+    if (all(!knot.state)) break
     if(it%%2==1){
       if(it==1){
         seq.of.x.knots <- (1:(c.X.knots-2))[knot.state]
@@ -217,33 +225,33 @@
       print(knot.state)
       for (k in 1:(c.Y.knots-2)) {
         #isbandom vis kita Y koordinate knotui su duota x koordinate
-        best.y.knots[1+l]<-knot.y.matrix[k,l]
+        best.y.knots[1+l] <- knot.y.matrix[k,l]
         #sugeneruojam splina per knotus
-        curve<-spline(split.line.x,best.y.knots,n=1000)
+        curve <- spline(split.line.x,best.y.knots,n=1000)
         #iteratyviai darom, kol nebemeta klaidos:
         #patikrinam ar poligono viduj kreive, gaunam pataisos tasku koordinates
         #skeliam split.line.x ir best.y.knots i tiek daliu, kiek reikia ir
         # reikiamose vietose pridedam koordinates
         #sukuriam nauja split.line.x best.y.knots varianta
         #kartojam splina
-        curve<-.spline_corrections(curve,Xup,Xdown,Yup,Ydown,best.y.knots,
-                                 split.line.x,c.corr.term=c.corr.term)
+        curve <- .spline_corrections(curve,Xup,Xdown,Yup,Ydown,best.y.knots,
+                                     split.line.x,c.corr.term=c.corr.term)
         counter <- counter + 1
         .visualise_splits.try_curve(what = trace.object,level = trace.level,
-                          counter, curve)
-         #if (iteration == 22 & counter == 22)
-          #browser()
+                                    counter, curve)
+        #if (iteration == 22 & counter == 22)
+        #browser()
         #ivertinam poligono padalinimo su sugeneruota kreive kokybe
         environment(.curve_quality) <- environment()
-        SS<-.curve_quality(curve=curve,rot.poli.up, rot.poli.do, rot.data,
-                           N.cond,S.cond)
+        SS <- .curve_quality(curve=curve,rot.poli.up, rot.poli.do,
+                             rot.dat.cords,samp.dat,N.cond,S.cond)
 
         if ( SS[[2]] != "" ){
           message <- SS[[2]]
           .visualise_splits.bad_curve(what = trace.object,level = trace.level,
                                       curve, message)
         } else{
-          if (best.qual < SS[[1]]){
+          if (.comp(SS[[1]],best.qual)){
             .visualise_splits.good_curve(what = trace.object,
                                          level = trace.level,
                                          curve, SS, best.old.curve)
@@ -259,30 +267,30 @@
           } else {
             message <- paste0("Poor split quality.\n","Obtained: ",
                               round(SS[[1]],2),
-                              "\nRequired: >",round(best.qual,2))
+                              "\nRequired: ",c.sign, round(best.qual,2))
             .visualise_splits.bad_curve(what = trace.object,level = trace.level,
                                         curve, message)
           }
         }
         knot.state[l] <- FALSE
         #fiksuojam verte
-        y.cord.quality[k]<-SS[[1]]
+        y.cord.quality[k] <- SS[[1]]
 
       }
       #sugeneruojam spline, kurio X asyje yra knotu Y koordinates, o Y asyje
       #padalinimo kreives kokybe
       #skirta interpoliuojant aproksimuoti tarpiniu Y koordinaciu vertes
-      proj<-spline(knot.y.matrix[,l],y.cord.quality,n=1000)
-      if (max(proj$y) > best.qual){
+      proj <- spline(knot.y.matrix[,l], y.cord.quality, n=1000)
+      if (.comp(.minormax(proj$y), best.qual)){
         test.knots <- best.y.knots
-        test.knots[1+l] <- proj$x[which.max(proj$y)]
+        test.knots[1+l] <- proj$x[.which_minormax(proj$y)]
         curve.test <- spline(split.line.x,test.knots,n=1000)
-        curve.test<-.spline_corrections(curve.test,Xup,Xdown,Yup,Ydown,test.knots,
+        curve.test <- .spline_corrections(curve.test,Xup,Xdown,Yup,Ydown,test.knots,
                                         split.line.x,c.corr.term = c.corr.term)
         environment(.curve_quality) <- environment()
-        SS<-.curve_quality(curve.test,rot.poli.up, rot.poli.do, rot.data, N.cond,
-                           S.cond)
-        if (SS[[1]]> best.qual){
+        SS <- .curve_quality(curve.test, rot.poli.up, rot.poli.do,
+                             rot.dat.cords, samp.dat, N.cond,S.cond)
+        if (.comp(SS[[1]], best.qual)){
           .visualise_splits.good_curve(what = trace.object,
                                        level = trace.level,
                                        curve.test, SS,best.old.curve)
@@ -290,16 +298,16 @@
           .visualise_splits.interpol_knot(what = trace.object,
                                           level = trace.level,
                                           x = split.line.x[l+1],
-                                          y = proj$x[which.max(proj$y)],
+                                          y = proj$x[.which_minormax(proj$y)],
                                           old.knot.y = best.y.coords[l])
-          best.y.coords[l] <- proj$x[which.max(proj$y)]
+          best.y.coords[l] <- proj$x[.which_minormax(proj$y)]
           knot.state <- rep(TRUE, c.X.knots-2)
           knot.state[l] <- FALSE
           best.qual <- SS[[1]]
 
           #issaugom, kaip geriausia Y koordinate X koordinates knotui ta, kuri turi
           # didziausia kokybe
-          best.y.knots[1+l] <- proj$x[which.max(proj$y)]
+          best.y.knots[1+l] <- proj$x[.which_minormax(proj$y)]
         } else {
           best.y.knots[1+l] <- best.y.coords[l]
         }
@@ -311,22 +319,22 @@
   }
   #siame etape kiekvienam X koordinates knotui turime po geriausia Y koordinate
   #sugeneruojam per siuos knotus kreive
-  curve.final<-spline(split.line.x,best.y.knots,n=1000)
+  curve.final <- spline(split.line.x, best.y.knots, n=1000)
   #kreive gali islisti is uz polygono (pvz. kokybes dideli iverciai buvo
   # gauti pataisius duotus knotus)
   #taigi, kreive dar karta bandoma pataisyti, jei reikia
-  curve.final<-.spline_corrections(curve.final,Xup,Xdown,Yup,Ydown,best.y.knots,
-                                 split.line.x,c.corr.term = c.corr.term)
+  curve.final <- .spline_corrections(curve.final,Xup,Xdown,Yup,Ydown,best.y.knots,
+                                   split.line.x,c.corr.term = c.corr.term)
   #ivertinam galutines padalinimo kreives kokybe
   environment(.curve_quality) <- environment()
-  SS<-.curve_quality(curve.final,rot.poli.up, rot.poli.do, rot.data, N.cond,
-                    S.cond)
+  SS <- .curve_quality(curve.final, rot.poli.up, rot.poli.do, rot.dat.cords,
+                       samp.dat, N.cond, S.cond)
   .visualise_splits.best_curve(what = trace.object,
                                curve.final, SS)
   #grazinam padalinimo kreive, jos kokybes iverti ir visu kitu lokaliai
   # geriausiu kreiviu ivercius - SSk
   #SSk tik tam, kad pasizeti, ar tikrai grizta pati geriausia kreive
-  if (any(y.cord.quality>SS[[1]])){
+  if (any(.comp(y.cord.quality,SS[[1]]))){
     warning("Intermediate curves performed better than the final curve")
   }
   return(list(curve.final,SS[[1]]))
@@ -335,20 +343,22 @@
 
 .curvi_split<-function(knot.y.matrix,split.line.x,Xup,Xdown,Yup,Ydown,N.cond,
                        S.cond,c.Y.knots,c.X.knots,rot.poli.up,
-                       rot.poli.do,rot.data,c.max.iter.no = c.max.iter.no,
+                       rot.poli.do,rot.dat.cords,c.max.iter.no = c.max.iter.no,
                        c.corr.term,trace.object = trace.object,
                        trace.level = trace.level, teta = teta,
-                       straight.qual){
-  best.y.knots<-numeric(c.X.knots)
-  y.cord.quality<-numeric(c.Y.knots-2)
-  best.y.coords<-numeric(c.X.knots-2)
+                       straight.qual,samp.dat){
+  best.y.knots <- numeric(c.X.knots)
+  y.cord.quality <- rep(NA,c.Y.knots-2)
+  any.qual <- numeric()
+  best.y.coords <- numeric(c.X.knots-2)
   best.y.coord <- 0
   best.col.id <- 0
   old.col.id <- 0
   best.qual <- straight.qual
   best.old.curve <- data.frame(x=numeric(0),y=numeric(0))
-  knot.y.matrix<-knot.y.matrix[-c(1,c.Y.knots),-c(1,c.X.knots)]
+  knot.y.matrix <- knot.y.matrix[-c(1,c.Y.knots),-c(1,c.X.knots)]
   counter <- 0
+  valid.ids <- numeric()
   it <- 1
   x.seq <- (1:(c.X.knots-2))
   while(it <= c.max.iter.no) {
@@ -371,16 +381,16 @@
       print(l)
       for (k in 1:(c.Y.knots-2)) {
         #isbandom vis kita Y koordinate knotui su duota x koordinate
-        best.y.knots[1+l]<-knot.y.matrix[k,l]
+        best.y.knots[1+l] <- knot.y.matrix[k,l]
         #sugeneruojam splina per knotus
-        curve<-spline(split.line.x,best.y.knots,n=1000)
+        curve <- spline(split.line.x,best.y.knots,n=1000)
         #iteratyviai darom, kol nebemeta klaidos:
         #patikrinam ar poligono viduj kreive, gaunam pataisos tasku koordinates
         #skeliam split.line.x ir best.y.knots i tiek daliu, kiek reikia ir
         # reikiamose vietose pridedam koordinates
         #sukuriam nauja split.line.x best.y.knots varianta
         #kartojam splina
-        curve<-.spline_corrections(curve,Xup,Xdown,Yup,Ydown,best.y.knots,
+        curve <- .spline_corrections(curve,Xup,Xdown,Yup,Ydown,best.y.knots,
                                    split.line.x,c.corr.term=c.corr.term)
         counter <- counter + 1
         .visualise_splits.try_curve(what = trace.object,level = trace.level,
@@ -389,15 +399,19 @@
         #browser()
         #ivertinam poligono padalinimo su sugeneruota kreive kokybe
         environment(.curve_quality) <- environment()
-        SS<-.curve_quality(curve=curve,rot.poli.up, rot.poli.do, rot.data,
-                           N.cond,S.cond)
+        SS <- .curve_quality(curve=curve,rot.poli.up, rot.poli.do,
+                             rot.dat.cords, samp.dat, N.cond,S.cond)
 
         if ( SS[[2]] != "" ){
           message <- SS[[2]]
           .visualise_splits.bad_curve(what = trace.object,level = trace.level,
                                       curve, message)
         } else{
-          if (best.qual < SS[[1]]){
+          #fiksuojam verte
+          y.cord.quality[k] <- SS[[1]]
+          any.qual <- c(any.qual,SS[[1]])
+          if (.comp(SS[[1]], best.qual)){
+
             .visualise_splits.good_curve(what = trace.object,
                                          level = trace.level,
                                          curve, SS, best.old.curve)
@@ -414,32 +428,38 @@
           } else {
             message <- paste0("Poor split quality.\n","Obtained: ",
                               round(SS[[1]],2),
-                              "\nRequired: >",round(best.qual,2))
+                              "\nRequired: ",c.sign, round(best.qual,2))
             .visualise_splits.bad_curve(what = trace.object,level = trace.level,
                                         curve, message)
           }
         }
-        #fiksuojam verte
-        y.cord.quality[k]<-SS[[1]]
-
       }
       #sugeneruojam spline, kurio X asyje yra knotu Y koordinates, o Y asyje
       #padalinimo kreives kokybe
       #skirta interpoliuojant aproksimuoti tarpiniu Y koordinaciu vertes
-      proj<-spline(knot.y.matrix[,l],y.cord.quality,n=1000)
-      if (max(proj$y) > best.qual){
+      proj <- spline(knot.y.matrix[,l], y.cord.quality, n=1000)
+      if (.comp(.minormax(proj$y), best.qual)){
         test.knots <- best.y.knots
-        test.knots[1+l] <- proj$x[which.max(proj$y)]
+        test.knots[1+l] <- proj$x[.which_minormax(proj$y)]
         curve.test <- spline(split.line.x,test.knots,n=1000)
         curve.test<-.spline_corrections(curve.test,Xup,Xdown,Yup,Ydown,test.knots,
                                         split.line.x,c.corr.term = c.corr.term)
+        .visualise_splits.try_int_curve(what = trace.object,
+                                        level = trace.level,
+                                        curve = curve.test,
+                                        x = split.line.x[l+1],
+                                        y = test.knots[1+l])
         environment(.curve_quality) <- environment()
-        SS<-.curve_quality(curve.test,rot.poli.up, rot.poli.do, rot.data, N.cond,
-                           S.cond)
-        if (SS[[1]]> best.qual){
-          .visualise_splits.good_curve(what = trace.object,
-                                       level = trace.level,
-                                       curve.test, SS,best.old.curve)
+        SS <- .curve_quality(curve.test,rot.poli.up, rot.poli.do, rot.dat.cords,
+                             samp.dat,N.cond, S.cond)
+        if (.comp(SS[[1]], best.qual) & SS[[2]] == ""){
+          .visualise_splits.good_int_curve(what = trace.object,
+                                           level = trace.level,
+                                           curve = curve.test,
+                                           SS,
+                                           best.old.curve,
+                                           x = split.line.x[l+1],
+                                           y = test.knots[1+l])
           best.old.curve <- curve.test
           #.visualise_splits.interpol_knot(what = trace.object,
           # level = trace.level,
@@ -447,7 +467,7 @@
           # y = proj$x[which.max(proj$y)],
           # old.knot.y = best.y.coords[l])
           #best.y.coords[l] <- proj$x[which.max(proj$y)]
-          best.y.coord <- proj$x[which.max(proj$y)]
+          best.y.coord <- test.knots[1+l]
           best.col.id <- l
           best.qual <- SS[[1]]
 
@@ -455,6 +475,15 @@
           # didziausia kokybe
           #best.y.knots[1+l] <- proj$x[which.max(proj$y)]
         } else {
+          message <- paste0("Poor split quality.\n","Obtained: ",
+                            round(SS[[1]],2),
+                            "\nRequired: ",c.sign, round(best.qual,2))
+          .visualise_splits.bad_int_curve(what = trace.object,
+                                          level = trace.level,
+                                          curve = curve.test,
+                                          x = split.line.x[l+1],
+                                          y = test.knots[1+l],
+                                          message)
          # best.y.knots[1+l] <- best.y.coords[l]
         }
       } else {
@@ -475,14 +504,17 @@
                                    split.line.x,c.corr.term = c.corr.term)
   #ivertinam galutines padalinimo kreives kokybe
   environment(.curve_quality) <- environment()
-  SS<-.curve_quality(curve.final,rot.poli.up, rot.poli.do, rot.data, N.cond,
-                     S.cond)
+  SS<-.curve_quality(curve.final,rot.poli.up, rot.poli.do, rot.dat.cords,
+                     samp.dat, N.cond, S.cond)
   .visualise_splits.best_curve(what = trace.object,
                                curve.final, SS)
   #grazinam padalinimo kreive, jos kokybes iverti ir visu kitu lokaliai
   # geriausiu kreiviu ivercius - SSk
   #SSk tik tam, kad pasizeti, ar tikrai grizta pati geriausia kreive
-  if (any(y.cord.quality>SS[[1]])){
+  if (any(.comp(any.qual,SS[[1]]))){
+    print(.comp(any.qual,SS[[1]]))
+    print(any.qual)
+    print(SS[[1]])
     warning("Intermediate curves performed better than the final curve")
   }
   return(list(curve.final,SS[[1]]))
@@ -494,48 +526,53 @@
 #' filters data using each polygon and compares them.
 #'
 #' @param curve a matrix with Y coordinates in columns for each knot along the split line
-#' @param rot.poli.up rotated, but not standartized, full upper polygon
-#' @param rot.poli.do rotated, but not standartized, full lower polygon
-#' @param rot.data rotated data that is analyzed
+#' @param rot.poli.up rotated, but not standartized, open upper polygon
+#' @param rot.poli.do rotated, but not standartized, open lower polygon
+#' @param rot.dat.cords rotated coordinates of data that is analyzed
+#' @param samp.dat spatial subset of data
 #' @param N.cond minimum number of fossils required to establish subdivision of a plot
 #' @param S.cond minimum area required to establish subdivision of a plot
 #' @return A list of two elements: 1) rotated (not suitable for the original polygon) curve in shape of a spline that produces the best data separation; 2) quality of the division
 #' @author Liudas Daumantas
 #' @importFrom pracma polyarea
 #' @noRd
-.curve_quality<-function(curve,rot.poli.up,rot.poli.do,rot.data,N.cond,S.cond){
+.curve_quality<-function(curve,rot.poli.up,rot.poli.do,rot.dat.cords,
+                         samp.dat,N.cond,S.cond){
   #sudarom poligonus padalintus kreive
-  I.poli<-data.frame(x=c(rot.poli.up$x,rev(curve$x)[-1]),y=c(rot.poli.up$y,
-                                                             rev(curve$y)[-1]))
-  II.poli<-data.frame(x=c(rot.poli.do$x,rev(curve$x)[-1]),y=c(rot.poli.do$y,
-                                                              rev(curve$y)[-1]))
+  I.poli <- data.frame(x = c(rot.poli.up$x, rev(curve$x)[-1]),
+                       y = c(rot.poli.up$y, rev(curve$y)[-1]))
+  II.poli <- data.frame(x = c(rot.poli.do$x, rev(curve$x)[-1]),
+                        y = c(rot.poli.do$y, rev(curve$y)[-1]))
   #atrenkam taskus patenkancius i skirtingas poligono dalis, padalintas kreive
-  I.poli.data <- .get_data(I.poli,rot.data,first.p,
-                           data.frame(curve)[c(1,1000),c(1,2)])
-  II.poli.data<- .get_data(II.poli,rot.data,first.p,
-                           data.frame(curve)[c(1,1000),c(1,2)])
+  id1 <- .get_ids(I.poli,rot.dat.cords,first.p,
+                  data.frame(curve)[c(1,1000),c(1,2)])
+  id2 <- .get_ids(II.poli,rot.dat.cords,first.p,
+                  data.frame(curve)[c(1,1000),c(1,2)])
   #atliekam plotu palyginima, t.y. padalinimo gerumo ivertinima, jei kreive
   #netenkina minimaliu kriteriju - padalinimo kokybe nuline
-  S1<-abs(pracma::polyarea(I.poli$x,I.poli$y))
-  S2<-abs(pracma::polyarea(II.poli$x,II.poli$y))
   message <- ""
-  if(min(nrow(I.poli.data),nrow(II.poli.data))>N.cond & min(S1,S2) > S.cond){
-    environment(.dif_fun) <- environment()
-    SS<-.dif_fun(I.poli.data,II.poli.data)
-  } else{
-    if (min(nrow(I.poli.data),nrow(II.poli.data)) < N.cond){
-      message <-  paste0("Not enough observations in one of the areas.",
-                         "\nObtained: ", nrow(I.poli.data), ' and ',
-                         nrow(II.poli.data),
-                         "\nRequired: >",N.cond)
+  if ( all( c(length(id1), length(id2)) > N.cond ) ){
+
+    S1 <- abs(pracma::polyarea(I.poli$x,I.poli$y))
+    S2 <- abs(pracma::polyarea(II.poli$x,II.poli$y))
+    if ( all( c(S1, S2) > S.cond) ){
+      environment(.dif_fun) <- environment()
+      SS <- .dif_fun(.slicer(samp.dat,id1),.slicer(samp.dat,id2))
     } else {
       message <-  paste0("One of the areas was too small.\n","Obtained: ",
                          round(S1,2), ' and ', round(S2,2),
                          "\nRequired: >",S.cond)
+      SS <- upper.Q.crit
     }
+  } else {
+    message <-  paste0("Not enough observations in one of the areas.",
+                       "\nObtained: ", length(id1), ' and ',
+                       length(id2),
+                       "\nRequired: >",N.cond)
     SS <- upper.Q.crit
   }
-  return(list( SS, message ))
+
+  return(list(SS, message))
 }
 
 #' Correct the curve

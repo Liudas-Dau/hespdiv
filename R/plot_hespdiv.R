@@ -2,14 +2,17 @@
 #'
 #' @description  Function prints the results of hespdiv object.
 #' @param obj hespdiv object
-#' @param data data points used in hespdiv.
-#' @param type character string. Either "width" or "color" (default "color").
+#' @param xy.dat data.frame. coordinates of locations of data points used in
+#' hespdiv.
+#' @param type character. Either "width" or "color" (default "color").
 #' Determines whether quality of split-lines is expressed by line width or
 #' color.
 #' @param n.loc logical. Would you like to visualize the number of observations
 #' at each location? Only possible, when there are localities with more than
 #' one observation. If type is 'color', then no. of obs. are expressed via point
 #' sizes. Otherwise, they are expressed by color in logarithmic scale.
+#' @param title character. Metric title in legend. The default is built
+#' according to the obj$call.info$METHOD$metric.
 #' @param seed integer. Seed used to randomized the colors of the split-lines.
 #' Only meaningful, when argument type is 'width'.
 #' Try setting different value, if colors of parallel split-lines or nearby
@@ -20,11 +23,14 @@
 #' @importFrom ggplot2 aes geom_point geom_path guides guide_legend
 #' @author Liudas Daumantas
 #' @export
-ggplot_hespdiv <- function(obj, data, type = "color",n.loc = FALSE,pnts.col =
+ggplot_hespdiv <- function(obj, xy.dat, type = "color",n.loc = FALSE,
+                          title = NULL,  pnts.col =
                            NULL,seed = 10,...){
-  similarity <- FALSE
+
+  type <- .arg_check("type",type,c("width","color"))
+
   if (n.loc){
-    xy_df <- data[,which(colnames(data) %in% c('x','y'))]
+    xy_df <- xy.dat
     xy_df$n <- 1
     uni.loc.n <- aggregate(n~., data = xy_df ,FUN = sum)
     uni.loc.n <- uni.loc.n[order(uni.loc.n$n,decreasing = FALSE),]
@@ -48,41 +54,48 @@ ggplot_hespdiv <- function(obj, data, type = "color",n.loc = FALSE,pnts.col =
     }
   } else {
     if (is.null(pnts.col)) {
-      pnts.col <- rep(1, nrow(data))
+      pnts.col <- rep(1, nrow(xy.dat))
     } else {
-      if (length(pnts.col) != nrow(data))
+      if (length(pnts.col) != nrow(xy.dat))
         stop("Length of pnts.col is not equal to the number of observations.")
     }
   }
 
   split.stats <- obj$split.stats
-  if (names(split.stats)[5] %in% c("morisita.sim", "sorence.sim")){
-    similarity <- TRUE
-    if (names(split.stats)[5] == "morisita.sim") {
-      title <- paste0("Morisita\n","overlap")
+  maximize <- obj$call.info$METHOD$maximize
+  if (is.null(title)){
+    if (obj$call.info$METHOD$method.type == "custom"){
+      title <- obj$call.info$METHOD$metric
     } else {
-      title <- paste0("S",rawToChar(as.raw(184)),"rensen-Dice\ncoefficient")
-    }
-  } else {
-    if (names(split.stats)[5] == "entropy.p.red") {
-      title <- paste0("Pielou\nentropy\nreduction\n(%)")
-    } else {
-      title <- paste0("Strenght of\n","division")
+      if (obj$call.info$METHOD$metric == "sorensen"){
+        title <- paste0("S",rawToChar(as.raw(184)),"rensen-Dice\ncoefficient")
+      } else {
+        if (obj$call.info$METHOD$metric == "morisita"){
+          title <- paste0("Morisita\n","overlap")
+        } else {
+          if (obj$call.info$METHOD$metric == "pielou"){
+            title <- paste0("Pielou\nentropy\nreduction\n(%)")
+          } else {
+            if (obj$call.info$METHOD$metric == "horn.morisita"){
+              title <- paste0("Morisita\n","overlap\n(Horn)")
+            }
+          }
+        }
+      }
     }
   }
-
-  if (similarity){
-    split.stats[,5] <- -obj$split.stats[,5]
+  if (!maximize){
+    split.stats[,7] <- -obj$split.stats[,7]
   }
-  ord <- order(split.stats[,5], decreasing = FALSE)
+  ord <- order(split.stats[,7], decreasing = FALSE)
   split.stats <- split.stats[ord,]
   split.lines <- lapply(ord,function(id){obj$split.lines[[id]]})
   df <- Reduce(rbind,split.lines)
   npt.in.split <- as.numeric(lapply(split.lines,nrow))
   if (type == "width"){
-    size <- rep(split.stats[,5], times = npt.in.split)
+    size <- rep(split.stats[,7], times = npt.in.split)
   } else {
-    color <- rep(split.stats[,5], times = npt.in.split)
+    color <- rep(split.stats[,7], times = npt.in.split)
   }
   df$group <- factor(rep(1:length(split.lines),times=npt.in.split))
 
@@ -128,7 +141,7 @@ ggplot_hespdiv <- function(obj, data, type = "color",n.loc = FALSE,pnts.col =
     base<-base + geom_path(data = df, aes(x,y,group=group,
                                           size = size),
                            color=df$color) +
-      scale_size_continuous(range = c(0.5,2))
+      ggplot2::scale_size_continuous(range = c(0.5,2))
     size.l <- seq(0.5,2,0.5)
     base <- base + guides(size = guide_legend(override.aes =
                                                 list(size = size.l))) +
@@ -140,21 +153,20 @@ ggplot_hespdiv <- function(obj, data, type = "color",n.loc = FALSE,pnts.col =
     guides(color = ggplot2::guide_colourbar(title = title, title.hjust = 0.5,
                                    label.position = "left",label.hjust = 1))
   }
-  if (similarity) {
-      base$scales$scales[[scale_id]]$limits <-  range(split.stats[,5])
+  if (!maximize) {
+      base$scales$scales[[scale_id]]$limits <-  range(split.stats[,7])
       base$scales$scales[[scale_id]]$breaks <-
         as.numeric(na.omit( base$scales$scales[[scale_id]]$get_breaks() ))
       base$scales$scales[[scale_id]]$labels <-
         -base$scales$scales[[scale_id]]$breaks
 }
   if (type == "color") {
-    if (!similarity){
-      base$scales$scales[[scale_id]]$limits <-  range(split.stats[,5])
+    if (maximize){
+      base$scales$scales[[scale_id]]$limits <-  range(split.stats[,7])
     }
     self <- base$scales$scales[[scale_id]]
-    x <- self$rescale(self$oob(split.stats[,5], range = self$limits), self$limits)
-    uniq <- unique(x)
-    color <- self$palette(uniq)
+    x <- self$rescale(self$oob(split.stats[,7], range = self$limits), self$limits)
+    color <- self$palette(x)
   }
   base <- base +
     ggplot2::theme_set(ggplot2::theme_bw())  +
@@ -175,7 +187,7 @@ ggplot_hespdiv <- function(obj, data, type = "color",n.loc = FALSE,pnts.col =
   if (is.null(split.stats$p.val)){
     base<-base + ggrepel::geom_label_repel(data=mid.pt, aes(x,y),alpha=rep(3/5, nrow(mid.pt)),
                                   label = paste0(ord,") ",
-                                                round(obj$split.stats[ord,5],2)),
+                                                round(obj$split.stats[ord,7],2)),
                                   fill  = color, size = 4,
                                   direction="both",fontface='bold',
                                   colour  = rep(1, nrow(mid.pt)))

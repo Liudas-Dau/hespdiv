@@ -26,9 +26,11 @@
 #' comparing and first grouping single data points, they cannot use more
 #' emergent data qualities (whose estimation requires certain amount of points
 #' distributed in space) to calculate distance between clusters.
-#' @param data a data frame with columns containing the variables analyzed and
-#' rows - observations, potentially from different locations. \code{data} must
-#' have columns named "x" and "y" that contain coordinate information.
+#' @param data an R object containing data to be analyzed. Required data
+#' structure depends on the method selected (see ...) or created.
+#' @param xy.dat a data.frame containing coordinates for objects in \code{data}.
+#'  If \code{data} is data frame or matrix that has columns x or y, can be
+#' ignored (default NULL).
 #' @param n.split.pts number of points that are used in creation of split-lines
 #' since these points serve as endings / origins of straight, as well as
 #' curvi-linear split-lines. Thus, the bigger this number, the more split-lines
@@ -57,12 +59,15 @@
 #' function other variables from \code{hespdiv} environment could be used,
 #' without requiring them as arguments (see the list of free variables
 #' available in \code{generalize.f} - list).
-#' @param method A pre-set combination of \code{generalize.f} and
-#' \code{compare.f} functions that serve some distinct purpose.
-#' Available methods:
-#'  "Pielou_biozonation" - distinguishes paleoprovinces by maximum reductions in
-#'  Pielou entropy that are observed in the occurrence data of fossil taxa, when
-#'  the split-line manages to correctly separate different paleoprovinces.
+#' @param method String. A name of preset method. Determines which
+#' preset \code{generalize.f} and \code{compare.f} functions will be used to
+#' perform hierarchical subdivisions of spatial data, if \code{compare.f}
+#' function is not provided.
+#' @param similarity logical. Does the named metric reflect similarity? Needs
+#' only to be provided when custom \code{compare.f} function is used.
+#' @param maximize logical. Should the value returned by \code{compare.f} be
+#' maximized or minimized? Needs only to be provided when custom
+#' \code{compare.f} function is used.
 #' @param N.crit Subdivision stopping criteria - number of observations.
 #' Minimum number of observations (rows in data) that should
 #' be present in areas separated by a split-line in order to establish the
@@ -72,24 +77,25 @@
 #' (provided polygon or estimated as convex hull of \code{xy_dat}) that plots
 #' separated by a split-line should have so that the split-line could be
 #' established. Default is 0.
-#' @param lower.Q.crit Subdivision stopping criteria - lower limit of split-line
-#' quality applied to the straight split-lines. This is a minimum difference as
-#' estimated by \code{compare.f} function that separated
-#' plots should exhibit, so that a straight split-line would be accepted. If
-#' the best straight split line has lower quality than \code{upper.Q.crit}, but
-#' passes this limit, then curvi-linear split-lines will be generated with
-#' expectation that they will improve the quality of a split above
-#'  \code{upper.Q.crit}.
-#' If \code{c.splits} is FALSE, then \code{lower.Q.crit} is set equal to
-#' \code{upper.Q.crit}
-#' Default is -Inf.
+#' @param lower.Q.crit integer (default NULL). Only meaningful when c.splits is
+#' TRUE. lower.Q.crit determines the minimum performance that the best obtained
+#' straight-split line should have so that attempt would be made to generate
+#' from it a better non-linear split-line. Recommendation is to leave this value
+#' set to default (no performance requirement) and only use different value,
+#' when you are quite sure what are the limitations of improvements that
+#' non-linear split-lines can make over straight split-lines (e.g. if maximize
+#' is TRUE, lower.Q.crit = upper.Q.crit - MAX.c.improv).
 #' @param upper.Q.crit Subdivision stopping criteria - upper limit of split-line
 #' quality applied to the final split-line. This is a minimum difference as
 #' estimated by \code{compare.f} function that separated
 #' plots should exhibit, so that a subdivision of a plot using the
 #' best split-line would be established. Default is -Inf.
 #' @param c.splits Logical (default TRUE).
-#' Should curvi-linear split-lines be estimated?
+#' Should non-linear split-lines be estimated?
+#' @param C.crit.improv integer. How much non-linear split must be
+#' better than straight (in units of provided metric) for it to be selected?
+#' When 0 is set (default), then non-linear split-line still won't be selected
+#' if it performs the same as straight split line.
 #' @param c.X.knots Curve parameter. The number of columns in the net of
 #' spline knots. These columns are distributed regularly along to the straight
 #' split-line. This parameter controls wiggliness (wave length) of the
@@ -179,7 +185,7 @@
 #'   split-line is, when compared to other tested straight split-lines.
 #'   \item \code{iteration} - ID of \code{hespdiv} iteration, in which a
 #'   polygon was analyzed. Can be considered as the ID of a polygon.
-#'   \item \code{root} - the ID of \code{hespdiv} iteration, which produced the
+#'   \item \code{root.id} - the ID of \code{hespdiv} iteration, which produced the
 #'   split-line, isolating a polygon. Can be considered as the ID of
 #'   a polygon's parent-polygon.
 #'   }
@@ -200,82 +206,98 @@
 #' @export
 
 hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
-                  compare.f = NULL, method = "Pielou_biozonation", N.crit = 0,
-                  S.crit = 0, lower.Q.crit = -Inf, upper.Q.crit = -Inf,
-                  c.splits = TRUE, c.X.knots = 5, c.Y.knots = 10,
+                  maximize = NULL, method = NULL,
+                  compare.f = NULL, N.crit = 0,
+                  S.crit = 0, lower.Q.crit, upper.Q.crit,
+                  c.splits = TRUE, C.crit.improv = 0, c.X.knots = 5,
+                  c.Y.knots = 10, xy.dat = NULL,
                   c.max.iter.no = 5, c.fast.optim = TRUE,
                   c.corr.term = 0.05, filter.all = TRUE,
                   n.m.test = FALSE,
                   n.m.N = 1000, n.m.seed = 1,  n.m.keep = FALSE,
                   study.pol = NULL, trace.level = NULL,
                   trace.object = NULL, pnts.col = 1, display = TRUE){
-  if (!is.null(trace.object)){
-    OBJECTS <- c("straight", "curve", "both")
-    matched.i <- pmatch(trace.object, OBJECTS)
-    if(is.na(matched.i))
-      stop("invalid trace object ", paste0("'", trace.object,"'"),
-           paste('\nPlease select viable option: '),
-           paste(OBJECTS,collapse = ", ",sep = "'"))
-    trace.object <- OBJECTS[matched.i]
-  }
-  if (!is.null(trace.level)){
-    LEVELS <- c("all","main","best")
-    matched.i <- pmatch(trace.level, LEVELS)
-    if(is.na(matched.i))
-      stop("invalid trace level ", paste0("'", trace.level,"'"),
-           paste('\nPlease select viable option: '),
-           paste(LEVELS,collapse = ", ",sep = "'"))
-    trace.level <- LEVELS[matched.i]
-  }
 
-  if (!((!is.null(trace.level) & !is.null(trace.object)) |
-        (is.null(trace.level) & is.null(trace.object)))){
+  if ((is.null(trace.level) & !is.null(trace.object)) |
+      (!is.null(trace.level) & is.null(trace.object))){
     stop(paste("Conflicting arguments: trace.level, trace.object"),
          paste("\ntrace.object and trace.level must be both set to 'NULL'"),
          paste( ' or asigned a viable value'))
   }
 
-  if (!is.null(method)){
-    METHODS <- c("Pielou_biozonation","Sorensen_biozonation", "Morisita_biozonation")
-    matched.i <- pmatch(method, METHODS)
-    if(is.na(matched.i))
-      stop("invalid method ", paste0("'", method,"'"),
-           paste('\nPlease select viable option: '),
-           paste(METHODS,collapse = ", ",sep = "'"))
-    method <- METHODS[matched.i]
-  }
+  args <- sapply(ls(),get,environment())
 
-  if (is.null(method) & is.null(generalize.f) & is.null(compare.f) ){
-    stop("No method provided. Please specify either 1) 'method' or 2) data",
-         " generalization and comparison functions ",
-         "('generalize.f' and 'compare.f')")
-  }
-  if (!is.null(method) & (!is.null(generalize.f) | !is.null(compare.f))){
-    stop("Conflincting arguments: method, generalize.f, compare.f",
-         "\n Please specify either 1) one of the viable ",
-         paste("methods ("),paste(METHODS,collapse = ", ",sep = "'"),
-         ") 2) or generalize.f and compare.f functions")
-  }
-  if (is.null(method) & (is.null(generalize.f) | is.null(compare.f)) ){
-    stop("Missing argument: both 'generalize.f' and 'compare.f' must be provided")
-  }
-  if (c.splits == FALSE & upper.Q.crit != lower.Q.crit) {
-    warning(paste("Since 'c.splits' is FALSE, 'lower.Q.crit' was set equal to
-          'upper.Q.crit'"))
-    lower.Q.crit <- upper.Q.crit
-  }
-
-  if (!is.null(method)){
-    if (method == "Pielou_biozonation") {
-      if (ncol(data) != 3){
-        stop("There should be one column in data besides 'x' and 'y' columns that
-           records which taxa is present at a given location. Taxa should be
-           coded numerically. If multiple taxa is present at the same location,
-           multiple rows should be dedicated for the same location in data.")
+  if (is.null(xy.dat)){
+    if (class(data) %in% c("data.frame", "matrix")){
+      if (any(colnames(data) == 'x') & any(colnames(data) == 'y')){
+        if (sum(colnames(data) %in% c('x','y')) != 2){
+          stop("Data must contain no more than one of columns that are named
+               'x' and 'y'")
+        }
+        xy.dat <- as.data.frame(data[,c('x','y')])
+        data <- data[,-which(colnames(data) %in% c('x','y'))]
+      } else {
+        stop("'xy.dat' was not provided and 'data' is missing 'x', 'y' columns",
+             " containing coordinates of observations.")
       }
+    } else {
+      stop("'xy.dat' was not provided and 'data' is neither a data frame or",
+           "a matrix.")
+    }
+  } else {
+    if (!is.data.frame(xy.dat)){
+      if (is.matrix(xy.dat)){
+        xy.dat <- as.data.frame(xy.dat)
+      } else {
+        stop("'xy.dat' must be a data.frame.")
+      }
+    }
+    if (ncol(xy.dat) !=2 )
+      stop("number of columns in 'xy.dat' must be 2, named 'x' and 'y'.")
+
+    if (any(colnames(xy.dat) != c('x','y')))
+      stop("there must be 'x' and 'y' columns in xy.dat positioned in this",
+           " order.")
+
+    if (is.matrix(data) | is.data.frame(data)){
+      if (nrow(data) != nrow(xy.dat))
+        stop("number of rows in 'xy.dat' must identical to the number ",
+             "of observations in data.")
+    } else {
+      if (length(data) != nrow(xy.dat))
+        stop("number of rows in 'xy.dat' must identical to the number ",
+             "of observations in data.")
+    }
+  }
+
+  if (!is.null(trace.object)){
+    trace.object <- .arg_check("trace.object", trace.object,
+                               c("straight", "curve", "both"))
+  }
+  if (!is.null(trace.level)){
+    trace.level <- .arg_check("trace.level", trace.level,c("all","main","best"))
+  }
+
+  if (is.null(compare.f)){
+    if (is.null(method)){
+      stop("Neither 'method' or 'compare.f' argument is specified. ",
+           "Please select a preset method or provide a custom method.")
+    }
+    method.type <- "preset"
+    method <- .arg_check("metric", method, names(
+      .get_methods()[['biozonation']]))
+    if (method == "pielou") {
+      variant <- '1'
+      metric <- "pielou"
+      method <- 'biozonation'
+      similarity <- FALSE
+      maximize <- TRUE
+      if(!is.vector(data))
+        stop("Data must be a vector, when using '",method,"' method,",
+             " '",metric,"' metric and '", variant,"' variant.")
 
       generalize.f <- function(plot.dat){
-        x <- table(factor(plot.dat[,-which(colnames(plot.dat) %in% c('x','y'))]))
+        x <- table(factor(plot.dat))
         p <- x/sum(x)
         -sum(log(p)*p)
       }
@@ -283,105 +305,200 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
         base.eveness <- poly.obj[[testid]]
         (1 - mean(c(eveness1, eveness2)) / base.eveness) * 100 # percent change in eveness
       }
+
     } else {
-      if (method == "Sorensen_biozonation"){
-        if (ncol(data) != 3){
-          stop("There should be one column in data besides 'x' and 'y' columns that
-           records which taxa is present at a given location. Taxa should be
-           coded numerically. If multiple taxa is present at the same location,
-           multiple rows should be dedicated for the same location in data.")
-        }
+      if (method == "sorensen"){
+        similarity <- TRUE
+        variant <- '1'
+        metric <- 'sorensen'
+        method <- 'biozonation'
+        maximize <- FALSE
+        if(!is.vector(data))
+          stop("Data must be a vector, when using '",method,"' method,",
+               " '",metric,"' metric and '", variant,"' variant.")
+
         generalize.f <- function(plot.dat){
-          unique(plot.dat[,-which(colnames(plot.dat) %in% c('x','y'))])
+          unique(plot.dat)
         }
         compare.f <- function(uniq_tax1,uniq_tax2) {
           sum <- length(uniq_tax1) + length(uniq_tax2)
           int_2x <- length(which(duplicated(c(uniq_tax1,uniq_tax2))))*2
           if (length(int_2x)!=0){
-            -int_2x/sum
+            int_2x/sum
           } else {
             0
           }
         }
       } else {
-        if (method == "Morisita_biozonation"){
-          if (ncol(data) != 3){
-            stop("There should be one column in data besides 'x' and 'y' columns that
-           records which taxa is present at a given location. Taxa should be
-           coded numerically. If multiple taxa is present at the same location,
-           multiple rows should be dedicated for the same location in data.")
-          }
+        if (method == "morisita"){
+          similarity <- TRUE
+          metric <- "morisita"
+          maximize <- FALSE
+          variant <- '1'
+          method <- 'biozonation'
+          if(!is.vector(data))
+            stop("Data must be a vector, when using '",method,"' method,",
+                 " '",metric,"' metric and '", variant,"' variant.")
+
           generalize.f <- function(plot.dat){
-            plot.dat[,-which(colnames(plot.dat) %in% c('x','y'))]
+            plot.dat
           }
 
           compare.f <- function(x,y) {
             all_sp <- unique(c(x,y))
             x_f <- factor(x,levels = all_sp)
             y_f <- factor(y,levels = all_sp)
-            -(2*sum(table(x_f) * table(y_f)))/(length(x) * length(y) *
-              ((sum(table(x_f)*(table(x_f)-1)) / (length(x)* (length(x)-1))) +
-                (sum(table(y_f)*(table(y_f)-1)) / (length(y)* (length(y)-1)))))
+            (2*sum(table(x_f) * table(y_f)))/
+              (length(x) * length(y) *
+                 ((sum(table(x_f)*(table(x_f)-1)) /
+                     (length(x)* (length(x)-1))) +
+                    (sum(table(y_f)*(table(y_f)-1)) /
+                       (length(y)* (length(y)-1)))))
+          }
+        } else {
+          if (method == "horn.morisita"){
+            similarity <- TRUE
+            metric <- "horn.morisita"
+            maximize <- FALSE
+            variant <- '2'
+            method <- 'biozonation'
+            if(!is.vector(data))
+              stop("Data must be a vector, when using '",method,"' method,",
+                   " '",metric,"' metric and '", variant,"' variant.")
+
+            generalize.f <- function(plot.dat){
+              plot.dat
+            }
+
+            compare.f <- function(x,y) {
+              all_sp <- unique(c(x,y))
+              x_f <- factor(x,levels = all_sp)
+              y_f <- factor(y,levels = all_sp)
+              (2*sum(table(x_f) * table(y_f))) /
+                (length(x) * length(y) *
+                   ( sum(table(x_f)^2) / (length(x)^2)  +
+                        sum(table(y_f)^2) / (length(y)^2)))
+            }
           }
         }
       }
-    }}
-  if( all(names(data) != "x") | all(names(data) != "y") ){
-    stop("data should contain columns named \"x\" and \"y\" that contain
-           coordinate information")
+    }
+  } else {
+    if (is.null(generalize.f))
+      generalize.f <- function(x) x
+    method.type <- "custom"
+    variant <- NULL
+    metric <- NULL
+    similarity <- NULL
+    if (is.null(maximize)){
+      stop("Missing maximize argument value.")
+    }
   }
-  if (is.null(study.pol)){
 
-    ch <- chull(data$x, data$y)
+  if (is.data.frame(data) | is.matrix(data)){
+    .slicer <- .slicer.table
+  } else {
+    if (is.list(data)) {
+      .slicer <- .slicer.list
+    } else {
+      if (!is.vector(data))
+        warning("Data structure of 'data' is not recognized by 'hespdiv'.",
+                " Slicing of 'data' are attempted using '[]' brackets.")
+      .slicer <- .slicer.vect
+    }
+  }
+
+
+  if (!maximize){
+    if (is.null(lower.Q.crit))
+      lower.Q.crit <- +Inf
+    .comp <- function(x,criteria){ x < criteria}
+    c.sign <- "<"
+    .minormax <- min
+    .which_minormax <- which.min
+  } else {
+    if (is.null(lower.Q.crit))
+      lower.Q.crit <- -Inf
+    .comp <- function(x,criteria){ x > criteria}
+    c.sign <- ">"
+    .minormax <- max
+    .which_minormax <- which.max
+  }
+
+  if ((c.splits == FALSE & upper.Q.crit != lower.Q.crit) |
+      ((upper.Q.crit > lower.Q.crit) & maximize) |
+      ((upper.Q.crit < lower.Q.crit) & !maximize) ){
+    if ((c.splits == FALSE & upper.Q.crit != lower.Q.crit)){
+      warning(paste("Since 'c.splits' is FALSE, 'lower.Q.crit' was set equal to
+          'upper.Q.crit'"))
+      lower.Q.crit <- upper.Q.crit
+    }
+    if ((upper.Q.crit > lower.Q.crit) & !maximize){
+      warning(paste("upper.Q.crit should be lower or equal to lower.Q.crit,",
+                    "when optimization is reached by minimazing the metric."))
+    }
+    if ((upper.Q.crit < lower.Q.crit) & maximize){
+      warning(paste("upper.Q.crit should be higher or equal to lower.Q.crit,",
+                    "when optimization is reached by maximising the metric."))
+    }
+  }
+
+  if (is.null(study.pol)){
+    ### is x, y ids ch ever used again ????
+    ch <- chull(xy.dat$x, xy.dat$y)
     ids <- c(ch,ch[1])
-    x <- data$x[ids]
-    y <- data$y[ids]
+    x <- xy.dat$x[ids]
+    y <- xy.dat$y[ids]
     study.pol <- data.frame(x=x,y=y)
   }
   first.p <- study.pol[1,]
   if (filter.all) {
-    .get_data <- function(polygon, data, ...){
-      data.frame(data[sp::point.in.polygon(pol.x = polygon[,1],
-                                           pol.y = polygon[,2],
-                                           point.x = data$x,
-                                           point.y = data$y)!=0,])
+    # ... is used to ignore split_endpnts, when they are added.
+    .get_ids <- function(polygon, xy_dat,...){
+      which(sp::point.in.polygon(pol.x = polygon[,1],
+                           pol.y = polygon[,2],
+                           point.x = xy_dat$x,
+                           point.y = xy_dat$y) != 0)
     }
   } else {
-    .get_data <- function(polygon, data,first.p,split_endpnts){
+    .get_ids <- function(polygon, xy_dat,first.p,split_endpnts){
       if (any((first.p[,1] == split_endpnts[c(1,2),1]) &
               (first.p[,2] == split_endpnts[c(1,2),2])) ){
-        del.id <- which(data$x == first.p[,1] &
-                          data$y == first.p[,2])
-        if (length(del.id)>0) {
-          data.frame(data[sp::point.in.polygon(pol.x = polygon[,1],
-                                               pol.y = polygon[,2],
-                                               point.x = data$x[-del.id],
-                                               point.y = data$y[-del.id])!=0,])
-        } else {
-          data.frame(data[sp::point.in.polygon(pol.x = polygon[,1],
-                                               pol.y = polygon[,2],
-                                               point.x = data$x,
-                                               point.y = data$y)!=0,])
-        }
-      } else {
-        data.frame(data[sp::point.in.polygon(pol.x = polygon[,1],
-                                             pol.y = polygon[,2],
-                                             point.x = data$x,
-                                             point.y = data$y)!=0,])
+        del.id <- which(xy_dat$x == first.p[,1] &
+                          xy_dat$y == first.p[,2])
+        if (length(del.id)>0)
+          return(which(sp::point.in.polygon(pol.x = polygon[,1],
+                                      pol.y = polygon[,2],
+                                      point.x = xy_dat$x[-del.id],
+                                      point.y = xy_dat$y[-del.id])
+                 != 0 ))
+
       }
+      which(sp::point.in.polygon(pol.x = polygon[,1],
+                           pol.y = polygon[,2],
+                           point.x = xy_dat$x,
+                           point.y = xy_dat$y) != 0)
+
     }
   }
 
   rims <- list(study.pol)
-  poly.info <- data.frame(mean.dif = numeric(), # mean spatial heterogeneity irrespective of split-line position
-                          sd.dif = numeric(), # anizotropy of heterogeneity based on straight split-lines
-                          str.z.score = numeric(), # level of outstandingness. Are there other competetive candidate splits?
-                          iteration=numeric(),
-                          root=numeric() )
+
+  poly.info <- data.frame(root.id = numeric(),
+                          n.splits = numeric(),
+                          n.obs = numeric(),
+                          mean = numeric(), # mean spatial heterogeneity irrespective of split-line position
+                          sd = numeric(), # anizotropy of heterogeneity based on straight split-lines
+                          str.best = numeric(),
+                          str.z.score = numeric(), # level of outstandingness. Are there other competetive candidate splits?,
+                          has.split = logical(),
+                          is.curve = logical(),
+                          crv.best = numeric(),
+                          crv.z.score = numeric(),
+                          c.improv = numeric())
+
   poly.obj <- list()
-  plot.id <- numeric()
-  split.z.score <- numeric()
-  split.quality <- numeric()
+  str.split.quals <- list()
 
   if (n.m.test){
     p.val1 <- numeric()
@@ -394,95 +511,50 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
     }
   }
 
-  n.splits <- numeric()
-  mean.difs <- numeric()
-  S.cond <- round(abs(pracma::polyarea(x,y)) * S.crit,2)
+  S.cond <- round(abs(pracma::polyarea(study.pol$x,study.pol$y)) * S.crit,2)
   splits <- numeric()
-
-  iteration <- 1
 
   e <- environment()
   environment(.spatial_div) <- e
+  ### obtaining results:
+  .spatial_div(data,xy.dat,root.id=0)
+  ### results obtained. Formatting them.
+  plot.id <- 1:nrow(poly.info)
+  names(poly.obj) <- plot.id
+  names(rims) <- plot.id
+  poly.info <- data.frame(plot.id = plot.id,poly.info)
 
-  .spatial_div(data,root=2)
 
-
-  names(poly.obj) <- poly.info$iteration
-  names(rims) <- poly.info$iteration # bad line?
-
-
-
-  if(method == "Pielou_biozonation"){
-    parent.E <- unlist(poly.obj[paste(plot.id)])
-    result <- structure(list(
-      split.lines = splits,
-      polygons.xy = rims,
-      poly.stats = poly.info,
-      poly.obj = poly.obj,
-      split.stats = data.frame(
-        plot.id = plot.id,
-        n.splits = n.splits,
-        z.score = split.z.score,
-        mean.en.p.red = mean.difs,
-        entropy.p.red = split.quality,
-        parent.E = parent.E,
-        delta.E = -parent.E * split.quality/100
-      )
-    ),
-    class = "hespdiv"
-    )
+  # which best is not clear, when no split was above lower.Q.crit
+  if (any(poly.info$str.best == lower.Q.crit)){
+    plot.id.with.ns <- which(poly.info$n.splits != 0)
+    poly.info$str.best[plot.id.with.ns] <- ifelse(poly.info$str.best[
+      plot.id.with.ns] == lower.Q.crit,
+      lapply(str.split.quals[plot.id.with.ns],.minormax),
+      poly.info$str.best[plot.id.with.ns])
+    poly.info$str.best[-plot.id.with.ns] <- NA
+  }
+  if (!c.splits){
+    poly.info <- poly.info[,-c(10:13)]
   } else {
-    if (method == "Sorensen_biozonation"){
-      result <- structure(list(
-        split.lines = splits,
-        polygons.xy = rims,
-        poly.stats = poly.info,
-        poly.obj = poly.obj,
-        split.stats = data.frame(
-          plot.id = plot.id,
-          n.splits = n.splits,
-          z.score = -split.z.score,
-          mean.sorence = -mean.difs,
-          sorence.sim = -split.quality
-        )
-      ),
-      class = "hespdiv"
-      )
-    } else {
-      if (method == "Morisita_biozonation"){
-      result <- structure(list(
-        split.lines = splits,
-        polygons.xy = rims,
-        poly.stats = poly.info,
-        poly.obj = poly.obj,
-        split.stats = data.frame(
-          plot.id = plot.id,
-          n.splits = n.splits,
-          z.score = -split.z.score,
-          mean.morisita = -mean.difs,
-          morisita.sim = -split.quality
-        )
-      ),
-      class = "hespdiv"
-      )
-    } else{
-      result <- structure(list(
-        split.lines = splits,
-        polygons.xy = rims,
-        poly.stats = poly.info,
-        poly.obj = poly.obj,
-        split.stats = data.frame(
-          plot.id = plot.id,
-          n.splits = n.splits,
-          z.score = split.z.score,
-          mean.dif = mean.difs,
-          split.quality = split.quality
-        )
-      ),
-      class = "hespdiv"
-      )
-    }
-  }}
+    # if no data about curves, then we don't know how curves compare to straight
+    poly.info$is.curve <- ifelse(is.na(poly.info$crv.best),NA,
+                                 poly.info$is.curve)
+    # is no improvement was made by the curve, then we dont know the performance
+    # of the best curve since worse values than straight-split performance
+    # are not saved.
+    poly.info$crv.best <- ifelse(poly.info$c.improv == 0,NA,
+                                 poly.info$crv.best)
+    poly.info$crv.z.score <- ifelse(poly.info$c.improv == 0,NA,
+                                    poly.info$crv.z.score)
+  }
+  if (any(poly.info$has.split)){
+    names(splits) <- 1:sum(poly.info$has.split)
+  }
+
+  plot.id <- which(poly.info$has.split)
+  e <- environment()
+  result <- .format_result(e)
 
   if (n.m.test){
     Signif1 <- symnum(p.val1, corr = FALSE, na = FALSE,
@@ -508,438 +580,104 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
   }
 
   if (display){
-    .visualise_splits.end(pnts.col, data, rims)
+    .visualise_splits.end(pnts.col, xy.dat, rims)
   }
+
   return(print.hespdiv(result))
 }
+.slicer.table <- function(sample,ind) sample[ind,]
+.slicer.list <- function(sample,ind) sample[[ind]]
+.slicer.vect <- function(sample,ind) sample[ind]
 
-
-
-#' Main recursive hespdiv inner helper function
-#'
-#' @description  During each recursive iteration this function fits straight and
-#' curvi-linear split-lines, then it uses the better of the two to separate
-#' data in space, saves information about the polygon and split-lines,
-#' and calls itself again using the extracted data samples.
-#' @param samp.dat a spatial subset of \code{data} that lies entirely within
-#' some polygon, produced using split-line subdivisions of original study area.
-#' At first iteration, while no subdivisions are established,
-#' \code{samp.dat = data}.
-#' @param root An id of recursive iteration that produced the \code{samp.dat}.
-#' An id of parent-polygon.
-#' @return No return. Function updates variables in \code{hespdiv} environment.
-#' @author Liudas Daumantas
-#' @note Function inherits the environment of \code{hespdiv} function.
-#' @importFrom pracma poly_center
-#' @noRd
-
-.spatial_div <- function(samp.dat, root=2){
-
-  #testuojamas plotas
-  testid <- length(rims)
-  margins <- rims[[testid]]
-
-  assign(x = "iteration",value = iteration +1, envir = e)
-  assign(x = "poly.obj" ,
-         value = do.call(c,list(poly.obj,list(generalize.f(samp.dat)))),
-         envir = e)
-
-  perim_pts <- .perimeter_pts(polygon = margins,n.pts = n.split.pts)
-  #if (iteration == 28){
-  #trace.object <- "both"
-   # trace.level <- "all"
-  #}
-  .visualise_splits.start(what = trace.object,
-                          pnts.col, data, margins, rims,perim_pts, testid)
-
-  #testavimui pjuviai paruosiami
-
-  environment(.dif_fun) <- e
-
-  pairs_pts <- .pair_pts(perim_pts[[1]],polygon = margins)
-  maxdif <- lower.Q.crit # first split minimum quality. P.crit
-  any.split <- numeric()
-  maxid <- 0
-
-  if (nrow(pairs_pts)!=0){
-    #pjaustymo ir testavimo ciklas
-    {
-      for (i in 1:nrow(pairs_pts)){
-        virs <- .close_poly(
-          open.poly =
-            .split_poly(
-              polygon = perim_pts[[2]],
-              min_id = 1,
-              split_ids = as.numeric(pairs_pts[i,c(6:7)]),
-              trivial_side = TRUE,
-              poli_side = TRUE
-            ))
-        po <- .close_poly(
-          open.poly =
-            .split_poly(
-              polygon = perim_pts[[2]],
-              min_id = 1,
-              split_ids = as.numeric(pairs_pts[i,6:7]),
-              trivial_side = TRUE,
-              poli_side = FALSE
-            ))
-
-        # padalinami duomenys i dvi dalis pagal pjuvio koordinates
-        Puses <- list(
-          .get_data(po,samp.dat,first.p, data.frame(
-          x = unlist(pairs_pts[i,c(1,3)]), y = unlist(pairs_pts[i,c(2,4)]))),
-          .get_data(virs,samp.dat,first.p, data.frame(
-            x = unlist(pairs_pts[i,c(1,3)]), y = unlist(pairs_pts[i,c(2,4)])))
-        )
-
-        .visualise_splits.try_straight(what = trace.object, level = trace.level,
-                                       pairs_pts, i)
-
-        if (all(c(nrow(Puses[[1]]), nrow(Puses[[2]])) > N.crit)){
-          if (S.crit > 0){
-            SpjuvioI <- abs(pracma::polyarea(x=virs[,1],y=virs[,2]))
-            SpjuvioII <- abs(pracma::polyarea(x=po[,1],y=po[,2]))
-            cond <- SpjuvioI > S.cond & SpjuvioII > S.cond
-          } else {
-            cond <- TRUE
-          }
-          if (cond) {
-            #nupiesiam padalinima ir paskaiciuojam kokybe
-            environment(.dif_fun) <- environment()
-            Skirtumas <- .dif_fun(Puses[[1]],Puses[[2]])
-            any.split <- c(any.split,Skirtumas)
-            #Paskaiciuojam plotus padalintu bloku
-            if (Skirtumas > maxdif){
-
-              .visualise_splits.good_straight(what = trace.object,
-                                              level = trace.level,
-                                              pairs_pts, Skirtumas, i,
-                                              maxid)
-
-              #Jei padalinimas patenkina minimalias saligas ir yra
-              # geresnis nei pries tai - pasizymim ir issisaugom ji
-              maxdif <- Skirtumas
-              maxid <- i
-            } else {
-              message <- paste0("Poor split quality.\n","Obtained: ",
-                                round(Skirtumas,2),
-                                "\nRequired: >",round(maxdif,2))
-            }
-          } else {
-            message <- paste0("One of the areas was too small.\n","Obtained: ",
-                              round(SpjuvioI,2), ' and ', round(SpjuvioII,2),
-                              "\nRequired: >",S.cond)
-          }
-        } else {
-          message <- paste0("Not enough observations in one of the areas.",
-          "\nObtained: ", nrow(Puses[[1]]), ' and ', nrow(Puses[[2]]),
-                            "\nRequired: >",N.crit)
-        }
-        if (maxid != i) {
-          .visualise_splits.bad_straight(what = trace.object,
-                                         level = trace.level,
-                                         pairs_pts, message, i)
-        }
-      }
-    }
-    if(length(any.split) > 0){
-
-      mean.dif <- mean(any.split) # mean spatial heterogeneity
-      sd.dif <- sd(any.split) # NA if 1 split
-      # sd(any.split) -> anisotropy of heterogeneity
-      # if all are equal, then complete randomness: no anisotropy - no splits present
-      if( all(any.split==any.split[1]) & length(any.split) > 1  ){
-        warning(paste(c(
-          "All tested splits were of equal quality in "
-          , iteration, " iteration. A random split were selected as it meets",
-          " all provided criteria")))
-      }
+.format_result <- function(e){
+  if (e$method.type == "custom"){
+    return(.format_result.general(e))
+  } else{
+    if (e$metric == "pielou"){
+      return(.form.bioz.Pielou(.format_result.general(e)))
     } else {
-      mean.dif <- NA # negalejom ivertinti ne vieno padalinimo, taigi performance lygu max.
-      sd.dif <- NA # P.crit
+      return(.format_result.general(e))
     }
-    assign(x = "poly.info" ,value = rbind(poly.info, data.frame(
-      mean.dif = mean.dif, # NA if 0
-      sd.dif = sd.dif, # NA if 1 or 0 split
-      str.z.score = (maxdif - mean.dif) / sd.dif, # NA if 1 or 0 split
-      iteration = iteration,
-      root = root
-    ))
-    ,envir = e)
-    # duomenu saugojimas
-    #Jei rastas tinkamas padalinimas - ieskom geriausios padalinimo kreives,
-    #issaugom duomenis ir ziurim ar galima skaidyti toliau
-    if (maxid>0) {
-      if ( c.splits) {
-        .visualise_splits.best_straight(what = trace.object,
-                                        pairs_pts, maxid, maxdif)
-        environment(.curvial_split) <- environment()
-        best.curve <- .curvial_split(
+  }
+}
+.structurise <- function(e,split.stats,split.lines){
 
-          poly.x = perim_pts[[2]]$x.poly,
-          poly.y = perim_pts[[2]]$y.poly,
-      min.x.id = pairs_pts[maxid,6],
-      max.x.id = pairs_pts[maxid,7],
-      b = pairs_pts[maxid,5],
-      data = samp.dat,
-      c.X.knots = c.X.knots,
-      c.Y.knots = c.Y.knots,
-      N.cond = N.crit,
-      S.cond = S.cond,
-      c.max.iter.no = c.max.iter.no,
-      c.fast.optim = c.fast.optim,
-      c.corr.term = c.corr.term,
-      trace.object = trace.object,
-      trace.level = trace.level,
-      pnts.col = pnts.col,
-      straight.qual = maxdif
-
+  structure(list(
+    split.lines = split.lines,
+    polygons.xy = e$rims,
+    poly.stats = e$poly.info,
+    poly.obj = structure(e$poly.obj),
+    split.stats = structure(split.stats),
+    call.info = list(METHOD =
+                       list(method = e$method, metric = e$metric,
+                            variant = e$variant, similarity = e$similarity,
+                            maximize = e$maximize, method.type = e$method.type),
+                     Call_ARGS = e$args),
+    str.difs = e$str.split.quals
+  ),
+  class = "hespdiv"
+  )
+}
+.form.bioz.Pielou <- function(result){
+  parent.Pe <- unlist(result$poly.obj)
+  result$poly.stats$parent.Pe <- parent.Pe
+  if (!is.null(result$split.stats) ){
+    result$split.stats$parent.Pe <- parent.Pe[result$split.stats$plot.id]
+    result$split.stats$delta.Pe <- -result$split.stats$parent.Pe *
+      result$split.stats$performance/100
+  }
+  result
+}
+.format_result.general <- function(e){
+  if (length(e$plot.id) == 0 ){
+    split.stats <- NULL
+    split.lines <- NULL
+  } else {
+    split.lines <- e$splits
+    if (e$c.splits){
+      split.stats <- data.frame(
+        plot.id = e$plot.id,
+        n.splits = e$poly.info$n.splits[e$plot.id],
+        n.obs = e$poly.info$n.obs[e$plot.id],
+        mean = e$poly.info$mean[e$plot.id],
+        sd = e$poly.info$sd[e$plot.id],
+        z.score = apply(e$poly.info[e$plot.id,],1,
+                        function(o) if (o[[10]]) {o[[12]]} else {o[[8]]}),
+        performance = apply(e$poly.info[e$plot.id,],1,
+                     function(o) if (o[[10]]) {o[[11]]} else {o[[7]]}),
+        is.curve = e$poly.info$is.curve[e$plot.id]
       )
-    if ( max(best.curve[[2]],maxdif) < upper.Q.crit ){ # vel santykinis base line. Be to,
-      # galima gi reikalaut, kad atotrukis nuo base line butu tam tikro dydzio. Dar vienas P.crit
-      # argumentas reikalingas?
-      maxid <- 0
-    }
     } else {
-      if (maxdif < upper.Q.crit){
-        maxdif <- 0
-      }
+      split.stats <- data.frame(
+        plot.id = e$plot.id,
+        n.splits = e$poly.info$n.splits[e$plot.id],
+        n.obs = e$poly.info$n.obs[e$plot.id],
+        mean = e$poly.info$mean.en.p.red[e$plot.id],
+        sd = e$poly.info$sd.en.p.red[e$plot.id],
+        z.score = e$poly.info[e$plot.id,"str.z.score"],
+        performance = e$poly.info[e$plot.id,"str.best"]
+      )
     }
   }
-
-  if (maxid > 0){ # save the split and perform new splits if TRUE
-    curve.best <- FALSE
-    if (c.splits) {
-      if(best.curve[[2]] > maxdif) {
-        curve.best <- TRUE
-      }
-    }
-    if(curve.best) {
-      best.splitl <- data.frame(x = best.curve[[1]]$x, y = best.curve[[1]]$y)
-      maxdif <- best.curve[[2]]
-    } else {
-      best.splitl <- data.frame(x=as.numeric(c(pairs_pts[maxid,c(1,3)])),
-                                y=as.numeric(c(pairs_pts[maxid,c(2,4)])))
-    }
-    .visualise_splits.best_split(what = trace.object,
-                                 best.splitl, maxdif)
-
-    assign(x = "splits" ,value = do.call(c,list(splits,list(best.splitl))),
-           envir = e)
-    assign(x = "split.quality" ,
-           value = do.call(c,list(split.quality,maxdif )),
-           envir = e)
-    assign(x = "split.z.score" ,
-           value = do.call(c,list(split.z.score,
-                                  (maxdif - mean.dif)/sd.dif)),
-           envir = e)
-    # z-score of performance
-    #dalinam duomenis padalinimo kreive
-    #reikia sukurti poligonus du ir nufiltruoti duomenis  - galima padaryti geriau
-    up.pol <- .close_poly(
-      open.poly =
-        .split_poly(
-          polygon = data.frame(x=perim_pts[[2]][,1][-nrow(perim_pts[[2]])],
-                               y=perim_pts[[2]][,2][-nrow(perim_pts[[2]])]),
-          split_ids = as.numeric(pairs_pts[maxid,6:7]),
-          min_id = 1,
-          trivial_side = TRUE,
-          poli_side = TRUE
-        ),
-      close.line = best.splitl
-    )
-    up.dat <- .get_data(up.pol,samp.dat,first.p, data.frame(
-      x = unlist(pairs_pts[maxid,c(1,3)]), y = unlist(pairs_pts[maxid,c(2,4)])))
-
-    do.pol <- .close_poly(
-      open.poly =
-        .split_poly(
-          polygon = data.frame(x=perim_pts[[2]][,1][-nrow(perim_pts[[2]])],
-                               y=perim_pts[[2]][,2][-nrow(perim_pts[[2]])]),
-          split_ids = as.numeric(pairs_pts[maxid,6:7]),
-          min_id = 1,
-          trivial_side = TRUE,
-          poli_side = FALSE
-        ),
-      close.line = best.splitl
-    )
-    do.dat <- .get_data(do.pol,samp.dat,first.p, data.frame(
-      x = unlist(pairs_pts[maxid,c(1,3)]), y = unlist(pairs_pts[maxid,c(2,4)])))
-
-    #issaugom duomenis padalinimo
-    ribs <- list(up.pol,do.pol)
-
-    #maisom duomenis ir vertinam aptiktu erdviniu strukturu patimuma
-    if (n.m.test){
-
-      set.seed(n.m.seed)
-      test1 <- .sp.n.m(samp.dat,ribs,n.m.N,n.m.keep,type = 1)
-      test2 <- .sp.n.m(samp.dat,ribs,n.m.N,n.m.keep,type = 2)
-
-      if (n.m.keep){
-        assign(x = "n.m.sims1",value = do.call(c,list(n.m.sims1,list(test1[[2]]))),
-               envir = e)
-        assign(x = "n.m.sims2",value = do.call(c,list(n.m.sims2,list(test2[[2]]))),
-               envir = e)
-      }
-      assign(x = "sim2.difs",value = do.call(c,list(sim2.difs,list(test2[[1]]))),
-                                          envir = e)
-      assign(x = "sim1.difs",value = do.call(c,list(sim1.difs,list(test1[[1]]))),
-             envir = e)
-
-      assign(x = "p.val1", value =
-               do.call(c,list(
-                 p.val1,
-        sum(maxdif < test1[[1]])/n.m.N
-        )),
-        envir = e) # kvantilis
-      # kvantilio reiksme - empirine p verte
-      # jei gausinis skirstinys,tai:
-      # 1 - qnorm(sum(last(split.quality),mean(pseudo.kokybe),sd(pseudo.kokybe)) duotu teorine p-verte
-      assign(x = "p.val2", value =
-               do.call(c,list(
-                 p.val,
-                 sum(maxdif<test2[[1]])/n.m.N
-               )),
-             envir = e)
-      }
-  # updatinam ka reikia in hespdiv env.
-    assign(x = "n.splits",value = do.call(c,list(n.splits,length(any.split))),
-           envir = e)
-
-    assign(x = "mean.difs",
-           value = do.call(c,list(mean.difs,mean.dif)),
-           envir = e)
-    # kaip su situo rims blet?
-    assign(x = "rims" ,value = do.call(c,list(rims,ribs[1])) ,envir = e)
-    assign(x = "plot.id",value = do.call(c,list(plot.id,iteration)),
-           envir = e)
-
-
-    .spatial_div(up.dat, root = iteration)
-
-    print(paste("griztam i", testid, "padalinima [po mazu koord bloko]", sep=" "))
-
-
-    # Skaidom antra bloka
-    #jei egzistuoja gogolis (updatinti duomenys) tuomet sukuriam ribines koordinates ir lipdom prie
-    #gogolis masyvo. Duotu koordinaciu ribose ir bandom ieskoti pjuvio bei toliau updatinti duomenis.
-    #Jei pavyksta rasti pjuvi, updatinam duomenis, jei ne trinam null bobolis ir priklijuotas koo-
-    #rdinates.
-    assign(x = "rims" ,value = do.call(c,list(rims,ribs[2])) ,envir = e)
-    .spatial_div(do.dat, root = iteration)
-    print(paste("griztam i", testid, "padalinima [po aukstu koord bloko (gogolis exists)]", sep=" "))
-
-  }} else{
-    #Jei tinkamo padalino nerasta, grizta tuscias masyvas
-    if (testid>1){
-      if (!is.null(trace.object))
-      print("There were no suitable points on the polygon perimeter
-            to generate straight-split lines")
-    } else{
-      if (!is.null(trace.object))
-      print("There were no suitable points on the polygon perimeter
-            to generate straight-split lines")
-    }
-  }
+  .structurise(e,split.stats,split.lines)
 }
 
-#' Calculate difference between two data sets
-#'
-#' @description  Function combines generalize.f and compare.f functions, to
-#' estimate the difference between two data sets obtained from opposite sides
-#' of a split-line. This difference reflects the ability of a split-line to
-#' spatially separate data. Thus, it is considered to reflect the quality of a
-#' split-line.
-#' @param dat1 a spatial subset of \code{samp.dat} that is located at opposite
-#' side of a split-line than \code{dat2} is.
-#' \code{samp.dat = data}.
-#' @param dat2 a spatial subset of \code{samp.dat} that is located at opposite
-#' side of a split-line than \code{dat1} is.
-#' @return Numeric value, expressing the difference between two data sets and
-#' the quality of a split-line.
-#' @author Liudas Daumantas
-#' @note Function inherits the environment of \code{hespdiv} function. Also,
-#' it forces this environment to be inherited by generalize.f and compare.f
-#' functions.
-#' @noRd
-.dif_fun <- function(dat1,dat2) {
-  environment(generalize.f) <- environment()
-  environment(compare.f) <- environment()
-  compare.f( generalize.f(dat1), generalize.f(dat2) )
+.arg_check <- function(name, given,NAMES){
+  matched.i <- pmatch(given, NAMES)
+  if(is.na(matched.i))
+    stop("invalid ",name, " ", paste0("'", given,"'."),
+         paste('\nPlease select viable', name,": "),
+         paste(NAMES,collapse = ", ",sep = "'"))
+  NAMES[matched.i]
 }
 
-
-
-
-#' Test the split-line with null model simulations
-#'
-#' @description  Function simulates spatial null models of the provided data and
-#' then checks the performance of the established split-line fitted to the
-#' simulated data.
-#' @param data a samp.dat from .spatial_div function.
-#' @param ribs a list of two data frames of polygons, established by the
-#' fitted, "best" split-line.
-#' @param n integer - number of data simulations to perform.
-#' @param n.m.keep logical - should the produced simulations be kept
-#' @param type type of null model simulations:
-#' 1 - completely random: toroidal rotation of individual data points (the only
-#' things maintained is polygon shape and number of points, and points
-#' themselves),
-#' 2 - random perspective of data points: toroidal rotation of all data points
-#' (micro and macro spatial inter-relations of points are maintained)
-#' Other possible n.m. types:
-#' 3 - random macro inter-relations of data points: toroidal rotation of
-#' data point groups, that lie in the same quadrant of polygon extent (micro
-#' inter-relations of points are maintained) # quadrant number would be required
-#' as an argument.
-#' 4 - random micro inter-relations of data points: jitter of data
-#' points. The amount of jittery equal to points' distance to the xth
-#' nearest neighbor (density surface (intensity, first moment) as well as macro
-#' inter-relations of points are maintained) # xth nearest neighbour would be
-#' required as an argument.
-#' 5?? - random micro and macro inter-relations of data points: rotation of
-#' quadrants and jitter of the points (maintained are point inter-relations that
-#' are occur between the given micro and macro scales.)
-#' @return list of one or two elements: 1 - vector of estimated performances of
-#' the split-line for each of null model simulation. 2 -  list of data frames of
-#' simulated data (null models), returned only when n.m.keep is TRUE.
-#' @author Liudas Daumantas
-#' @noRd
-.sp.n.m <- function(data,ribs,n,n.m.keep,type){
-    if (type == 1) {
-      N <- nrow(data)
-    } else {
-      N <- 1
-    }
-    mirror.data <- data
-    pseudo.kokybe <- numeric(n.m.N)
-    if (n.m.keep){
-      sim <- list()
-    }
-  for (i in 1:n){
-    x.shift <- runif(N,min=0,max=dist(range(data$x)))
-    y.shift <- runif(N,min=0,max=dist(range(data$y)))
-    testx <- data$x+x.shift
-    testy <- data$y+y.shift
-    tx <- case_when(testx>max(data$x) ~ testx-max(data$x)+min(data$x),
-                  TRUE ~ testx)
-    ty <- case_when(testy>max(data$y) ~ testy-max(data$y)+min(data$y),
-                  TRUE ~ testy)
-
-    mirror.data[,c("x","y")] <- data.frame(x=tx,y=ty)
-    I.dat <- .get_data(ribs[[1]], mirror.data)
-    II.dat <- .get_data(ribs[[2]], mirror.data)
-
-    pseudo.kokybe[i] <- dif.fun(I.dat, II.dat)
-
-    if (n.m.keep){
-    sim <- do.call(c,list(sim1,list(mirror.data)))
-    }
-  }
-    if (n.m.keep){
-      return(list(pseudo.kokybe,sim))
-    } else {
-      return(list(pseudo.kokybe))
-    }
+.get_methods <- function(){
+  list(
+    "biozonation" = list(
+      "pielou" = c("1"),
+      "morisita" = c("1"),
+      "sorensen" = c("1"),
+      "horn.morisita" = c("2")
+    )
+  )
 }

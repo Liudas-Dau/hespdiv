@@ -6,9 +6,10 @@
 \usage{
 ggplot_hespdiv(
   obj,
-  data,
+  xy.dat,
   type = "color",
   n.loc = FALSE,
+  title = NULL,
   pnts.col = NULL,
   seed = 10,
   ...
@@ -17,9 +18,10 @@ ggplot_hespdiv(
 \arguments{
 \item{obj}{hespdiv object}
 
-\item{data}{data points used in hespdiv.}
+\item{xy.dat}{data.frame. coordinates of locations of data points used in
+hespdiv.}
 
-\item{type}{character string. Either "width" or "color" (default "color").
+\item{type}{character. Either "width" or "color" (default "color").
 Determines whether quality of split-lines is expressed by line width or
 color.}
 
@@ -27,6 +29,9 @@ color.}
 at each location? Only possible, when there are localities with more than
 one observation. If type is 'color', then no. of obs. are expressed via point
 sizes. Otherwise, they are expressed by color in logarithmic scale.}
+
+\item{title}{character. Metric title in legend. The default is built
+according to the obj$call.info$METHOD$metric.}
 
 \item{pnts.col}{color of data points.}
 
