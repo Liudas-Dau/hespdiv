@@ -21,7 +21,7 @@ blok3d <- function(obj,height = "mean", color.seed=1, lines=TRUE, pnts.col = NUL
   height <- as.vector(sapply(height, .arg_check, name = "height", NAMES = c("mean","sd","best","z.score",
                                                  "str.best", "str.z.score")))
   for (height in height){
-    open3d()
+    rgl::open3d()
     poly.stats <- obj$poly.stats
     if (height == "best"){
       poly.stats$best <- ifelse(is.na(obj$poly.stats$is.curve),
@@ -141,7 +141,7 @@ blok3d <- function(obj,height = "mean", color.seed=1, lines=TRUE, pnts.col = NUL
   }
   return(data.frame(zmini,zmaxi))
 }
-#' @importFrom  pracma poly_center
+# Add a block of polygon to the rgl device
 #' @noRd
 .draw_poly<-function(obj,i,color,ZZ, Zoff){
   #bloko koordinates
