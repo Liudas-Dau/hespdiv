@@ -135,7 +135,7 @@ ggplot_hespdiv <- function(obj, xy.dat, type = "color",n.loc = FALSE,
                            lineend = "round",linejoin = "round")
   }
   if (type == "width"){
-    color <- .generate_cols.splits(split.stats, seed)
+    color <- .generate_cols(nrow(split.stats), seed)
     df$color <- rep(color, times=npt.in.split)
     df$size <- size
     base<-base + geom_path(data = df, aes(x,y,group=group,

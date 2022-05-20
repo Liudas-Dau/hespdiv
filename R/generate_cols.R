@@ -1,8 +1,7 @@
 #' @noRd
-.generate_cols.splits<-function(split.stats,seed){
+.generate_cols <- function(n,seed){
   set.seed(seed)
   #sp.n <- length(unique(data[,-which(colnames(data) %in% c('x','y'))]))
-  n <- nrow(split.stats)
   if (n<=74){
     qual_col_pals <- RColorBrewer::brewer.pal.info[
       RColorBrewer::brewer.pal.info$category == 'qual',]

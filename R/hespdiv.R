@@ -63,8 +63,6 @@
 #' preset \code{generalize.f} and \code{compare.f} functions will be used to
 #' perform hierarchical subdivisions of spatial data, if \code{compare.f}
 #' function is not provided.
-#' @param similarity logical. Does the named metric reflect similarity? Needs
-#' only to be provided when custom \code{compare.f} function is used.
 #' @param maximize logical. Should the value returned by \code{compare.f} be
 #' maximized or minimized? Needs only to be provided when custom
 #' \code{compare.f} function is used.
@@ -665,8 +663,8 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
 .arg_check <- function(name, given,NAMES){
   matched.i <- pmatch(given, NAMES)
   if(is.na(matched.i))
-    stop("invalid ",name, " ", paste0("'", given,"'."),
-         paste('\nPlease select viable', name,": "),
+    stop("invalid argument '",name, "' value: ", paste0('"', given,'".'),
+         paste0("\nPlease select viable option: "),
          paste(NAMES,collapse = ", ",sep = "'"))
   NAMES[matched.i]
 }

@@ -227,7 +227,7 @@
         #isbandom vis kita Y koordinate knotui su duota x koordinate
         best.y.knots[1+l] <- knot.y.matrix[k,l]
         #sugeneruojam splina per knotus
-        curve <- spline(split.line.x,best.y.knots,n=1000)
+        curve <- spline(split.line.x,best.y.knots,n=100)
         #iteratyviai darom, kol nebemeta klaidos:
         #patikrinam ar poligono viduj kreive, gaunam pataisos tasku koordinates
         #skeliam split.line.x ir best.y.knots i tiek daliu, kiek reikia ir
@@ -280,11 +280,11 @@
       #sugeneruojam spline, kurio X asyje yra knotu Y koordinates, o Y asyje
       #padalinimo kreives kokybe
       #skirta interpoliuojant aproksimuoti tarpiniu Y koordinaciu vertes
-      proj <- spline(knot.y.matrix[,l], y.cord.quality, n=1000)
+      proj <- spline(knot.y.matrix[,l], y.cord.quality, n=100)
       if (.comp(.minormax(proj$y), best.qual)){
         test.knots <- best.y.knots
         test.knots[1+l] <- proj$x[.which_minormax(proj$y)]
-        curve.test <- spline(split.line.x,test.knots,n=1000)
+        curve.test <- spline(split.line.x,test.knots,n=100)
         curve.test <- .spline_corrections(curve.test,Xup,Xdown,Yup,Ydown,test.knots,
                                         split.line.x,c.corr.term = c.corr.term)
         environment(.curve_quality) <- environment()
@@ -319,7 +319,7 @@
   }
   #siame etape kiekvienam X koordinates knotui turime po geriausia Y koordinate
   #sugeneruojam per siuos knotus kreive
-  curve.final <- spline(split.line.x, best.y.knots, n=1000)
+  curve.final <- spline(split.line.x, best.y.knots, n=100)
   #kreive gali islisti is uz polygono (pvz. kokybes dideli iverciai buvo
   # gauti pataisius duotus knotus)
   #taigi, kreive dar karta bandoma pataisyti, jei reikia
@@ -383,7 +383,7 @@
         #isbandom vis kita Y koordinate knotui su duota x koordinate
         best.y.knots[1+l] <- knot.y.matrix[k,l]
         #sugeneruojam splina per knotus
-        curve <- spline(split.line.x,best.y.knots,n=1000)
+        curve <- spline(split.line.x,best.y.knots,n=100)
         #iteratyviai darom, kol nebemeta klaidos:
         #patikrinam ar poligono viduj kreive, gaunam pataisos tasku koordinates
         #skeliam split.line.x ir best.y.knots i tiek daliu, kiek reikia ir
@@ -437,11 +437,11 @@
       #sugeneruojam spline, kurio X asyje yra knotu Y koordinates, o Y asyje
       #padalinimo kreives kokybe
       #skirta interpoliuojant aproksimuoti tarpiniu Y koordinaciu vertes
-      proj <- spline(knot.y.matrix[,l], y.cord.quality, n=1000)
+      proj <- spline(knot.y.matrix[,l], y.cord.quality, n=100)
       if (.comp(.minormax(proj$y), best.qual)){
         test.knots <- best.y.knots
         test.knots[1+l] <- proj$x[.which_minormax(proj$y)]
-        curve.test <- spline(split.line.x,test.knots,n=1000)
+        curve.test <- spline(split.line.x,test.knots,n=100)
         curve.test<-.spline_corrections(curve.test,Xup,Xdown,Yup,Ydown,test.knots,
                                         split.line.x,c.corr.term = c.corr.term)
         .visualise_splits.try_int_curve(what = trace.object,
@@ -496,7 +496,7 @@
   }
   #siame etape kiekvienam X koordinates knotui turime po geriausia Y koordinate
   #sugeneruojam per siuos knotus kreive
-  curve.final<-spline(split.line.x,best.y.knots,n=1000)
+  curve.final<-spline(split.line.x,best.y.knots,n=100)
   #kreive gali islisti is uz polygono (pvz. kokybes dideli iverciai buvo
   # gauti pataisius duotus knotus)
   #taigi, kreive dar karta bandoma pataisyti, jei reikia
@@ -545,9 +545,9 @@
                         y = c(rot.poli.do$y, rev(curve$y)[-1]))
   #atrenkam taskus patenkancius i skirtingas poligono dalis, padalintas kreive
   id1 <- .get_ids(I.poli,rot.dat.cords,first.p,
-                  data.frame(curve)[c(1,1000),c(1,2)])
+                  data.frame(curve)[c(1,100),c(1,2)])
   id2 <- .get_ids(II.poli,rot.dat.cords,first.p,
-                  data.frame(curve)[c(1,1000),c(1,2)])
+                  data.frame(curve)[c(1,100),c(1,2)])
   #atliekam plotu palyginima, t.y. padalinimo gerumo ivertinima, jei kreive
   #netenkina minimaliu kriteriju - padalinimo kokybe nuline
   message <- ""
@@ -655,7 +655,7 @@
         }
       }
     }
-    curve<-spline(corrected.split.line.x,corrected.best.y.knots,n=1000)
+    curve<-spline(corrected.split.line.x,corrected.best.y.knots,n=100)
     best.y.knots<-corrected.best.y.knots
     split.line.x<-corrected.split.line.x
     return(.spline_corrections(curve =curve ,Xup =Xup ,Xdown =Xdown ,Yup=Yup,

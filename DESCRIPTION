@@ -8,5 +8,5 @@ Description: Provides functions for hierarchical data subdivision in space, usin
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-Imports: sp, pracma, DescTools, ggplot2, viridis, ggrepel, grDevices, RColorBrewer
+Imports: sp, pracma, DescTools, ggplot2, viridis, ggrepel, grDevices, RColorBrewer, rgl
 RoxygenNote: 7.1.2

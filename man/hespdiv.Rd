@@ -8,10 +8,8 @@ hespdiv(
   data,
   n.split.pts = 15,
   generalize.f = NULL,
-  method,
-  metric,
-  variant = "1",
   maximize = NULL,
+  method = NULL,
   compare.f = NULL,
   N.crit = 0,
   S.crit = 0,
@@ -27,7 +25,6 @@ hespdiv(
   c.corr.term = 0.05,
   filter.all = TRUE,
   n.m.test = FALSE,
-  similarity = NULL,
   n.m.N = 1000,
   n.m.seed = 1,
   n.m.keep = FALSE,
@@ -60,23 +57,14 @@ an R object, that is recognized and used by \code{compare.f} function to
 estimate the quality of the split-lines (difference between two data groups
 separated in space by a split-line)}
 
-\item{method}{String. A name of a method. Should reflect the purpose of the
-study, if custom \code{compare.f} function is provided. Otherwise, method,
-metric and variant arguments must be selected from available
-options (see ...). Chosen combination of these arguments determines which
-preset \code{generalize.f} and \code{compare.f} functions will be used to
-perform hierarchical subdivisions of spatial data, if \code{compare.f}
-function is not provided.}
-
-\item{metric}{String. A name of a metric that method uses to measure the
-quality of data separation.}
-
-\item{variant}{String (default 1). A name of particular implementation of
-of some method-metric combination.}
-
 \item{maximize}{logical. Should the value returned by \code{compare.f} be
 maximized or minimized? Needs only to be provided when custom
 \code{compare.f} function is used.}
+
+\item{method}{String. A name of preset method. Determines which
+preset \code{generalize.f} and \code{compare.f} functions will be used to
+perform hierarchical subdivisions of spatial data, if \code{compare.f}
+function is not provided.}
 
 \item{compare.f}{a function used to quantify the difference between two data
 groups separated in space by a split-line. The estimated difference
@@ -140,9 +128,9 @@ variety of wave amplitudes to be tested, when optimizing the shape of
 curvi-linear split-lines. Thus higher values increase the fit to the data at
 the cost of optimization time. Default value is 10.}
 
-\item{xy.dat}{a matrix containing coordinates for objects in \code{data}. If
-\code{data} is data frame or matrix that has columns x or y, can be ignored
-(default NULL).}
+\item{xy.dat}{a data.frame containing coordinates for objects in \code{data}.
+ If \code{data} is data frame or matrix that has columns x or y, can be
+ignored (default NULL).}
 
 \item{c.max.iter.no}{the maximum number of allowed iterations through the
 columns of spline knots (default 5). Setting higher values (eg Inf) increases
@@ -187,9 +175,6 @@ boundary performance scores, then it may be either that clustering of data
 qualities is quite poor or that spatial autocorrelation structure caused by
 all these physical proccesses is responsible for the observed clusterization.
 TWO models (toroidal and totally random).}
-
-\item{similarity}{logical. Does the named metric reflect similarity? Needs
-only to be provided when custom \code{compare.f} function is used.}
 
 \item{n.m.N}{number of spatial simulations in null models. Default is
 1000.}
