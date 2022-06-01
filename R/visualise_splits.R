@@ -35,16 +35,18 @@
 .visualise_splits.end <- function(pnts.col, xy.dat, rims) {
   if(!is.null(pnts.col)){
     plot(xy.dat$x, xy.dat$y, col=pnts.col,xlab = "x coordinate",
-         ylab = "y coordinate" ,pch=19)
+         ylab = "y coordinate" ,pch=19, ylim = range(rims[[1]]$y),
+         xlim = range(rims[[1]]$x))
   } else {
-    plot(NULL,xlim = range(xy.dat$x),ylim = range(xy.dat$y),col=0,
+    plot(NULL, ylim = range(rims[[1]]$y),
+         xlim = range(rims[[1]]$x), col=0,
          xlab = "x coordinate", ylab = "y coordinate")
   }
   lines(rims[[1]])
 
   if (length(rims)>1) {
     for (i in 2:length(rims)){
-      lines(x=rims[[i]][,1],y=rims[[i]][,2],col=1,lwd=2)
+      lines(x=rims[[i]][,1],y=rims[[i]][,2],col=21,lwd=2)
     }}
 }
 .visualise_splits.best_straight <- function(what,

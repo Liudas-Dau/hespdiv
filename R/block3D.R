@@ -64,7 +64,8 @@ blok3d <- function(obj,height = "mean", color.seed=1, lines=TRUE, pnts.col = NUL
     #sukuriam erdve, kurioj piesim blokus - min, max koordinates padedam, nematomi taskiukai plius
     #rgl.material(alpha = 0)
     #spalvu palete sukuriam
-    palete <- .generate_cols(nrow(ZZ)-length(del.id), seed=color.seed)
+    n <- nrow(ZZ)-length(del.id)
+    palete <- .generate_cols(n, seed=color.seed)
 
 
     # jei uzduoti duomenys, nupaisom erdves pavirsiuje duomenis, spalvu paletes paskutiniai elementai - rusiu spalvos
@@ -82,13 +83,13 @@ blok3d <- function(obj,height = "mean", color.seed=1, lines=TRUE, pnts.col = NUL
                 zlim = range(unlist(c(ZZ)),
                              na.rm = T),
                 zlab = height, xlab = "x", ylab = "y")
-
+#
     #paisom kiekvieno bloko pavirsius
-    for (i in seq(nrow(ZZ))[-del.id]){
-      .draw_poly(obj,i,color=palete[i], ZZ, Zoff)
+    for (i in seq(n)) {
+      .draw_poly(obj,(seq(nrow(ZZ))[-del.id])[i],color=palete[i], ZZ, Zoff)
     }
     if (lines==TRUE){
-      for (i in seq(nrow(ZZ))[-del.id]){
+      for (i in seq(nrow(ZZ))){
         rgl::rgl.linestrips(x=obj$polygons.xy[[i]]$x,y=obj$polygons.xy[[i]]$y,
                             z=highest.z,col=1)
       }

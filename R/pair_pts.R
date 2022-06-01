@@ -46,9 +46,9 @@
         y<-per_pts[c(a,o),2]
         id.min<-which.min(x)
         b<-(y[-id.min]-y[id.min])/(x[-id.min]-x[id.min])
-        line.x<-seq(x[id.min],x[-id.min],length.out = 100)
+        line.x<-seq(x[id.min],x[-id.min],length.out = 1000)
         line.y<-y[id.min]+b*(line.x-x[id.min])
-        if(all(sp::point.in.polygon(line.x,line.y,polygon[,1],polygon[,2])[-c(1,100)]==1)){
+        if(all(sp::point.in.polygon(line.x,line.y,polygon[,1],polygon[,2])[-c(1,1000)]==1)){
           pairs_pts<-rbind(pairs_pts,data.frame(x1=x[id.min],y1=y[id.min],x2=x[-id.min],y2=y[-id.min],
                                         b=b,id1=per_pts[(c(a,o)[id.min]),3],id2=per_pts[(c(a,o))[-id.min],3]))
         }
