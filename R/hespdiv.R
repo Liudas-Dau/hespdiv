@@ -66,30 +66,39 @@
 #' @param maximize logical. Should the value returned by \code{compare.f} be
 #' maximized or minimized? Needs only to be provided when custom
 #' \code{compare.f} function is used.
+#' @param N.rel.crit number from 0 to 0.5. The minimum allowed observation
+#' proportion in polygon containing less data.
 #' @param N.crit Subdivision stopping criteria - number of observations.
 #' Minimum number of observations (rows in data) that should
 #' be present in areas separated by a split-line in order to establish the
 #' split-line. Default is 1.
+#' @param N.loc.crit Subdivision stopping criteria - number of unique locations.
+#' Only meaningful when there are observations from the same location. Default
+#' 0.2.
+#' @param N.loc.rel.crit number from 0 to 0.5. The minimum allowed unique
+#' locations proportions in polygon containing less locations.
+#' @param S.rel.crit number from 0 to 0.5. The minimum allowed area
+#' proportion of a smaller polygon. Default 0.2.
 #' @param S.crit Subdivision stopping criteria - size of plots.
-#' Minimum area expressed as a proportion of original study area
+#' Minimum area expressed as a proportion of study area
 #' (provided polygon or estimated as convex hull of \code{xy_dat}) that plots
 #' separated by a split-line should have so that the split-line could be
 #' established. Default is 0.
-#' @param lower.Q.crit integer (default NULL). Only meaningful when c.splits is
-#' TRUE. lower.Q.crit determines the minimum performance that the best obtained
-#' straight-split line should have so that attempt would be made to generate
-#' from it a better non-linear split-line. Recommendation is to leave this value
-#' set to default (no performance requirement) and only use different value,
-#' when you are quite sure what are the limitations of improvements that
-#' non-linear split-lines can make over straight split-lines (e.g. if maximize
-#' is TRUE, lower.Q.crit = upper.Q.crit - MAX.c.improv).
-#' @param upper.Q.crit Subdivision stopping criteria - upper limit of split-line
+#' @param Q.crit Subdivision stopping criteria - upper limit of split-line
 #' quality applied to the final split-line. This is a minimum difference as
 #' estimated by \code{compare.f} function that separated
 #' plots should exhibit, so that a subdivision of a plot using the
 #' best split-line would be established. Default is -Inf.
 #' @param c.splits Logical (default TRUE).
 #' Should non-linear split-lines be estimated?
+#' @param c.Q.crit integer (default NULL). Only meaningful when c.splits is
+#' TRUE. c.Q.crit determines the minimum performance that the best obtained
+#' straight-split line should have so that attempt would be made to generate
+#' from it a better non-linear split-line. Recommendation is to leave this value
+#' set to default (no performance requirement) and only use different value,
+#' when you are quite sure what are the limitations of improvements that
+#' non-linear split-lines can make over straight split-lines (e.g. if maximize
+#' is TRUE, c.Q.crit = Q.crit - MAX.c.improv).
 #' @param C.crit.improv integer. How much non-linear split must be
 #' better than straight (in units of provided metric) for it to be selected?
 #' When 0 is set (default), then non-linear split-line still won't be selected
@@ -205,9 +214,11 @@
 
 hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
                   maximize = NULL, method = NULL,
-                  compare.f = NULL, N.crit = 0,
-                  S.crit = 0, lower.Q.crit, upper.Q.crit,
-                  c.splits = TRUE, C.crit.improv = 0, c.X.knots = 5,
+                  compare.f = NULL, N.crit = 1, N.rel.crit = 0.2,
+                  N.loc.crit = NULL, N.loc.rel.crit = NULL,
+                  S.crit = 0.05, S.rel.crit = 0.2, Q.crit,
+                  c.splits = TRUE, c.Q.crit = NULL,
+                  C.crit.improv = 0, c.X.knots = 5,
                   c.Y.knots = 10, xy.dat = NULL,
                   c.max.iter.no = 5, c.fast.optim = TRUE,
                   c.corr.term = 0.05, filter.all = TRUE,
@@ -408,35 +419,35 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
 
 
   if (!maximize){
-    if (is.null(lower.Q.crit))
-      lower.Q.crit <- +Inf
+    if (is.null(c.Q.crit))
+      c.Q.crit <- +Inf
     .comp <- function(x,criteria){ x < criteria}
     c.sign <- "<"
     .minormax <- min
     .which_minormax <- which.min
   } else {
-    if (is.null(lower.Q.crit))
-      lower.Q.crit <- -Inf
+    if (is.null(c.Q.crit))
+      c.Q.crit <- -Inf
     .comp <- function(x,criteria){ x > criteria}
     c.sign <- ">"
     .minormax <- max
     .which_minormax <- which.max
   }
 
-  if ((c.splits == FALSE & upper.Q.crit != lower.Q.crit) |
-      ((upper.Q.crit > lower.Q.crit) & maximize) |
-      ((upper.Q.crit < lower.Q.crit) & !maximize) ){
-    if ((c.splits == FALSE & upper.Q.crit != lower.Q.crit)){
-      warning(paste("Since 'c.splits' is FALSE, 'lower.Q.crit' was set equal to
-          'upper.Q.crit'"))
-      lower.Q.crit <- upper.Q.crit
+  if ((c.splits == FALSE & Q.crit != c.Q.crit) |
+      ((Q.crit > c.Q.crit) & maximize) |
+      ((Q.crit < c.Q.crit) & !maximize) ){
+    if (c.splits == FALSE & Q.crit != c.Q.crit & !c.Q.crit %in% c(+Inf,-Inf)){
+      warning(paste("Since 'c.splits' is FALSE, 'c.Q.crit' was set equal to
+          'Q.crit'"))
+      c.Q.crit <- Q.crit
     }
-    if ((upper.Q.crit > lower.Q.crit) & !maximize){
-      warning(paste("upper.Q.crit should be lower or equal to lower.Q.crit,",
+    if ((Q.crit > c.Q.crit) & !maximize){
+      warning(paste("Q.crit should be lower or equal to c.Q.crit,",
                     "when optimization is reached by minimazing the metric."))
     }
-    if ((upper.Q.crit < lower.Q.crit) & maximize){
-      warning(paste("upper.Q.crit should be higher or equal to lower.Q.crit,",
+    if ((Q.crit < c.Q.crit) & maximize){
+      warning(paste("Q.crit should be higher or equal to c.Q.crit,",
                     "when optimization is reached by maximising the metric."))
     }
   }
@@ -523,11 +534,11 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
   poly.info <- data.frame(plot.id = plot.id,poly.info)
 
 
-  # which best is not clear, when no split was above lower.Q.crit
-  if (any(poly.info$str.best == lower.Q.crit)){
+  # which best is not clear, when no split was above c.Q.crit
+  if (any(poly.info$str.best == c.Q.crit)){
     plot.id.with.ns <- which(poly.info$n.splits != 0)
     poly.info$str.best[plot.id.with.ns] <- ifelse(poly.info$str.best[
-      plot.id.with.ns] == lower.Q.crit,
+      plot.id.with.ns] == c.Q.crit,
       lapply(str.split.quals[plot.id.with.ns],.minormax),
       poly.info$str.best[plot.id.with.ns])
     poly.info$str.best[-plot.id.with.ns] <- NA
@@ -650,8 +661,8 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
         plot.id = e$plot.id,
         n.splits = e$poly.info$n.splits[e$plot.id],
         n.obs = e$poly.info$n.obs[e$plot.id],
-        mean = e$poly.info$mean.en.p.red[e$plot.id],
-        sd = e$poly.info$sd.en.p.red[e$plot.id],
+        mean = e$poly.info$mean[e$plot.id],
+        sd = e$poly.info$sd[e$plot.id],
         z.score = e$poly.info[e$plot.id,"str.z.score"],
         performance = e$poly.info[e$plot.id,"str.best"]
       )

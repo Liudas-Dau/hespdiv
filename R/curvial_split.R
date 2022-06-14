@@ -10,8 +10,19 @@
 #' @param samp.dat spatial subset of data
 #' @param c.X.knots number of spline knots along the split line
 #' @param c.Y.knots number of spline knots orthogonal to the split line
-#' @param N.condminimum minimum number of fossils required to establish subdivision of a plot
+#' @param N.crit minimum number of observations required to establish
+#' subdivision of a polygon.
+#' @param N.rel.crit number from 0 to 0.5. The minimum allowed observation
+#' proportion in polygon containing less data.
+#' @param N.loc.crit Subdivision stopping criteria - number of unique locations.
+#' Only meaningful when there are observations from the same location. Default
+#' 0.2.
+#' @param N.loc.rel.crit number from 0 to 0.5. The minimum allowed unique
+#' locations proportions in polygon containing less locations.
 #' @param S.cond minimum area required to establish subdivision of a plot
+#' @param S.rel.crit number from 0 to 0.5. The minimum allowed area
+#' proportion of a smaller polygon. Default 0.2.
+#' @param S_org area of the polygon being divided.
 #' @param c.max.iter.no maximum number of allowed iterations through the spline
 #' knots.
 #' @param c.fast.optim Logical (default TRUE). Determines when spline knots
@@ -28,12 +39,14 @@
 #' @param pnts.col Color of data points, default is 1. Argument is used when
 #' \code{trace} > 0. If set to NULL, data points will not be displayed.
 #' @param straight.qual Quality of the best straight split-line.
-#' @return A list of two elements: 1) curve in shape of a spline that produces the best data separation; 2) quality of the division
-#' @author Liudas Daumantas
+#' @return A list of two elements: 1) curve in shape of a spline that produces
+#' the best data separation; 2) quality of the division
 #' @noRd
 .curvial_split <- function(poly.x,poly.y,min.x.id,max.x.id,b,
                            samp.dat,c.X.knots=20,c.Y.knots=20,
-                           N.cond,S.cond,c.max.iter.no, c.fast.optim,
+                           N.crit,
+                           N.rel.crit,N.loc.crit,N.loc.rel.crit,S.cond,
+                           S.rel.crit, S_org, c.max.iter.no, c.fast.optim,
                            c.corr.term,
                            trace.object = trace.object,
                            trace.level = trace.level,
@@ -76,8 +89,6 @@
                                        trivial_side = TRUE,poli_side = FALSE))
 
   #randu vidinio pataisyto poligono apatine ir virsutine dali
- # if (iteration == 22)
- #   browser()
   bottom.inner.poli<-.inner_poly_hull(polygon = rot.poli.do)
   upper.inner.poli<-.inner_poly_hull(polygon = rot.poli.up)
   if( bottom.inner.poli[[2]] == 1 ){
@@ -127,7 +138,9 @@
     knot.y.matrix,split.line.x,Xup=upper.inner.poli[[1]]$x,
     Xdown=bottom.inner.poli[[1]]$x,Yup=upper.inner.poli[[1]]$y,
     Ydown=bottom.inner.poli[[1]]$y,
-    N.cond,S.cond,c.Y.knots,c.X.knots,rot.poli.up,rot.poli.do,
+    N.crit,
+    N.rel.crit,N.loc.crit,N.loc.rel.crit,S.cond,
+    S.rel.crit,S_org,c.Y.knots,c.X.knots,rot.poli.up,rot.poli.do,
     rot.dat.cords,c.max.iter.no = c.max.iter.no, c.corr.term = c.corr.term,
     trace.object = trace.object, trace.level = trace.level,
     straight.qual = straight.qual,samp.dat = samp.dat
@@ -138,7 +151,9 @@
       knot.y.matrix,split.line.x,Xup=upper.inner.poli[[1]]$x,
       Xdown=bottom.inner.poli[[1]]$x,Yup=upper.inner.poli[[1]]$y,
       Ydown=bottom.inner.poli[[1]]$y,
-      N.cond,S.cond,c.Y.knots,c.X.knots,rot.poli.up,rot.poli.do,
+      N.crit,
+      N.rel.crit,N.loc.crit,N.loc.rel.crit,S.cond,
+      S.rel.crit,S_org,c.Y.knots,c.X.knots,rot.poli.up,rot.poli.do,
       rot.dat.cords,c.max.iter.no = c.max.iter.no, c.corr.term = c.corr.term,
       trace.object = trace.object, trace.level = trace.level,
       straight.qual = straight.qual,samp.dat = samp.dat
@@ -169,8 +184,19 @@
 #' @param Xdown X coordinates of lower part (below split line) of standartized polygon
 #' @param Yup Y coordinates of upper part (above split line) of standartized polygon
 #' @param Ydown Y coordinates of lower part (below split line) of standartized polygon
-#' @param N.cond minimum number of fossils required to establish subdivision of a plot
+#' @param N.crit minimum number of observations required to establish
+#' subdivision of a polygon.
+#' @param N.rel.crit number from 0 to 0.5. The minimum allowed observation
+#' proportion in polygon containing less data.
+#' @param N.loc.crit Subdivision stopping criteria - number of unique locations.
+#' Only meaningful when there are observations from the same location. Default
+#' 0.2.
+#' @param N.loc.rel.crit number from 0 to 0.5. The minimum allowed unique
+#' locations proportions in polygon containing less locations.
 #' @param S.cond minimum area required to establish subdivision of a plot
+#' @param S.rel.crit number from 0 to 0.5. The minimum allowed area
+#' proportion of a smaller polygon. Default 0.2.
+#' @param S_org area of the polygon being divided.
 #' @param c.Y.knots number of spline knots orthogonal to the split line
 #' @param c.X.knots number of spline knots along the split line
 #' @param rot.poli.up rotated, but not standartized, open upper polygon
@@ -192,7 +218,8 @@
 #' @author Liudas Daumantas
 #' @noRd
 .curvi_split.fast<-function(knot.y.matrix,split.line.x,Xup,Xdown,Yup,Ydown,
-                            N.cond,S.cond,c.Y.knots,c.X.knots,rot.poli.up,
+                            N.crit,N.rel.crit,N.loc.crit,N.loc.rel.crit,S.cond,
+                            S.rel.crit,S_org,c.Y.knots,c.X.knots,rot.poli.up,
                             rot.poli.do,rot.dat.cords,c.max.iter.no = c.max.iter.no,
                             c.corr.term,trace.object = trace.object,
                             trace.level = trace.level, teta = teta, straight.qual,
@@ -244,7 +271,9 @@
         #ivertinam poligono padalinimo su sugeneruota kreive kokybe
         environment(.curve_quality) <- environment()
         SS <- .curve_quality(curve=curve,rot.poli.up, rot.poli.do,
-                             rot.dat.cords,samp.dat,N.cond,S.cond)
+                             rot.dat.cords,samp.dat,N.crit,
+                             N.rel.crit,N.loc.crit,N.loc.rel.crit,S.cond,
+                             S.rel.crit,S_org)
 
         if ( SS[[2]] != "" ){
           message <- SS[[2]]
@@ -289,7 +318,9 @@
                                         split.line.x,c.corr.term = c.corr.term)
         environment(.curve_quality) <- environment()
         SS <- .curve_quality(curve.test, rot.poli.up, rot.poli.do,
-                             rot.dat.cords, samp.dat, N.cond,S.cond)
+                             rot.dat.cords, samp.dat, N.crit,
+                             N.rel.crit,N.loc.crit,N.loc.rel.crit,S.cond,
+                             S.rel.crit,S_org)
         if (.comp(SS[[1]], best.qual)){
           .visualise_splits.good_curve(what = trace.object,
                                        level = trace.level,
@@ -328,7 +359,9 @@
   #ivertinam galutines padalinimo kreives kokybe
   environment(.curve_quality) <- environment()
   SS <- .curve_quality(curve.final, rot.poli.up, rot.poli.do, rot.dat.cords,
-                       samp.dat, N.cond, S.cond)
+                       samp.dat, N.crit,
+                       N.rel.crit,N.loc.crit,N.loc.rel.crit,S.cond,
+                       S.rel.crit, S_org)
   .visualise_splits.best_curve(what = trace.object,
                                curve.final, SS)
   #grazinam padalinimo kreive, jos kokybes iverti ir visu kitu lokaliai
@@ -341,8 +374,9 @@
 }
 
 
-.curvi_split<-function(knot.y.matrix,split.line.x,Xup,Xdown,Yup,Ydown,N.cond,
-                       S.cond,c.Y.knots,c.X.knots,rot.poli.up,
+.curvi_split<-function(knot.y.matrix,split.line.x,Xup,Xdown,Yup,Ydown,N.crit,
+                       N.rel.crit,N.loc.crit,N.loc.rel.crit,S.cond,
+                       S.rel.crit,S_org,c.Y.knots,c.X.knots,rot.poli.up,
                        rot.poli.do,rot.dat.cords,c.max.iter.no = c.max.iter.no,
                        c.corr.term,trace.object = trace.object,
                        trace.level = trace.level, teta = teta,
@@ -378,7 +412,6 @@
       }
     }
     for (l in x.seq) {
-      print(l)
       for (k in 1:(c.Y.knots-2)) {
         #isbandom vis kita Y koordinate knotui su duota x koordinate
         best.y.knots[1+l] <- knot.y.matrix[k,l]
@@ -400,13 +433,15 @@
         #ivertinam poligono padalinimo su sugeneruota kreive kokybe
         environment(.curve_quality) <- environment()
         SS <- .curve_quality(curve=curve,rot.poli.up, rot.poli.do,
-                             rot.dat.cords, samp.dat, N.cond,S.cond)
+                             rot.dat.cords, samp.dat, N.crit,
+                             N.rel.crit,N.loc.crit,N.loc.rel.crit,S.cond,
+                             S.rel.crit,S_org)
 
         if ( SS[[2]] != "" ){
           message <- SS[[2]]
           .visualise_splits.bad_curve(what = trace.object,level = trace.level,
                                       curve, message)
-        } else{
+        } else {
           #fiksuojam verte
           y.cord.quality[k] <- SS[[1]]
           any.qual <- c(any.qual,SS[[1]])
@@ -451,7 +486,9 @@
                                         y = test.knots[1+l])
         environment(.curve_quality) <- environment()
         SS <- .curve_quality(curve.test,rot.poli.up, rot.poli.do, rot.dat.cords,
-                             samp.dat,N.cond, S.cond)
+                             samp.dat,N.crit,
+                             N.rel.crit,N.loc.crit,N.loc.rel.crit,S.cond,
+                             S.rel.crit,S_org)
         if (.comp(SS[[1]], best.qual) & SS[[2]] == ""){
           .visualise_splits.good_int_curve(what = trace.object,
                                            level = trace.level,
@@ -505,7 +542,9 @@
   #ivertinam galutines padalinimo kreives kokybe
   environment(.curve_quality) <- environment()
   SS<-.curve_quality(curve.final,rot.poli.up, rot.poli.do, rot.dat.cords,
-                     samp.dat, N.cond, S.cond)
+                     samp.dat, N.crit,
+                     N.rel.crit,N.loc.crit,N.loc.rel.crit,S.cond,
+                     S.rel.crit,S_org)
   .visualise_splits.best_curve(what = trace.object,
                                curve.final, SS)
   #grazinam padalinimo kreive, jos kokybes iverti ir visu kitu lokaliai
@@ -530,14 +569,27 @@
 #' @param rot.poli.do rotated, but not standartized, open lower polygon
 #' @param rot.dat.cords rotated coordinates of data that is analyzed
 #' @param samp.dat spatial subset of data
-#' @param N.cond minimum number of fossils required to establish subdivision of a plot
+#' @param N.crit minimum number of observations required to establish
+#' subdivision of a polygon.
+#' @param N.rel.crit number from 0 to 0.5. The minimum allowed observation
+#' proportion in polygon containing less data.
+#' @param N.loc.crit Subdivision stopping criteria - number of unique locations.
+#' Only meaningful when there are observations from the same location. Default
+#' 0.2.
+#' @param N.loc.rel.crit number from 0 to 0.5. The minimum allowed unique
+#' locations proportions in polygon containing less locations.
 #' @param S.cond minimum area required to establish subdivision of a plot
+#' @param S.rel.crit number from 0 to 0.5. The minimum allowed area
+#' proportion of a smaller polygon. Default 0.2.
+#' @param S_org area of the polygon being divided.
 #' @return A list of two elements: 1) rotated (not suitable for the original polygon) curve in shape of a spline that produces the best data separation; 2) quality of the division
 #' @author Liudas Daumantas
 #' @importFrom pracma polyarea
 #' @noRd
 .curve_quality<-function(curve,rot.poli.up,rot.poli.do,rot.dat.cords,
-                         samp.dat,N.cond,S.cond){
+                         samp.dat,N.crit,
+                         N.rel.crit,N.loc.crit,N.loc.rel.crit,S.cond,
+                         S.rel.crit,S_org){
   #sudarom poligonus padalintus kreive
   I.poli <- data.frame(x = c(rot.poli.up$x, rev(curve$x)[-1]),
                        y = c(rot.poli.up$y, rev(curve$y)[-1]))
@@ -551,28 +603,84 @@
   #atliekam plotu palyginima, t.y. padalinimo gerumo ivertinima, jei kreive
   #netenkina minimaliu kriteriju - padalinimo kokybe nuline
   message <- ""
-  if ( all( c(length(id1), length(id2)) > N.cond ) ){
-
-    S1 <- abs(pracma::polyarea(I.poli$x,I.poli$y))
-    S2 <- abs(pracma::polyarea(II.poli$x,II.poli$y))
-    if ( all( c(S1, S2) > S.cond) ){
-      environment(.dif_fun) <- environment()
-      SS <- .dif_fun(.slicer(samp.dat,id1),.slicer(samp.dat,id2))
-    } else {
-      message <-  paste0("One of the areas was too small.\n","Obtained: ",
-                         round(S1,2), ' and ', round(S2,2),
-                         "\nRequired: >",S.cond)
-      SS <- upper.Q.crit
+  if (!is.null(N.crit)){
+    good <- length(id1) > N.crit & length(id2) > N.crit
+    if (!good){
+      return(list(NA, paste0("Not enough observations.",
+                             "\nObtained: ", length(id1), ' and ', length(id2),
+                             "\nRequired: >", N.crit) ))
     }
-  } else {
-    message <-  paste0("Not enough observations in one of the areas.",
-                       "\nObtained: ", length(id1), ' and ',
-                       length(id2),
-                       "\nRequired: >",N.cond)
-    SS <- upper.Q.crit
   }
 
-  return(list(SS, message))
+  if (!is.null(N.rel.crit)){
+    good <- length(id1) / nrow(rot.dat.cords) > N.rel.crit &
+      length(id2) / nrow(rot.dat.cords) > N.rel.crit
+    if (!good){
+      return(list(NA,paste0("Too low proportion of observations.\nObtained: ",
+                            round(length(id1) / nrow(rot.dat.cords), 2),
+                            ' and ', round(length(id2) / nrow(rot.dat.cords),
+                                           2), "\nRequired: >", N.rel.crit) ))
+    }
+  }
+
+  if (!is.null(N.loc.crit) | !is.null(N.loc.rel.crit)){
+    loc.id1 <- .get_ids(I.poli, unique(rot.dat.cords),first.p,
+                        data.frame(curve)[c(1,100),c(1,2)] )
+    loc.id2 <- .get_ids(II.poli, unique(rot.dat.cords),first.p,
+                        data.frame(curve)[c(1,100),c(1,2)] )
+    if (!is.null(N.loc.crit)){
+      good <- length(loc.id1) > N.loc.crit &
+        length(loc.id2) > N.loc.crit
+      if (!good){
+        return(list(NA, paste0("Not enough locations.",
+                               "\nObtained: ", length(loc.id1),
+                               ' and ', length(loc.id2),
+                               "\nRequired: >", N.loc.crit) ))
+      }
+    }
+    if (!is.null(N.loc.rel.crit)){
+      n.uni <- nrow(unique(rot.dat.cords))
+      good <- length(loc.id1) / n.uni > N.loc.rel.crit &
+        length(loc.id2) / n.uni > N.loc.rel.crit
+      if (!good){
+        return(list(NA, paste0("Too low proportion of locations.",
+                               "\nObtained: ", round(length(loc.id1) / n.uni,2),
+                               ' and ', round(length(loc.id2) / n.uni, 2),
+                               "\nRequired: >", N.loc.rel.crit) ))
+      }
+    }
+  }
+
+  if (!is.null(S.crit) | !is.null(S.rel.crit)){
+    S1 <- abs(pracma::polyarea(I.poli$x,I.poli$y))
+    S2 <- abs(pracma::polyarea(II.poli$x,II.poli$y))
+    if (!is.null(S.crit)) {
+      good <- S1 > S.cond & S2 > S.cond
+      if (!good){
+        return(list(NA, paste0("One of the areas was too small.\n","Obtained: ",
+                               round(SpjuvioI,2), ' and ', round(SpjuvioII,2),
+                               "\nRequired: >", S.cond) ))
+      }
+    }
+    if (!is.null(S.rel.crit)) {
+      good <- S1 / S_org  > S.rel.crit &
+        S2 / S_org > S.rel.crit
+      if (!good){
+        message <- paste0("Too low proportion of area.\n","Obtained: ",
+                          round(SpjuvioI / S_org,2), ' and ',
+                          round(SpjuvioII / S_org, 2),
+                          "\nRequired: >", S.rel.crit)
+        return(list(NA, paste0("Too low proportion of area.\n","Obtained: ",
+                               round(SpjuvioI / S_org,2), ' and ',
+                               round(SpjuvioII / S_org, 2),
+                               "\nRequired: >", S.rel.crit) ))
+      }
+    }
+  }
+
+  environment(.dif_fun) <- environment()
+  SS <- .dif_fun(.slicer(samp.dat,id1),.slicer(samp.dat,id2))
+  list(SS, message)
 }
 
 #' Correct the curve
@@ -758,6 +866,12 @@
     RANGES<-numeric()
     corrected.y<-numeric()
     for (i in 1:length(vid.x)){
+      # are there any vertical lines in standartized polygon?
+      # if so, assume that y coords of more distant (from split line)
+      # vertical vertices that are the same as of vertices closer to the line.
+      # crude solution...
+      Yup <- .verts.y(Xup,Yup)
+      Ydown <- .verts.y(Xdown,Ydown)
       y3.up<-c(y3.up,.y.online(x=Xup,y=Yup,x3=vid.x[i]))
       y3.down<-c(y3.down,.y.online(x3=vid.x[i],x=Xdown,y=Ydown))
       #surandam atstuma tarp y3 up ir down
@@ -773,4 +887,17 @@
     return(data.frame(vid.x,corrected.y))
   } else {
     return(FALSE)}
+}
+
+.verts.y <- function(x,y) {
+  verts <- which(x[-1]-x[-length(x)] == 0)
+  if (length(verts) > 0 ){
+    # if so, assume that y coords of more distant (from split line)
+    # vertical vertices that are the same as of vertices closer to the line.
+    for (vert in verts){
+      min.y.vert <- y[c(vert,vert+1)][which.min(abs(y[c(vert,vert+1)]))]
+      y[c(vert,vert+1)] <- min.y.vert
+    }
+  }
+  y
 }

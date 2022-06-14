@@ -37,15 +37,24 @@
   #testavimui pjuviai paruosiami
 
   environment(.dif_fun) <- e
+  if (!is.null(S.rel.crit)){
+    S_org <- abs(pracma::polyarea(x=rims[[testid]][,1],y=rims[[testid]][,2]))
+  } else {
+    S_org <- NULL
+    }
 
   pairs_pts <- .pair_pts(perim_pts[[1]],polygon = rims[[testid]])
-  maxdif <- lower.Q.crit # first split minimum quality. P.crit
+  maxdif <- c.Q.crit # first split minimum quality. P.crit
   any.split <- numeric()
   maxid <- 0
-
+  cond <- TRUE
   if (nrow(pairs_pts) != 0){
     #pjaustymo ir testavimo ciklas
     for (i in 1:nrow(pairs_pts)){
+      if (!cond) .visualise_splits.bad_straight(what = trace.object,
+                                                level = trace.level,
+                                                pairs_pts, message, i-1)
+      cond <- TRUE
       virs <- .close_poly(
         open.poly =
           .split_poly(
@@ -67,58 +76,111 @@
 
       # padalinami duomenys i dvi dalis pagal pjuvio koordinates
       id1 <- .get_ids(po, samp.xy,first.p, data.frame(
-          x = unlist(pairs_pts[i,c(1,3)]), y = unlist(pairs_pts[i,c(2,4)])) )
+        x = unlist(pairs_pts[i,c(1,3)]), y = unlist(pairs_pts[i,c(2,4)])) )
       id2 <- .get_ids(virs, samp.xy,first.p, data.frame(
-          x = unlist(pairs_pts[i,c(1,3)]), y = unlist(pairs_pts[i,c(2,4)])) )
+        x = unlist(pairs_pts[i,c(1,3)]), y = unlist(pairs_pts[i,c(2,4)])) )
 
 
       .visualise_splits.try_straight(what = trace.object, level = trace.level,
                                      pairs_pts, i)
 
-      if (all(c(length(id1), length(id2)) > N.crit)){
-        if (S.crit > 0){
-          SpjuvioI <- abs(pracma::polyarea(x=virs[,1],y=virs[,2]))
-          SpjuvioII <- abs(pracma::polyarea(x=po[,1],y=po[,2]))
-          cond <- SpjuvioI > S.cond & SpjuvioII > S.cond
-        } else {
-          cond <- TRUE
+      if (!is.null(N.crit)){
+        cond <- length(id1) > N.crit & length(id2) > N.crit
+        if (!cond){
+          message <- paste0("Not enough observations.",
+                            "\nObtained: ", length(id1), ' and ', length(id2),
+                            "\nRequired: >", N.crit)
+          next
         }
-        if (cond) {
-          #nupiesiam padalinima ir paskaiciuojam kokybe
-          environment(.dif_fun) <- environment()
-          Skirtumas <- .dif_fun(.slicer(samp.dat,id1), .slicer(samp.dat,id2))
-          any.split <- c(any.split,Skirtumas)
-          #Paskaiciuojam plotus padalintu bloku
-          if (.comp(Skirtumas,maxdif) ){
-
-            .visualise_splits.good_straight(what = trace.object,
-                                            level = trace.level,
-                                            pairs_pts, Skirtumas, i,
-                                            maxid)
-
-            #Jei padalinimas patenkina minimalias saligas ir yra
-            # geresnis nei pries tai - pasizymim ir issisaugom ji
-            maxdif <- Skirtumas
-            maxid <- i
-          } else {
-            message <- paste0("Poor split quality.\n","Obtained: ",
-                              round(Skirtumas,2),
-                              "\nRequired: ",c.sign, round(maxdif,2))
-          }
-        } else {
-          message <- paste0("One of the areas was too small.\n","Obtained: ",
-                            round(SpjuvioI,2), ' and ', round(SpjuvioII,2),
-                            "\nRequired: >",S.cond)
-        }
-      } else {
-        message <- paste0("Not enough observations in one of the areas.",
-                          "\nObtained: ", length(id1), ' and ', length(id2),
-                          "\nRequired: >",N.crit)
       }
-      if (maxid != i) {
-        .visualise_splits.bad_straight(what = trace.object,
-                                       level = trace.level,
-                                       pairs_pts, message, i)
+
+      if (!is.null(N.rel.crit)){
+        cond <- length(id1) / nrow(samp.xy) > N.rel.crit &
+          length(id2) / nrow(samp.xy) > N.rel.crit
+        if (!cond){
+          message <- paste0("Too low proportion of observations.\nObtained: ",
+                            round(length(id1) / nrow(samp.xy), 2),
+                            ' and ', round(length(id2) / nrow(samp.xy), 2),
+                            "\nRequired: >", N.rel.crit)
+          next
+        }
+      }
+
+      if (!is.null(N.loc.crit) | !is.null(N.loc.rel.crit)){
+        loc.id1 <- .get_ids(po, unique(samp.xy),first.p, data.frame(
+          x = unlist(pairs_pts[i,c(1,3)]), y = unlist(pairs_pts[i,c(2,4)])) )
+        loc.id2 <- .get_ids(virs, unique(samp.xy),first.p, data.frame(
+          x = unlist(pairs_pts[i,c(1,3)]), y = unlist(pairs_pts[i,c(2,4)])) )
+        if (!is.null(N.loc.crit)){
+          cond <- length(loc.id1) > N.loc.crit &
+            length(loc.id2) > N.loc.crit
+          if (!cond){
+            message <- paste0("Not enough locations.",
+                              "\nObtained: ", length(loc.id1),
+                              ' and ', length(loc.id2),
+                              "\nRequired: >", N.loc.crit)
+            next
+          }
+        }
+        if (!is.null(N.loc.rel.crit)){
+          n.uni <- nrow(unique(samp.xy))
+          cond <- length(loc.id1) / n.uni > N.loc.rel.crit &
+            length(loc.id2) / n.uni > N.loc.rel.crit
+          if (!cond){
+            message <- paste0("Too low proportion of locations.",
+                              "\nObtained: ", round(length(loc.id1) / n.uni,2),
+                              ' and ', round(length(loc.id2) / n.uni, 2),
+                              "\nRequired: >", N.loc.rel.crit)
+            next
+          }
+        }
+      }
+
+      if (!is.null(S.crit) | !is.null(S.rel.crit)){
+        SpjuvioI <- abs(pracma::polyarea(x=virs[,1],y=virs[,2]))
+        SpjuvioII <- abs(pracma::polyarea(x=po[,1],y=po[,2]))
+        if (!is.null(S.crit)) {
+          cond <- SpjuvioI > S.cond & SpjuvioII > S.cond
+          if (!cond){
+            message <- paste0("One of the areas was too small.\n","Obtained: ",
+                              round(SpjuvioI,2), ' and ', round(SpjuvioII,2),
+                              "\nRequired: >", S.cond)
+            next
+          }
+        }
+        if (!is.null(S.rel.crit)) {
+          cond <- SpjuvioI / S_org  > S.rel.crit &
+            SpjuvioII / S_org > S.rel.crit
+          if (!cond){
+            message <- paste0("Too low proportion of area.\n","Obtained: ",
+                              round(SpjuvioI / S_org,2), ' and ',
+                              round(SpjuvioII / S_org, 2),
+                              "\nRequired: >", S.rel.crit)
+            next
+          }
+        }
+      }
+      #nupiesiam padalinima ir paskaiciuojam kokybe
+      environment(.dif_fun) <- environment()
+      Skirtumas <- .dif_fun(.slicer(samp.dat,id1), .slicer(samp.dat,id2))
+      any.split <- c(any.split,Skirtumas)
+      #Paskaiciuojam plotus padalintu bloku
+      if (.comp(Skirtumas,maxdif) ){
+
+        .visualise_splits.good_straight(what = trace.object,
+                                        level = trace.level,
+                                        pairs_pts, Skirtumas, i,
+                                        maxid)
+
+        #Jei padalinimas patenkina minimalias saligas ir yra
+        # geresnis nei pries tai - pasizymim ir issisaugom ji
+        maxdif <- Skirtumas
+        maxid <- i
+      } else {
+        message <- paste0("Poor split quality.\n","Obtained: ",
+                          round(Skirtumas,2),
+                          "\nRequired: ",c.sign, round(maxdif,2))
+        cond <- FALSE
       }
     }
     assign(x = "str.split.quals" ,
@@ -174,8 +236,13 @@
           samp.dat = samp.dat,
           c.X.knots = c.X.knots,
           c.Y.knots = c.Y.knots,
-          N.cond = N.crit,
+          N.crit = N.crit,
+          N.rel.crit = N.rel.crit,
+          N.loc.crit = N.loc.crit,
+          N.loc.rel.crit = N.loc.rel.crit,
           S.cond = S.cond,
+          S.rel.crit = S.rel.crit,
+          S_org = S_org,
           c.max.iter.no = c.max.iter.no,
           c.fast.optim = c.fast.optim,
           c.corr.term = c.corr.term,
@@ -193,15 +260,12 @@
           poly.info[testid,"is.curve"] <- TRUE
           maxdif <- best.curve[[2]]
         }
-        if (!.comp(maxdif, upper.Q.crit) ){
-          maxid <- 0
-        }
-      } else {
-        if (!.comp(maxdif,upper.Q.crit) ){
-          maxid <- 0
-        }
       }
-    }
+      if (!.comp(maxdif, Q.crit) ){
+        maxid <- 0
+      }
+      }
+
 
     if (maxid > 0){ # save the split and perform new splits if TRUE
 
@@ -310,19 +374,11 @@
       .spatial_div(do.dat,do.xy, root.id = testid)
       print(paste("griztam i", testid, "padalinima [po aukstu koord bloko (gogolis exists)]", sep=" "))
 
-    }
-    } else{
-      #Jei tinkamo padalino nerasta, grizta tuscias masyvas
-      if (testid>1){
-        if (!is.null(trace.object))
-          print("There were no suitable points on the polygon perimeter
-            to generate straight-split lines")
-      } else{
-        if (!is.null(trace.object))
-          print("There were no suitable points on the polygon perimeter
-            to generate straight-split lines")
+    } # else no adequate split
+    } else {
+    print("no adequate pair of points on perimeter of the polygon.
+                 Maybe too irregular polygon or too low n.pts")
       }
-    }
 }
 
 

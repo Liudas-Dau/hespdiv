@@ -23,6 +23,7 @@ blok3d <- function(obj,height = "mean", color.seed=1, lines=TRUE, pnts.col = NUL
   for (height in height){
     rgl::open3d()
     poly.stats <- obj$poly.stats
+    if (obj$call.info$Call_ARGS$c.splits){
     if (height == "best"){
       poly.stats$best <- ifelse(is.na(obj$poly.stats$is.curve),
                                 obj$poly.stats$str.best,
@@ -37,6 +38,10 @@ blok3d <- function(obj,height = "mean", color.seed=1, lines=TRUE, pnts.col = NUL
                                             obj$poly.stats$crv.z.score,
                                             obj$poly.stats$str.z.score))
       }
+    }
+    } else {
+      poly.stats$best <- obj$poly.stats$str.best
+      poly.stats$z.score <- obj$poly.stats$str.z.score
     }
 
     if (is.null(obj$call.info$Call_ARGS$xy.dat)){
@@ -152,9 +157,9 @@ blok3d <- function(obj,height = "mean", color.seed=1, lines=TRUE, pnts.col = NUL
   zmini <- ZZ[i,1]
   zmaxi <- ZZ[i,2]
   #virsus
-  rgl::polygon3d(x, y, z=rep(zmaxi,length(x)), col = color,add=T)
+  rgl::polygon3d(x, y, z=rep(zmaxi,length(x)), col = color,add=T,fill = F)
   #apacia
-  rgl::polygon3d(x, y, z=rep(zmini,length(x)), col =color, add=T)
+  rgl::polygon3d(x, y, z=rep(zmini,length(x)), col =color, add=T, fill =F)
   #sonai
   xmat <- matrix(NA, 2, length(x))
   ymat <- matrix(NA, 2, length(x))
