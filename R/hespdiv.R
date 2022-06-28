@@ -226,7 +226,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
                   n.m.N = 1000, n.m.seed = 1,  n.m.keep = FALSE,
                   study.pol = NULL, trace.level = NULL,
                   trace.object = NULL, pnts.col = 1, display = TRUE){
-
+  n.split.pts <- n.split.pts + 1
   if ((is.null(trace.level) & !is.null(trace.object)) |
       (!is.null(trace.level) & is.null(trace.object))){
     stop(paste("Conflicting arguments: trace.level, trace.object"),
