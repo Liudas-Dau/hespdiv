@@ -11,11 +11,15 @@ hespdiv(
   maximize = NULL,
   method = NULL,
   compare.f = NULL,
-  N.crit = 0,
-  S.crit = 0,
-  lower.Q.crit,
-  upper.Q.crit,
+  N.crit = 1,
+  N.rel.crit = 0.2,
+  N.loc.crit = NULL,
+  N.loc.rel.crit = NULL,
+  S.crit = 0.05,
+  S.rel.crit = 0.2,
+  Q.crit,
   c.splits = TRUE,
+  c.Q.crit = NULL,
   C.crit.improv = 0,
   c.X.knots = 5,
   c.Y.knots = 10,
@@ -84,22 +88,26 @@ Minimum number of observations (rows in data) that should
 be present in areas separated by a split-line in order to establish the
 split-line. Default is 1.}
 
+\item{N.rel.crit}{number from 0 to 0.5. The minimum allowed observation
+proportion in polygon containing less data.}
+
+\item{N.loc.crit}{Subdivision stopping criteria - number of unique locations.
+Only meaningful when there are observations from the same location. Default
+0.2.}
+
+\item{N.loc.rel.crit}{number from 0 to 0.5. The minimum allowed unique
+locations proportions in polygon containing less locations.}
+
 \item{S.crit}{Subdivision stopping criteria - size of plots.
-Minimum area expressed as a proportion of original study area
+Minimum area expressed as a proportion of study area
 (provided polygon or estimated as convex hull of \code{xy_dat}) that plots
 separated by a split-line should have so that the split-line could be
 established. Default is 0.}
 
-\item{lower.Q.crit}{integer (default NULL). Only meaningful when c.splits is
-TRUE. lower.Q.crit determines the minimum performance that the best obtained
-straight-split line should have so that attempt would be made to generate
-from it a better non-linear split-line. Recommendation is to leave this value
-set to default (no performance requirement) and only use different value,
-when you are quite sure what are the limitations of improvements that
-non-linear split-lines can make over straight split-lines (e.g. if maximize
-is TRUE, lower.Q.crit = upper.Q.crit - MAX.c.improv).}
+\item{S.rel.crit}{number from 0 to 0.5. The minimum allowed area
+proportion of a smaller polygon. Default 0.2.}
 
-\item{upper.Q.crit}{Subdivision stopping criteria - upper limit of split-line
+\item{Q.crit}{Subdivision stopping criteria - upper limit of split-line
 quality applied to the final split-line. This is a minimum difference as
 estimated by \code{compare.f} function that separated
 plots should exhibit, so that a subdivision of a plot using the
@@ -107,6 +115,15 @@ best split-line would be established. Default is -Inf.}
 
 \item{c.splits}{Logical (default TRUE).
 Should non-linear split-lines be estimated?}
+
+\item{c.Q.crit}{integer (default NULL). Only meaningful when c.splits is
+TRUE. c.Q.crit determines the minimum performance that the best obtained
+straight-split line should have so that attempt would be made to generate
+from it a better non-linear split-line. Recommendation is to leave this value
+set to default (no performance requirement) and only use different value,
+when you are quite sure what are the limitations of improvements that
+non-linear split-lines can make over straight split-lines (e.g. if maximize
+is TRUE, c.Q.crit = Q.crit - MAX.c.improv).}
 
 \item{C.crit.improv}{integer. How much non-linear split must be
 better than straight (in units of provided metric) for it to be selected?

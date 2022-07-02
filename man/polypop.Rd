@@ -4,13 +4,11 @@
 \alias{polypop}
 \title{Remove polygons from rgl device}
 \usage{
-polypop(obj, first = TRUE, height)
+polypop(obj, height)
 }
 \arguments{
 \item{obj}{hespdiv object which was used to create currently active rgl
 device with poly3d_hespdiv function.}
-
-\item{first}{logical. Is this is a first call?}
 
 \item{height}{character vector. Indicates what is the z coordinate.}
 }

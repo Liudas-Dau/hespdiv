@@ -254,6 +254,10 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
            "a matrix.")
     }
   } else {
+    if (any(colnames(data) == 'x') & any(colnames(data) == 'y')){
+    stop("x and y columns are present in data, when xy.dat is provided. ",
+    "Remove either one from the input.")
+      }
     if (!is.data.frame(xy.dat)){
       if (is.matrix(xy.dat)){
         xy.dat <- as.data.frame(xy.dat)
@@ -302,8 +306,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
       similarity <- FALSE
       maximize <- TRUE
       if(!is.vector(data))
-        stop("Data must be a vector, when using '",method,"' method,",
-             " '",metric,"' metric and '", variant,"' variant.")
+        stop("Data must be a vector when using '",method,"' method.")
 
       generalize.f <- function(plot.dat){
         x <- table(factor(plot.dat))
@@ -323,8 +326,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
         method <- 'biozonation'
         maximize <- FALSE
         if(!is.vector(data))
-          stop("Data must be a vector, when using '",method,"' method,",
-               " '",metric,"' metric and '", variant,"' variant.")
+          stop("Data must be a vector when using '",method,"' method.")
 
         generalize.f <- function(plot.dat){
           unique(plot.dat)
@@ -346,8 +348,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
           variant <- '1'
           method <- 'biozonation'
           if(!is.vector(data))
-            stop("Data must be a vector, when using '",method,"' method,",
-                 " '",metric,"' metric and '", variant,"' variant.")
+            stop("Data must be a vector when using '",method,"' method.")
 
           generalize.f <- function(plot.dat){
             plot.dat
@@ -372,8 +373,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
             variant <- '2'
             method <- 'biozonation'
             if(!is.vector(data))
-              stop("Data must be a vector, when using '",method,"' method,",
-                   " '",metric,"' metric and '", variant,"' variant.")
+              stop("Data must be a vector when using '",method,"' method.")
 
             generalize.f <- function(plot.dat){
               plot.dat
