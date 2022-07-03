@@ -141,10 +141,9 @@
 #' of a polygon that encompasses the locations of \code{data}. If not
 #' provided (default is NULL), convex hull of \code{data} will be used a
 #' study area polygon.
-#' @param trace.level Sting indicating the trace level. Can be one of the
-#' following: "best", "main", "all"
-#' @param trace.object String that informs what graphical information to show.
-#' Can be either "curves", "straight" or "both".
+#' @param tracing a character vector of two elements. First indicates the level
+#' ("best", "main", "all"), second - the object ("curves", "straight" or "both")
+#' that will be traced. NULL (default) would mean no tracing.
 #' @param pnts.col Color of data points, default is 1. Argument is used when
 #' \code{trace} > 0. If set to NULL, data points will not be displayed.
 #' @param display logical. Display the resulting polygons at the output?
@@ -196,21 +195,35 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
                   c.Y.knots = 10, xy.dat = NULL,
                   c.max.iter.no = 5, c.fast.optim = TRUE,
                   c.corr.term = 0.05, filter.all = TRUE,
-                  study.pol = NULL, trace.level = NULL,
-                  trace.object = NULL, pnts.col = 1, display = TRUE){
+                  study.pol = NULL, tracing = NULL, pnts.col = 1, display = TRUE){
+
+
+  args <- sapply(ls(),get,environment())
   n.split.pts <- n.split.pts + 1
   c.Y.knots <- c.Y.knots + 2
   c.X.knots <- c.X.knots + 2
 
-  if ((is.null(trace.level) & !is.null(trace.object)) |
-      (!is.null(trace.level) & is.null(trace.object))){
-    stop(paste("Conflicting arguments: trace.level, trace.object"),
-         paste("\ntrace.object and trace.level must be both set to 'NULL'"),
-         paste( ' or asigned a viable value'))
+  if (!is.null(tracing)){
+    if (is.vector(tracing)){
+      if (length(tracing) == 2){
+        trace.object <- tracing[1]
+        trace.level <- tracing[2]
+      } else { stop("tracing must contain exactly two elements")}
+    } else { stop("tracing must be a vector")}
   }
 
-  args <- sapply(ls(),get,environment())
-
+  if (exists("trace.level")){
+    if (!is.null(trace.object)){
+      trace.object <- .arg_check("trace.object", trace.object,
+                                 c("straight", "curve", "both"))
+    }
+    if (!is.null(trace.level)){
+      trace.level <- .arg_check("trace.level", trace.level,c("all","main","best"))
+    }
+  } else {
+    trace.object <- NULL
+    trace.level <- NULL
+  }
   if (is.null(xy.dat)){
     if (class(data) %in% c("data.frame", "matrix")){
       if (any(colnames(data) == 'x') & any(colnames(data) == 'y')){
@@ -230,9 +243,9 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
     }
   } else {
     if (any(colnames(data) == 'x') & any(colnames(data) == 'y')){
-    stop("x and y columns are present in data, when xy.dat is provided. ",
-    "Remove either one from the input.")
-      }
+      stop("x and y columns are present in data, when xy.dat is provided. ",
+           "Remove either one from the input.")
+    }
     if (!is.data.frame(xy.dat)){
       if (is.matrix(xy.dat)){
         xy.dat <- as.data.frame(xy.dat)
@@ -257,15 +270,6 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
              "of observations in data.")
     }
   }
-
-  if (!is.null(trace.object)){
-    trace.object <- .arg_check("trace.object", trace.object,
-                               c("straight", "curve", "both"))
-  }
-  if (!is.null(trace.level)){
-    trace.level <- .arg_check("trace.level", trace.level,c("all","main","best"))
-  }
-
   if (is.null(compare.f)){
     if (is.null(method)){
       stop("Neither 'method' or 'compare.f' argument is specified. ",
@@ -361,7 +365,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
               (2*sum(table(x_f) * table(y_f))) /
                 (length(x) * length(y) *
                    ( sum(table(x_f)^2) / (length(x)^2)  +
-                        sum(table(y_f)^2) / (length(y)^2)))
+                       sum(table(y_f)^2) / (length(y)^2)))
             }
           }
         }
@@ -440,9 +444,9 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
     # ... is used to ignore split_endpnts, when they are added.
     .get_ids <- function(polygon, xy_dat,...){
       which(sp::point.in.polygon(pol.x = polygon[,1],
-                           pol.y = polygon[,2],
-                           point.x = xy_dat$x,
-                           point.y = xy_dat$y) != 0)
+                                 pol.y = polygon[,2],
+                                 point.x = xy_dat$x,
+                                 point.y = xy_dat$y) != 0)
     }
   } else {
     .get_ids <- function(polygon, xy_dat,first.p,split_endpnts){
@@ -452,16 +456,16 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
                           xy_dat$y == first.p[,2])
         if (length(del.id)>0)
           return(which(sp::point.in.polygon(pol.x = polygon[,1],
-                                      pol.y = polygon[,2],
-                                      point.x = xy_dat$x[-del.id],
-                                      point.y = xy_dat$y[-del.id])
-                 != 0 ))
+                                            pol.y = polygon[,2],
+                                            point.x = xy_dat$x[-del.id],
+                                            point.y = xy_dat$y[-del.id])
+                       != 0 ))
 
       }
       which(sp::point.in.polygon(pol.x = polygon[,1],
-                           pol.y = polygon[,2],
-                           point.x = xy_dat$x,
-                           point.y = xy_dat$y) != 0)
+                                 pol.y = polygon[,2],
+                                 point.x = xy_dat$x,
+                                 point.y = xy_dat$y) != 0)
 
     }
   }
@@ -594,7 +598,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
         z.score = apply(e$poly.info[e$plot.id,],1,
                         function(o) if (o[[10]]) {o[[12]]} else {o[[8]]}),
         performance = apply(e$poly.info[e$plot.id,],1,
-                     function(o) if (o[[10]]) {o[[11]]} else {o[[7]]}),
+                            function(o) if (o[[10]]) {o[[11]]} else {o[[7]]}),
         is.curve = e$poly.info$is.curve[e$plot.id]
       )
     } else {

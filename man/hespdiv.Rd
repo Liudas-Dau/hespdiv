@@ -29,8 +29,7 @@ hespdiv(
   c.corr.term = 0.05,
   filter.all = TRUE,
   study.pol = NULL,
-  trace.level = NULL,
-  trace.object = NULL,
+  tracing = NULL,
   pnts.col = 1,
   display = TRUE
 )
@@ -175,11 +174,9 @@ of a polygon that encompasses the locations of \code{data}. If not
 provided (default is NULL), convex hull of \code{data} will be used a
 study area polygon.}
 
-\item{trace.level}{Sting indicating the trace level. Can be one of the
-following: "best", "main", "all"}
-
-\item{trace.object}{String that informs what graphical information to show.
-Can be either "curves", "straight" or "both".}
+\item{tracing}{a character vector of two elements. First indicates the level
+("best", "main", "all"), second - the object ("curves", "straight" or "both")
+that will be traced. NULL (default) would mean no tracing.}
 
 \item{pnts.col}{Color of data points, default is 1. Argument is used when
 \code{trace} > 0. If set to NULL, data points will not be displayed.}
