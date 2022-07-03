@@ -256,7 +256,7 @@
         poly.info[testid,"crv.z.score"] <- (best.curve[[2]] - mean.dif) / sd.dif
         poly.info[testid,"c.improv"] <- abs(best.curve[[2]] - maxdif)
         if(.comp(best.curve[[2]],maxdif) &
-           poly.info[testid,"c.improv"] >= C.crit.improv){
+           poly.info[testid,"c.improv"] >= c.crit.improv){
           poly.info[testid,"is.curve"] <- TRUE
           maxdif <- best.curve[[2]]
         }
@@ -320,44 +320,6 @@
       do.xy <- .slicer.table(samp.xy,do.ids)
       do.dat <- .slicer(samp.dat,do.ids)
 
-      #issaugom duomenis padalinimo
-      # ribs <- list(up.pol,do.pol)
-
-      #maisom duomenis ir vertinam aptiktu erdviniu strukturu patimuma
-      if (n.m.test){
-
-        set.seed(n.m.seed)
-        test1 <- .sp.n.m(samp.dat,ribs,n.m.N,n.m.keep,type = 1)
-        test2 <- .sp.n.m(samp.dat,ribs,n.m.N,n.m.keep,type = 2)
-
-        if (n.m.keep){
-          assign(x = "n.m.sims1",value = do.call(c,list(n.m.sims1,list(test1[[2]]))),
-                 envir = e)
-          assign(x = "n.m.sims2",value = do.call(c,list(n.m.sims2,list(test2[[2]]))),
-                 envir = e)
-        }
-        assign(x = "sim2.difs",value = do.call(c,list(sim2.difs,list(test2[[1]]))),
-               envir = e)
-        assign(x = "sim1.difs",value = do.call(c,list(sim1.difs,list(test1[[1]]))),
-               envir = e)
-
-        assign(x = "p.val1", value =
-                 do.call(c,list(
-                   p.val1,
-                   sum(maxdif < test1[[1]])/n.m.N
-                 )),
-               envir = e) # kvantilis
-        # kvantilio reiksme - empirine p verte
-        # jei gausinis skirstinys,tai:
-        # 1 - qnorm(sum(last(split.quality),mean(pseudo.kokybe),sd(pseudo.kokybe)) duotu teorine p-verte
-        assign(x = "p.val2", value =
-                 do.call(c,list(
-                   p.val,
-                   sum(maxdif<test2[[1]])/n.m.N
-                 )),
-               envir = e)
-      }
-
       assign(x = "rims" ,value = do.call(c,list(rims,list(up.pol))) ,envir = e)
 
       .spatial_div(up.dat,up.xy, root.id = testid)
@@ -411,74 +373,3 @@
 
 
 
-#' Test the split-line with null model simulations
-#'
-#' @description  Function simulates spatial null models of the provided data and
-#' then checks the performance of the established split-line fitted to the
-#' simulated data.
-#' @param data a samp.dat from .spatial_div function.
-#' @param ribs a list of two data frames of polygons, established by the
-#' fitted, "best" split-line.
-#' @param n integer - number of data simulations to perform.
-#' @param n.m.keep logical - should the produced simulations be kept
-#' @param type type of null model simulations:
-#' 1 - completely random: toroidal rotation of individual data points (the only
-#' things maintained is polygon shape and number of points, and points
-#' themselves),
-#' 2 - random perspective of data points: toroidal rotation of all data points
-#' (micro and macro spatial inter-relations of points are maintained)
-#' Other possible n.m. types:
-#' 3 - random macro inter-relations of data points: toroidal rotation of
-#' data point groups, that lie in the same quadrant of polygon extent (micro
-#' inter-relations of points are maintained) # quadrant number would be required
-#' as an argument.
-#' 4 - random micro inter-relations of data points: jitter of data
-#' points. The amount of jittery equal to points' distance to the xth
-#' nearest neighbor (density surface (intensity, first moment) as well as macro
-#' inter-relations of points are maintained) # xth nearest neighbour would be
-#' required as an argument.
-#' 5?? - random micro and macro inter-relations of data points: rotation of
-#' quadrants and jitter of the points (maintained are point inter-relations that
-#' are occur between the given micro and macro scales.)
-#' @return list of one or two elements: 1 - vector of estimated performances of
-#' the split-line for each of null model simulation. 2 -  list of data frames of
-#' simulated data (null models), returned only when n.m.keep is TRUE.
-#' @author Liudas Daumantas
-#' @noRd
-.sp.n.m <- function(data,ribs,n,n.m.keep,type){
-  if (type == 1) {
-    N <- nrow(data)
-  } else {
-    N <- 1
-  }
-  mirror.data <- data
-  pseudo.kokybe <- numeric(n.m.N)
-  if (n.m.keep){
-    sim <- list()
-  }
-  for (i in 1:n){
-    x.shift <- runif(N,min=0,max=dist(range(data$x)))
-    y.shift <- runif(N,min=0,max=dist(range(data$y)))
-    testx <- data$x+x.shift
-    testy <- data$y+y.shift
-    tx <- case_when(testx>max(data$x) ~ testx-max(data$x)+min(data$x),
-                    TRUE ~ testx)
-    ty <- case_when(testy>max(data$y) ~ testy-max(data$y)+min(data$y),
-                    TRUE ~ testy)
-
-    mirror.data[,c("x","y")] <- data.frame(x=tx,y=ty)
-    I.dat <- .get_data(ribs[[1]], mirror.data)
-    II.dat <- .get_data(ribs[[2]], mirror.data)
-
-    pseudo.kokybe[i] <- dif.fun(I.dat, II.dat)
-
-    if (n.m.keep){
-      sim <- do.call(c,list(sim1,list(mirror.data)))
-    }
-  }
-  if (n.m.keep){
-    return(list(pseudo.kokybe,sim))
-  } else {
-    return(list(pseudo.kokybe))
-  }
-}

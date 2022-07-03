@@ -99,7 +99,7 @@
 #' when you are quite sure what are the limitations of improvements that
 #' non-linear split-lines can make over straight split-lines (e.g. if maximize
 #' is TRUE, c.Q.crit = Q.crit - MAX.c.improv).
-#' @param C.crit.improv integer. How much non-linear split must be
+#' @param c.crit.improv integer. How much non-linear split must be
 #' better than straight (in units of provided metric) for it to be selected?
 #' When 0 is set (default), then non-linear split-line still won't be selected
 #' if it performs the same as straight split line.
@@ -136,32 +136,6 @@
 #' filtered by polygons. FALSE - only points strictly inside the polygon are
 #' filtered by polygons. TRUE - points located on a split-line are filtered as
 #' well in addition to those strictly inside a polygon.
-#' @param n.m.test Logical (default is FALSE). Should the established
-#' split-lines be tested with null models? These test are made by counting the
-#' proportion of how many times the established boundaries worked better with
-#' the same data that were randomly shifted in space. The used spatial
-#' randomization method (toroidal shift) quite well preserves the
-#' spatial relationship between points (this relationship can be driven by
-#' ecological, geological, oceanographic or other natural physical processes
-#' and laws that produce predictable spatial changes in environmental and
-#' ecological features), but changes their over-all configuration and
-#' density distribution (this configuration is idiosyncratic feature since it
-#' can depend on a particular instance of environment (e.g. the same
-#' environemnt in a different region) or spatial perspective of the same area).
-#' Thus, it allows to check whether the same entities gowevern by the same
-#' physical laws would be clustered similarly given different instances of
-#' "worlds". If considerable proportion of runs (e. g. > %5) produces better
-#' boundary performance scores, then it may be either that clustering of data
-#' qualities is quite poor or that spatial autocorrelation structure caused by
-#' all these physical proccesses is responsible for the observed clusterization.
-#' TWO models (toroidal and totally random).
-#' @param n.m.N number of spatial simulations in null models. Default is
-#' 1000.
-#' @param n.m.seed randomization seed that is set before analysis (default 1).
-#' The use of the same seed allows to obtain the same stochastic process
-#' simulation results (e. g. p values calculated from null model simulations).
-#' @param n.m.keep logical (default FALSE). Do you wish to keep null model
-#' simulations?
 #' @param study.pol A polygon of study area (optional). It should be data.frame
 #' with two columns 'x' and 'y' containing coordinates of vertexes
 #' of a polygon that encompasses the locations of \code{data}. If not
@@ -218,15 +192,16 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
                   N.loc.crit = NULL, N.loc.rel.crit = NULL,
                   S.crit = 0.05, S.rel.crit = 0.2, Q.crit,
                   c.splits = TRUE, c.Q.crit = NULL,
-                  C.crit.improv = 0, c.X.knots = 5,
+                  c.crit.improv = 0, c.X.knots = 5,
                   c.Y.knots = 10, xy.dat = NULL,
                   c.max.iter.no = 5, c.fast.optim = TRUE,
                   c.corr.term = 0.05, filter.all = TRUE,
-                  n.m.test = FALSE,
-                  n.m.N = 1000, n.m.seed = 1,  n.m.keep = FALSE,
                   study.pol = NULL, trace.level = NULL,
                   trace.object = NULL, pnts.col = 1, display = TRUE){
   n.split.pts <- n.split.pts + 1
+  c.Y.knots <- c.Y.knots + 2
+  c.X.knots <- c.X.knots + 2
+
   if ((is.null(trace.level) & !is.null(trace.object)) |
       (!is.null(trace.level) & is.null(trace.object))){
     stop(paste("Conflicting arguments: trace.level, trace.object"),
@@ -509,17 +484,6 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
   poly.obj <- list()
   str.split.quals <- list()
 
-  if (n.m.test){
-    p.val1 <- numeric()
-    p.val2 <- numeric()
-    sim1.difs <- numeric()
-    sim2.difs <- numeric()
-    if (n.m.keep){
-      n.m.sims1 <- list()
-      n.m.sims2 <- list()
-    }
-  }
-
   S.cond <- round(abs(pracma::polyarea(study.pol$x,study.pol$y)) * S.crit,2)
   splits <- numeric()
 
@@ -564,29 +528,6 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
   plot.id <- which(poly.info$has.split)
   e <- environment()
   result <- .format_result(e)
-
-  if (n.m.test){
-    Signif1 <- symnum(p.val1, corr = FALSE, na = FALSE,
-                      cutpoints = c(0 ,0.001,0.01, 0.05, 0.1, 1),
-                      symbols = c("***", "**", "*", ".", " "))
-    Signif2 <- symnum(p.val2, corr = FALSE, na = FALSE,
-                      cutpoints = c(0 ,0.001,0.01, 0.05, 0.1, 1),
-                      symbols = c("***", "**", "*", ".", " "))
-
-    result$split.stats <- cbind(result$split.stats,
-                                data.frame(p.val1 = p.val1,
-                                           signif.1 = format(Signif1),
-                                           p.val2 = p.val2,
-                                           signif.2 = format(Signif2)))
-    result <- do.call(c,list(result,
-                             list(n.m.rez =
-                                    list(sim1.difs = sim1.difs, sim2.difs))))
-
-    if (n.m.keep){
-      result <- do.call(c,list(result,
-                               list(n.m.sim = list(n.m.sims1,n.m.sims2))))
-    }
-  }
 
   if (display){
     .visualise_splits.end(pnts.col, xy.dat, rims)
