@@ -425,6 +425,16 @@
     v_cutted_poly[,1][-nrow(v_cutted_poly)]
 
   if (all(x_shift>=0)){
+
+    if (!(all(v_cutted_poly$y <=0) | all(v_cutted_poly$y >=0))){
+      if(all(x_shift[1:2] == c(0,0))){
+        v_cutted_poly <- v_cutted_poly[-2,]
+      }
+      if(all(x_shift[(length(x_shift)-1):length(x_shift)] ==
+             c(0,0))){
+        v_cutted_poly <- v_cutted_poly[-(nrow(v_cutted_poly)-1),]
+      }
+    }
     return(
       list(v_cutted_poly,sign(v_cutted_poly[2,2]))
     )
