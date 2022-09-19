@@ -7,7 +7,7 @@
 #' @export
 polypop <- function(obj,height){
   height <- .arg_check("height",height, c("mean","sd","best","z.score",
-                                          "str.best", "str.z.score"))
+                                          "str.best", "str.z.score","rank"))
   poly.stats <- obj$poly.stats
   if (height == "best"){
     poly.stats$best <- ifelse(is.na(obj$poly.stats$is.curve),
@@ -24,9 +24,18 @@ polypop <- function(obj,height){
                                           obj$poly.stats$str.z.score))
     }
   }
-  ZZ <- .Zcoords(poly.stats = poly.stats, height = height)
-  del.id <- which(ZZ[,1]==ZZ[,2])
-  true.ids <- poly.stats$plot.id[-del.id]
+  if (height == "rank") {
+    ZZ <- data.frame(zmin = obj$poly.stats$rank-1, zmax = obj$poly.stats$rank)
+    del.id <- numeric()
+  } else {
+    ZZ <- .Zcoords(poly.stats,height)
+    del.id <- which(ZZ[,1]==ZZ[,2])
+  }
+  if (length(del.id) != 0){
+    true.ids <- poly.stats$plot.id[-del.id]
+  } else {
+    true.ids <- poly.stats$plot.id
+  }
   basic.id<-5
   OIDS <- seq(length(true.ids))
 
@@ -43,7 +52,7 @@ polypop <- function(obj,height){
     YO <- centrai[,2]
 
     ZO <- ZZ[true.ids[OIDS],2]
-    LABS <- poly.stats[true.ids[OIDS],1]
+    LABS <- poly.stats[true.ids[OIDS],"plot.id"]
     cat("Select the centers of polygons you wish to remove.\n")
     pts <- rgl::identify3d(x=XO, y=YO, z=ZO, labels = LABS)
     if(length(pts)==1) {

@@ -9,4 +9,4 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Imports: sp, pracma, DescTools, ggplot2, viridis, ggrepel, grDevices, RColorBrewer, rgl
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.1

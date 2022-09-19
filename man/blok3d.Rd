@@ -18,7 +18,7 @@ blok3d(
 
 \item{height}{character (default 'mean'). What information from poly.stats
 data frame do you wish to encode as the height of the polygons? Options:
-"mean", "sd", "best", "z.score", "str.best", "str.z.score". See details
+"mean", "sd", "best", "z.score", "str.best", "str.z.score","id". See details
 for explanations.}
 
 \item{color.seed}{integer. Controls the color of polygons. Change it to a

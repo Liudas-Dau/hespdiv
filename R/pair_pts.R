@@ -44,16 +44,61 @@
       for (o in c(a+k):c(nrow(per_pts))){
         x<-per_pts[c(a,o),1]
         y<-per_pts[c(a,o),2]
-        id.min<-which.min(x)
-        b<-(y[-id.min]-y[id.min])/(x[-id.min]-x[id.min])
-        line.x<-seq(x[id.min],x[-id.min],length.out = 1000)
-        line.y<-y[id.min]+b*(line.x-x[id.min])
-        if(all(sp::point.in.polygon(line.x,line.y,polygon[,1],polygon[,2])[-c(1,1000)]==1)){
-          pairs_pts<-rbind(pairs_pts,data.frame(x1=x[id.min],y1=y[id.min],x2=x[-id.min],y2=y[-id.min],
-                                        b=b,id1=per_pts[(c(a,o)[id.min]),3],id2=per_pts[(c(a,o))[-id.min],3]))
+        bad <- FALSE
+        b1 <- (y[1]-y[2])/(x[1]-x[2])
+        a1 <- y[1] - b1*x[1]
+        mid.x <- mean(x)
+        mid.y <- a1 + mid.x * b1
+        if (sp::point.in.polygon(point.x = mid.x, point.y = mid.y,
+                                 pol.x = polygon[,1], pol.y = polygon[,2]
+        ) == 1){
+          for ( seg in 1:(nrow(polygon)-1) ){
+            pol_seg <- polygon[seg:(seg+1),]
+            if ( all(pol_seg[1,] == c(x[1],y[1])) |
+                 all(pol_seg[1,] == c(x[2],y[2])) |
+                 all(pol_seg[2,] == c(x[1],y[1])) |
+                 all(pol_seg[2,] == c(x[2],y[2]))){
+              next
+            }
+            X1 <- .in.range(range(x),pol_seg$x[1]) | .in.range(range(x),pol_seg$x[2])
+            X2 <- .in.range(range(pol_seg$x),x[1]) | .in.range(range(pol_seg$x),x[2])
+            Y1 <- .in.range(range(y),pol_seg$y[1]) | .in.range(range(y),pol_seg$y[2])
+            Y2 <- .in.range(range(pol_seg$y),y[1]) | .in.range(range(pol_seg$y),y[2])
+
+            if ( (X1 & Y1) | (X2 & Y2) | (X1 & Y2) | (X2 & Y1) ){
+              b2 <- (pol_seg$y[1]-pol_seg$y[2])/(pol_seg$x[1]-pol_seg$x[2])
+              a2 <- pol_seg$y[1] - b2*pol_seg$x[1]
+              x.inters <- (a2 - a1) / (b1 - b2)
+              if ( is.nan(x.inters) | is.infinite(x.inters) ){
+                next
+              }
+              bad <- .in.range(range(x), x.inters) &
+                .in.range(range(pol_seg$x),x.inters)
+              if (bad) {
+                break
+              }
+            }
+          }
+          if (!bad){
+          id.min<-which.min(x)
+          pairs_pts <- rbind(pairs_pts, data.frame(
+            x1=x[id.min],
+            y1=y[id.min],
+            x2=x[-id.min],
+            y2=y[-id.min],
+            b=b1,
+            id1=per_pts[(c(a,o)[id.min]),3],
+            id2=per_pts[(c(a,o))[-id.min],3])
+          )
+          }
         }
       }} else{
         break
       }}
   pairs_pts
+}
+#' is x in range of x?
+#' @noRd
+.in.range <- function(range,x){
+  range[1] < x & x < range[2]
 }

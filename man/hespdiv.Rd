@@ -10,6 +10,7 @@ hespdiv(
   generalize.f = NULL,
   maximize = NULL,
   method = NULL,
+  same.n.split = FALSE,
   compare.f = NULL,
   N.crit = 1,
   N.rel.crit = 0.2,
@@ -27,7 +28,7 @@ hespdiv(
   c.max.iter.no = 5,
   c.fast.optim = TRUE,
   c.corr.term = 0.05,
-  filter.all = TRUE,
+  filter.all = FALSE,
   study.pol = NULL,
   tracing = NULL,
   pnts.col = 1,
@@ -64,6 +65,11 @@ maximized or minimized? Needs only to be provided when custom
 preset \code{generalize.f} and \code{compare.f} functions will be used to
 perform hierarchical subdivisions of spatial data, if \code{compare.f}
 function is not provided.}
+
+\item{same.n.split}{logical. Should the \code{n.split.pts} in each
+consecutive study area polygon be the same? That would mean a narrowing distance
+in the placement of points of origin of linear split-lines and, thus, an
+increase in detail of study with a decreasing scale.}
 
 \item{compare.f}{a function used to quantify the difference between two data
 groups separated in space by a split-line. The estimated difference

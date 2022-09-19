@@ -2,9 +2,11 @@
 
 S3method(print,hespdiv)
 export(blok3d)
+export(cross_comp)
 export(get_data)
 export(ggplot_hespdiv)
 export(hespdiv)
+export(poly_scheme)
 export(polypop)
 importFrom(ggplot2,aes)
 importFrom(ggplot2,geom_path)

@@ -37,6 +37,10 @@
 #' will be created and tested. Higher values of this parameter greatly
 #' increase the computation time dedicated to the search of straight
 #' split-lines, but increase the fit to the data.
+#' @param same.n.split logical. Should the \code{n.split.pts} in each
+#' consecutive study area polygon be the same? That would mean a narrowing distance
+#' in the placement of points of origin of linear split-lines and, thus, an
+#' increase in detail of study with a decreasing scale.
 #' @param generalize.f a function used to estimate some emergent data quality.
 #' It must have one argument to which a spatially filtered subset of \code{data}
 #' could be assigned. However, \code{generalize.f} can access the
@@ -186,7 +190,7 @@
 #' @export
 
 hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
-                  maximize = NULL, method = NULL,
+                  maximize = NULL, method = NULL, same.n.split = FALSE,
                   compare.f = NULL, N.crit = 1, N.rel.crit = 0.2,
                   N.loc.crit = NULL, N.loc.rel.crit = NULL,
                   S.crit = 0.05, S.rel.crit = 0.2, Q.crit,
@@ -194,7 +198,7 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
                   c.crit.improv = 0, c.X.knots = 5,
                   c.Y.knots = 10, xy.dat = NULL,
                   c.max.iter.no = 5, c.fast.optim = TRUE,
-                  c.corr.term = 0.05, filter.all = TRUE,
+                  c.corr.term = 0.05, filter.all = FALSE,
                   study.pol = NULL, tracing = NULL, pnts.col = 1, display = TRUE){
 
 
@@ -439,6 +443,11 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
     y <- xy.dat$y[ids]
     study.pol <- data.frame(x=x,y=y)
   }
+  if (!same.n.split){
+    dst.pts <- .calc.perim(study.pol) / n.split.pts
+  } else {
+    dst.pts <- NULL
+  }
   first.p <- study.pol[1,]
   if (filter.all) {
     # ... is used to ignore split_endpnts, when they are added.
@@ -532,6 +541,12 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
   plot.id <- which(poly.info$has.split)
   e <- environment()
   result <- .format_result(e)
+  result$poly.stats <- data.frame(rank = .split.rank(
+    result$poly.stats),
+    result$poly.stats)
+  result$split.stats <- data.frame(
+    rank = result$poly.stats[result$split.stats$plot.id,"rank"],
+    result$split.stats)
 
   if (display){
     .visualise_splits.end(pnts.col, xy.dat, rims)
@@ -635,3 +650,22 @@ hespdiv<-function(data, n.split.pts = 15 ,generalize.f = NULL,
     )
   )
 }
+# Calculate rank of the split-line
+#' @noRd
+.split.rank <- function(poly.stats){
+
+  roots <- poly.stats$root.id
+  ranks.id <- numeric(length(roots))
+  for (split in seq(length(roots))){
+    split_rank <- 1
+    split_root <- roots[split]
+    while (split_root != 0) {
+      split_rank <- split_rank + 1
+      split_root <- poly.stats$root.id[
+        which(poly.stats$plot.id == split_root)]
+    }
+    ranks.id[split] <- split_rank
+  }
+  ranks.id
+}
+

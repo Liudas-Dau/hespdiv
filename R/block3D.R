@@ -5,7 +5,7 @@
 #' @param obj hespdiv object
 #' @param height character (default 'mean'). What information from poly.stats
 #' data frame do you wish to encode as the height of the polygons? Options:
-#' "mean", "sd", "best", "z.score", "str.best", "str.z.score". See details
+#' "mean", "sd", "best", "z.score", "str.best", "str.z.score","id". See details
 #' for explanations.
 #' @param color.seed integer. Controls the color of polygons. Change it to a
 #' different number if you want to get a different set of colors.
@@ -19,7 +19,7 @@
 blok3d <- function(obj,height = "mean", color.seed=1, lines=TRUE, pnts.col = NULL,
                    obs = TRUE) {
   height <- as.vector(sapply(height, .arg_check, name = "height", NAMES = c("mean","sd","best","z.score",
-                                                 "str.best", "str.z.score")))
+                                                 "str.best", "str.z.score","rank")))
   for (height in height){
     rgl::open3d()
     poly.stats <- obj$poly.stats
@@ -49,9 +49,16 @@ blok3d <- function(obj,height = "mean", color.seed=1, lines=TRUE, pnts.col = NUL
     } else {
       xy.dat <- obj$call.info$Call_ARGS$xy.dat
     }
-    ZZ <- .Zcoords(poly.stats,height)
-    del.id <- which(ZZ[,1]==ZZ[,2])
-    Zoff <- mean(apply(ZZ[-del.id,], 1, function(x){x[2]-x[1]}))/5
+    if (height == "rank") {
+      ZZ <- data.frame(zmin = obj$poly.stats$rank-1, zmax = obj$poly.stats$rank)
+      del.id <- numeric()
+      Zoff <- 0.2
+    } else {
+      ZZ <- .Zcoords(poly.stats,height)
+      del.id <- which(ZZ[,1]==ZZ[,2])
+      Zoff <- mean(apply(ZZ[-del.id,], 1, function(x){x[2]-x[1]}))/5
+    }
+
     if (height %in% c('z.score','str.z.score')){
       highest.z <- min(ZZ,na.rm = T)
     } else {
@@ -90,8 +97,13 @@ blok3d <- function(obj,height = "mean", color.seed=1, lines=TRUE, pnts.col = NUL
                 zlab = height, xlab = "x", ylab = "y")
 #
     #paisom kiekvieno bloko pavirsius
+    if (length(del.id) == 0){
+      IDs <- seq(nrow(ZZ))
+    } else {
+      IDs <- seq(nrow(ZZ))[-del.id]
+    }
     for (i in seq(n)) {
-      .draw_poly(obj,(seq(nrow(ZZ))[-del.id])[i],color=palete[i], ZZ, Zoff)
+      .draw_poly(obj,IDs[i],color=palete[i], ZZ, Zoff)
     }
     if (lines==TRUE){
       for (i in seq(nrow(ZZ))){
@@ -157,9 +169,9 @@ blok3d <- function(obj,height = "mean", color.seed=1, lines=TRUE, pnts.col = NUL
   zmini <- ZZ[i,1]
   zmaxi <- ZZ[i,2]
   #virsus
-  rgl::polygon3d(x, y, z=rep(zmaxi,length(x)), col = color,add=T,fill = F)
+  rgl::polygon3d(x, y, z=rep(zmaxi,length(x)), col = color,add=T,fill = T)
   #apacia
-  rgl::polygon3d(x, y, z=rep(zmini,length(x)), col =color, add=T, fill =F)
+  rgl::polygon3d(x, y, z=rep(zmini,length(x)), col =color, add=T, fill =T)
   #sonai
   xmat <- matrix(NA, 2, length(x))
   ymat <- matrix(NA, 2, length(x))
@@ -179,4 +191,5 @@ blok3d <- function(obj,height = "mean", color.seed=1, lines=TRUE, pnts.col = NUL
                  justify="left")
 
 }
+
 

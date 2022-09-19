@@ -16,9 +16,9 @@
          xlab = "x coordinate", ylab = "y coordinate")
 
     lines(rims[[1]])
-    points(perim_pts[[1]],pch=17,col="darkgreen",cex = 2)
+    points(perim_pts[[1]],pch=17,col="darkgreen",cex = 1)
     if(!is.null(pnts.col)){
-      points(xy.dat$x, xy.dat$y, col=pnts.col,pch=19)
+      points(xy.dat$x, xy.dat$y, col=pnts.col,pch=19,cex=0.5)
     }
     centras <- pracma::poly_center(rims[[testid]][,1],rims[[testid]][,2])
     points(centras[1],centras[2],col=2,pch=19,cex=0.65)
@@ -70,7 +70,7 @@
         plot(rot.dat.cords$x, rot.dat.cords$y, col=pnts.col,
              xlab = "shifted & rotated X coordinate",
              ylab = "shifted & rotated Y coordinate" ,pch=19,
-             xlim = range(rot.poli$x),ylim = range(rot.poli$y))
+             xlim = range(rot.poli$x),ylim = range(rot.poli$y),cex = 0.5)
       } else {
         plot(NULL,xlim = range(rot.poli$x),ylim = range(rot.poli$y),col=0,
              xlab = "shifted & rotated X coordinate",
@@ -111,7 +111,7 @@
     if (level != 'best' & what != 'straight'){
       invisible(dev.set(dev.list()[length(dev.list())]))
       lines(best.old.curve,lwd=3, col = 'gray70')
-      lines(curve,lwd=2, col = '#56B4E9')
+      lines(curve,lwd=2, col = '56B4E9')
       readline(prompt = cat(paste0('\nThe displayed curvial split-line',
                                    ' is so far the best.',
                                    '\nIt\'s quality is: ',
@@ -125,8 +125,8 @@
   if (!is.null(what)){
     if (what != "straight" & level == "all"){
       invisible(dev.set(dev.list()[length(dev.list())]))
-      lines(curve, col = '#E69F00')
-      points(x,y,col="#E69F00", pch = 8,cex= 2 )
+      lines(curve, col = 'E69F00')
+      points(x,y,col="E69F00", pch = 8,cex= 2 )
       readline(prompt = cat(paste0("\nPotentially better curve was found by using",
                                    " knot, interpolated from other knot performances",
                                    ".\n\nPress enter to",
@@ -139,9 +139,9 @@
     if (level != 'best' & what != 'straight'){
       invisible(dev.set(dev.list()[length(dev.list())]))
       lines(best.old.curve,lwd=3, col = 'gray70')
-      lines(curve,lwd=2, col = '#56B4E9')
+      lines(curve,lwd=2, col = '56B4E9')
       if (level == "main"){
-        points(x,y,col="#E69F00", pch = 8,cex= 2 )
+        points(x,y,col="E69F00", pch = 8,cex= 2 )
       }
       readline(prompt = cat(paste0(
         '\nThe curve produced by using interpolated, potentially better knot',
@@ -158,7 +158,7 @@
   if (!is.null(what)){
     if (level == 'all' & what != 'straight'){
       invisible(dev.set(dev.list()[length(dev.list())]))
-      lines(curve, col = '#999999')
+      lines(curve, col = '999999')
       points(x, y, col="gray70", pch = 8,cex = 2 )
       readline(prompt = cat(paste0("\nThe interpolated knot did not produce",
                                    ' a better curve.',
@@ -173,7 +173,7 @@
     if (level != 'best' & what != 'straight'){
 
       invisible(dev.set(dev.list()[length(dev.list())]))
-      points(x,y,col="#D55E00", pch = 8,cex= 2 )
+      points(x,y,col="D55E00", pch = 8,cex= 2 )
       points(x,old.knot.y,col="gray70", pch = 8,cex= 2 )
       cat(paste0('\nSelected knot is displayed.\n'))
 
@@ -205,13 +205,13 @@
       lines(x= pairs_pts[maxid,c(1,3)], y = pairs_pts[maxid,c(2,4)],lwd=3,
             col = 'gray70')
       lines(x= pairs_pts[i,c(1,3)], y = pairs_pts[i,c(2,4)],lwd=2,
-            col = '#56B4E9')
+            col = '56B4E9')
     }}}
 .visualise_splits.try_straight <- function(what, level, pairs_pts, i) {
   if (!is.null(what)){
     if (what != "curve" & level == "all"){
       lines(x = pairs_pts[i,c(1,3)], y = pairs_pts[i,c(2,4)],
-            col = "#E69F00")
+            col = "E69F00")
       readline(prompt = cat(paste0("\nTesting straight split-line",
                                    " No. ", i,".\n\nPress enter to",
                                    " continue...\n")))
@@ -225,14 +225,14 @@
                                    '\nReason: ',message,
                                    "\n\nPress enter to continue...\n")))
       lines(x = pairs_pts[i,c(1,3)], y = pairs_pts[i,c(2,4)],
-            col = "#999999")
+            col = "999999")
     }}}
 .visualise_splits.try_curve <- function(what, level,
                                         counter, curve) {
   if (!is.null(what)){
     if (what != "straight" & level == "all"){
       invisible(dev.set(dev.list()[length(dev.list())]))
-      lines(curve, col = '#E69F00')
+      lines(curve, col = 'E69F00')
       readline(prompt = cat(paste0("\nTesting curvial split-line",
                                    " No. ", counter,
                                    ".\n\nPress enter to",
@@ -247,7 +247,7 @@
                                    ' \nReason: ',message,
                                    "\n\nPress enter to continue...\n")))
       invisible(dev.set(dev.list()[length(dev.list())]))
-      lines(curve, col = '#999999')
+      lines(curve, col = '999999')
     }}}
 .visualise_splits.best_split <- function(what,
                                          best.splitl, maxdif) {

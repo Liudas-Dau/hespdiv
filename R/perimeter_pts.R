@@ -44,14 +44,10 @@
   for( i in 1:c(length(x)-1)){
     perimetras<-perimetras+sqrt((x[i]-x[i+1])^2+(y[i]-y[i+1])^2)
   }
-  if (!is.null(n.pts)){
-    dst.pts<-perimetras/n.pts
-  } else {
-    if (!is.null(dst.pts)) {
+  if (!is.null(dst.pts)) {
     n.pts<-round(perimetras/dst.pts,0)
   } else {
-    stop(print("Specify either n.pts or dst.pts"))
-    }
+    dst.pts<-perimetras/n.pts
   }
   passed<-0
   generated_x_pt<-x[1]
@@ -99,4 +95,14 @@
   coords<-data.frame(x=generated_x_pt,y=generated_y_pt,ID,segment.no)
   full.poly<-rbind(data.frame(x.poly,y.poly),data.frame(x.poly=x[i:length(x)],y.poly=y[i:length(x)]))
   return(list(per_pts=coords,full.poly))
+}
+#' Calculate perimeter of a polygon
+#' @noRd
+.calc.perim <- function(polygon){
+  perimetras <- 0
+  for( i in 1:c(nrow(polygon)-1)){
+    perimetras<-perimetras+sqrt((polygon[,1][i]-polygon[,1][i+1])^2+
+                                  (polygon[,2][i]-polygon[,2][i+1])^2)
+  }
+  perimetras
 }

@@ -85,21 +85,21 @@ ggplot_hespdiv <- function(obj, xy.dat, type = "color",n.loc = FALSE,
     }
   }
   if (!maximize){
-    split.stats[,7] <- -obj$split.stats[,7]
+    split.stats[,"performance"] <- -obj$split.stats[,"performance"]
   }
-  ord <- order(split.stats[,7], decreasing = FALSE)
+  ord <- order(split.stats[,"performance"], decreasing = FALSE)
   split.stats <- split.stats[ord,]
   split.lines <- lapply(ord,function(id){obj$split.lines[[id]]})
   df <- Reduce(rbind,split.lines)
   npt.in.split <- as.numeric(lapply(split.lines,nrow))
   if (type == "width"){
-    size <- rep(split.stats[,7], times = npt.in.split)
+    size <- rep(split.stats[,"performance"], times = npt.in.split)
   } else {
-    color <- rep(split.stats[,7], times = npt.in.split)
+    color <- rep(split.stats[,"performance"], times = npt.in.split)
   }
   df$group <- factor(rep(1:length(split.lines),times=npt.in.split))
 
-  base <- ggplot2::ggplot(data,aes(x,y),xlab = 'x', ylab = 'y') +
+  base <- ggplot2::ggplot(obj$polygons.xy[[1]],aes(x,y),xlab = 'x', ylab = 'y') +
     geom_path(data= obj$polygons.xy[[1]],aes(x,y), size=0.5,
               lineend = "round",linejoin = "round",color = 1)
 
@@ -154,7 +154,7 @@ ggplot_hespdiv <- function(obj, xy.dat, type = "color",n.loc = FALSE,
                                    label.position = "left",label.hjust = 1))
   }
   if (!maximize) {
-      base$scales$scales[[scale_id]]$limits <-  range(split.stats[,7])
+      base$scales$scales[[scale_id]]$limits <-  range(split.stats[,"performance"])
       base$scales$scales[[scale_id]]$breaks <-
         as.numeric(na.omit( base$scales$scales[[scale_id]]$get_breaks() ))
       base$scales$scales[[scale_id]]$labels <-
@@ -162,10 +162,10 @@ ggplot_hespdiv <- function(obj, xy.dat, type = "color",n.loc = FALSE,
 }
   if (type == "color") {
     if (maximize){
-      base$scales$scales[[scale_id]]$limits <-  range(split.stats[,7])
+      base$scales$scales[[scale_id]]$limits <-  range(split.stats[,"performance"])
     }
     self <- base$scales$scales[[scale_id]]
-    x <- self$rescale(self$oob(split.stats[,7], range = self$limits), self$limits)
+    x <- self$rescale(self$oob(split.stats[,"performance"], range = self$limits), self$limits)
     color <- self$palette(x)
   }
   base <- base +
@@ -187,7 +187,7 @@ ggplot_hespdiv <- function(obj, xy.dat, type = "color",n.loc = FALSE,
   if (is.null(split.stats$p.val)){
     base<-base + ggrepel::geom_label_repel(data=mid.pt, aes(x,y),alpha=rep(3/5, nrow(mid.pt)),
                                   label = paste0(ord,") ",
-                                                round(obj$split.stats[ord,7],2)),
+                                                round(obj$split.stats[ord,"performance"],2)),
                                   fill  = color, size = 4,
                                   direction="both",fontface='bold',
                                   colour  = rep(1, nrow(mid.pt)))

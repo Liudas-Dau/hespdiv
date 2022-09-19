@@ -25,11 +25,13 @@
   assign(x = "poly.obj" ,
          value = do.call(c,list(poly.obj,list(generalize.f(samp.dat)))),
          envir = e)
-  perim_pts <- .perimeter_pts(polygon = rims[[testid]],n.pts = n.split.pts)
-  #if (testid == 28){
+  perim_pts <- .perimeter_pts(polygon = rims[[testid]],n.pts = n.split.pts,
+                              dst.pts = dst.pts)
+  #if (testid == 12){
   #trace.object <- "both"
-  # trace.level <- "all"
-  #}
+  #trace.level <- "best"
+ # browser()
+ #   }
   .visualise_splits.start(what = trace.object,
                           pnts.col, xy.dat, rims,perim_pts,
                           testid)
@@ -43,7 +45,7 @@
     S_org <- NULL
     }
 
-  pairs_pts <- .pair_pts(perim_pts[[1]],polygon = rims[[testid]])
+  pairs_pts <- .pair_pts(perim_pts[[1]],polygon = perim_pts[[2]])
   maxdif <- c.Q.crit # first split minimum quality. P.crit
   any.split <- numeric()
   maxid <- 0
@@ -183,6 +185,9 @@
         cond <- FALSE
       }
     }
+    if (!cond) .visualise_splits.bad_straight(what = trace.object,
+                                              level = trace.level,
+                                              pairs_pts, message, i)
     assign(x = "str.split.quals" ,
            value = do.call(c,list(str.split.quals,list(any.split))),
            envir = e)
@@ -222,16 +227,24 @@
     #Jei rastas tinkamas padalinimas - ieskom geriausios padalinimo kreives,
     #issaugom duomenis ir ziurim ar galima skaidyti toliau
     if (maxid>0) {
+      del.id <- unique(unlist(pairs_pts[,6:7]))
+      except <- c(unlist(apply(pairs_pts[maxid,6:7],2,function(o)
+        which(o == del.id))),which(del.id == 1))
+      del.id <- del.id[-except]
+      perim_pts[[2]] <- perim_pts[[2]][-del.id,]
+      min.x.id <- pairs_pts[maxid,6] - sum(del.id<pairs_pts[maxid,6])
+      max.x.id <- pairs_pts[maxid,7] - sum(del.id<pairs_pts[maxid,7])
       if ( c.splits) {
         .visualise_splits.best_straight(what = trace.object,
                                         pairs_pts, maxid, maxdif)
+
         environment(.curvial_split) <- environment()
         best.curve <- .curvial_split(
 
           poly.x = perim_pts[[2]]$x.poly,
           poly.y = perim_pts[[2]]$y.poly,
-          min.x.id = pairs_pts[maxid,6],
-          max.x.id = pairs_pts[maxid,7],
+          min.x.id = min.x.id,
+          max.x.id = max.x.id,
           b = pairs_pts[maxid,5],
           samp.dat = samp.dat,
           c.X.knots = c.X.knots,
@@ -283,15 +296,12 @@
 
       assign(x = "splits" ,value = do.call(c,list(splits,list(best.splitl))),
              envir = e)
-      # z-score of performance
-      #dalinam duomenis padalinimo kreive
-      #reikia sukurti poligonus du ir nufiltruoti duomenis  - galima padaryti geriau
       up.pol <- .close_poly(
         open.poly =
           .split_poly(
             polygon = data.frame(x=perim_pts[[2]][,1][-nrow(perim_pts[[2]])],
                                  y=perim_pts[[2]][,2][-nrow(perim_pts[[2]])]),
-            split_ids = as.numeric(pairs_pts[maxid,6:7]),
+            split_ids = c(min.x.id, max.x.id),
             min_id = 1,
             trivial_side = TRUE,
             poli_side = TRUE
@@ -308,7 +318,7 @@
           .split_poly(
             polygon = data.frame(x=perim_pts[[2]][,1][-nrow(perim_pts[[2]])],
                                  y=perim_pts[[2]][,2][-nrow(perim_pts[[2]])]),
-            split_ids = as.numeric(pairs_pts[maxid,6:7]),
+            split_ids = c(min.x.id, max.x.id),
             min_id = 1,
             trivial_side = TRUE,
             poli_side = FALSE
@@ -323,21 +333,26 @@
       assign(x = "rims" ,value = do.call(c,list(rims,list(up.pol))) ,envir = e)
 
       .spatial_div(up.dat,up.xy, root.id = testid)
-
-      print(paste("griztam i", testid, "padalinima [po mazu koord bloko]", sep=" "))
-
-
-      # Skaidom antra bloka
-      #jei egzistuoja gogolis (updatinti duomenys) tuomet sukuriam ribines koordinates ir lipdom prie
-      #gogolis masyvo. Duotu koordinaciu ribose ir bandom ieskoti pjuvio bei toliau updatinti duomenis.
-      #Jei pavyksta rasti pjuvi, updatinam duomenis, jei ne trinam null bobolis ir priklijuotas koo-
-      #rdinates.
       assign(x = "rims" ,value = do.call(c,list(rims,list(do.pol))) ,envir = e)
       .spatial_div(do.dat,do.xy, root.id = testid)
-      print(paste("griztam i", testid, "padalinima [po aukstu koord bloko (gogolis exists)]", sep=" "))
+
 
     } # else no adequate split
     } else {
+      assign(x = "poly.info" ,value = rbind(poly.info, data.frame(
+        root.id = root.id,
+        n.splits = 0,
+        n.obs = nrow(samp.xy),
+        mean = NA, # NA if 0
+        sd = NA, # NA if 1 or 0 split
+        str.best = NA,
+        str.z.score = NA, # NA if 1 or 0 split
+        has.split = FALSE,
+        is.curve = FALSE,
+        crv.best = NA,
+        crv.z.score = NA,
+        c.improv = NA))
+        , envir = e)
     print("no adequate pair of points on perimeter of the polygon.
                  Maybe too irregular polygon or too low n.pts")
       }
