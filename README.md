@@ -1,6 +1,6 @@
-#Installing HespDiv
+# Installing HespDiv
 
-HespDiv is also available on CRAN, therefore, it can simply be installed using the standard install.packages function as:
+HespDiv is available on CRAN, therefore, it can simply be installed using the standard install.packages function as:
 
 install.packages('HespDiv')
 
