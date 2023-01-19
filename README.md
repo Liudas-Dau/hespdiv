@@ -1,9 +1,3 @@
 # Installing HespDiv
 
-HespDiv is available on CRAN, therefore, it can simply be installed using the standard install.packages function as:
-
-install.packages('HespDiv')
-
-The version of the package available on GitHub may be newer than the one available on CRAN, that can be installed using the install_github function from the devtools package:
-
-devtools::install_github("Liudas-Dau/HespDiv")
+The official CRAN version of „HespDiv“ can be installed using: install.packages('HespDiv'). However, more up-to-date version of the package can be found on the GitHub. You can install it using „devtolls“ package: devtools::install_github("Liudas-Dau/HespDiv"). As new updates can cause some unexpected package behaviour, use the GitHub version with caution.
