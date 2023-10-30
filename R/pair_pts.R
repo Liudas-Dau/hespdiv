@@ -49,8 +49,17 @@
         a1 <- y[1] - b1*x[1]
         mid.x <- mean(x)
         mid.y <- a1 + mid.x * b1
-        if (sp::point.in.polygon(point.x = mid.x, point.y = mid.y,
+        if (sp::point.in.polygon(point.x = mid.x + 7e-14, point.y = mid.y+7e-14,
                                  pol.x = polygon[,1], pol.y = polygon[,2]
+        ) == 1 &
+        sp::point.in.polygon(point.x = mid.x - 7e-14, point.y = mid.y-7e-14,
+                                      pol.x = polygon[,1], pol.y = polygon[,2]
+        ) == 1 &
+        sp::point.in.polygon(point.x = mid.x - 7e-14, point.y = mid.y+7e-14,
+                                      pol.x = polygon[,1], pol.y = polygon[,2]
+        ) == 1 &
+        sp::point.in.polygon(point.x = mid.x + 7e-14, point.y = mid.y-7e-14,
+                             pol.x = polygon[,1], pol.y = polygon[,2]
         ) == 1){
           for ( seg in 1:(nrow(polygon)-1) ){
             pol_seg <- polygon[seg:(seg+1),]

@@ -1,63 +1,34 @@
-#' Calculate polygon cross-comparison matrix
+#' Calculate polygon object cross-comparison matrix
 #'
-#' This function calculates cross-comparison matrix of polygons identified by
-#' hespdiv. This matrix can be transformed into distance matrix to be used in
-#' cluster analysis.
-#' @param obj hespdiv object
+#' This function computes the cross-comparison matrix of hespdiv polygon objects.
+#' This matrix can be used as a distance matrix, either in its original form or after
+#' undergoing a transformation if necessary, for further cluster analysis.
+#' The matrix provides a quantitative measure of the similarity or
+#' dissimilarity between different hespdiv polygon objects, enabling the
+#' exploration of spatial relationships and patterns among them.
+#' @param obj A hespdiv class object.
 #' @author Liudas Daumantas
+#' @return A cross-comparison matrix of hespdiv polygon objects.
+#' @details The \code{cross_comp} function uses the \code{compare.f} function
+#' from the \code{'obj$call.info$Call_ARGS'} list to perform the
+#' pairwise  comparisons of the hespdiv polygon objects from the
+#' \code{'obj$poly.obj'} list, producing a cross-comparison matrix.
+#' @note The polygon cross-comparison functionality is currently not available
+#' for the "pielou" method. Additionally, the functionality is not supported for the
+#' custom methods that like "pielou" rely on variables from other environments within the
+#' 'compare.f' function.
+#' @family {functions for hespdiv post-prossesing}
 #' @export
 
 cross_comp <- function(obj){
-  if (obj$call.info$METHOD$method.type == "preset") {
-    method <- obj$call.info$METHOD$metric
-    if (method == "pielou") {
-      compare.f <- function(eveness1,eveness2) {
-        base.eveness <- poly.obj[[testid]]
-        (1 - mean(c(eveness1, eveness2)) / base.eveness) * 100 # percent change in eveness
-      }
-
+  if (!inherits(obj,"hespdiv"))
+    stop("obj should have 'hespdiv' class.")
+  if (obj$call.info$METHOD$metric == "pielou") { # should pass original data through generalize.f
+      # and compare only non overlapping polygons.
+      stop(paste0("Polygon cross-comparison is not yet available for pielou method."))
     } else {
-      if (method == "sorensen"){
-        compare.f <- function(uniq_tax1,uniq_tax2) {
-          sum <- length(uniq_tax1) + length(uniq_tax2)
-          int_2x <- length(which(duplicated(c(uniq_tax1,uniq_tax2))))*2
-          if (length(int_2x)!=0){
-            int_2x/sum
-          } else {
-            0
-          }
-        }
-      } else {
-        if (method == "morisita"){
-          compare.f <- function(x,y) {
-            all_sp <- unique(c(x,y))
-            x_f <- factor(x,levels = all_sp)
-            y_f <- factor(y,levels = all_sp)
-            (2*sum(table(x_f) * table(y_f)))/
-              (length(x) * length(y) *
-                 ((sum(table(x_f)*(table(x_f)-1)) /
-                     (length(x)* (length(x)-1))) +
-                    (sum(table(y_f)*(table(y_f)-1)) /
-                       (length(y)* (length(y)-1)))))
-          }
-        } else {
-          if (method == "horn.morisita"){
-            compare.f <- function(x,y) {
-              all_sp <- unique(c(x,y))
-              x_f <- factor(x,levels = all_sp)
-              y_f <- factor(y,levels = all_sp)
-              (2*sum(table(x_f) * table(y_f))) /
-                (length(x) * length(y) *
-                   ( sum(table(x_f)^2) / (length(x)^2)  +
-                       sum(table(y_f)^2) / (length(y)^2)))
-            }
-          }
-        }
-      }
+      compare.f <- obj$call.info$Call_ARGS$compare.f
     }
-  } else {
-    compare.f <- obj$call.info$Call_ARGS$compare.f
-  }
   comp.mat <- matrix(NA,nrow = length(obj$poly.obj),ncol =length(obj$poly.obj) )
   for (pol.id in seq(length(obj$poly.obj))){
     comp.mat[,pol.id] <- unlist(lapply(obj$poly.obj,FUN = compare.f,

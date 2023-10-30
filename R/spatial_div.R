@@ -27,23 +27,19 @@
          envir = e)
   perim_pts <- .perimeter_pts(polygon = rims[[testid]],n.pts = n.split.pts,
                               dst.pts = dst.pts)
-  #if (testid == 12){
-  #trace.object <- "both"
-  #trace.level <- "best"
- # browser()
- #   }
+
   .visualise_splits.start(what = trace.object,
                           pnts.col, xy.dat, rims,perim_pts,
-                          testid)
+                          testid, study.pol.viz)
 
   #testavimui pjuviai paruosiami
 
   environment(.dif_fun) <- e
-  if (!is.null(S.rel.crit)){
+  if (S.rel.crit > 0){
     S_org <- abs(pracma::polyarea(x=rims[[testid]][,1],y=rims[[testid]][,2]))
   } else {
     S_org <- NULL
-    }
+  }
 
   pairs_pts <- .pair_pts(perim_pts[[1]],polygon = perim_pts[[2]])
   maxdif <- c.Q.crit # first split minimum quality. P.crit
@@ -77,16 +73,13 @@
           ))
 
       # padalinami duomenys i dvi dalis pagal pjuvio koordinates
-      id1 <- .get_ids(po, samp.xy,first.p, data.frame(
-        x = unlist(pairs_pts[i,c(1,3)]), y = unlist(pairs_pts[i,c(2,4)])) )
-      id2 <- .get_ids(virs, samp.xy,first.p, data.frame(
-        x = unlist(pairs_pts[i,c(1,3)]), y = unlist(pairs_pts[i,c(2,4)])) )
-
+      id1 <- .get_ids(po, samp.xy)
+      id2 <- .get_ids(virs, samp.xy)
 
       .visualise_splits.try_straight(what = trace.object, level = trace.level,
                                      pairs_pts, i)
 
-      if (!is.null(N.crit)){
+      if (N.crit > 0){
         cond <- length(id1) > N.crit & length(id2) > N.crit
         if (!cond){
           message <- paste0("Not enough observations.",
@@ -96,7 +89,7 @@
         }
       }
 
-      if (!is.null(N.rel.crit)){
+      if (N.rel.crit > 0){
         cond <- length(id1) / nrow(samp.xy) > N.rel.crit &
           length(id2) / nrow(samp.xy) > N.rel.crit
         if (!cond){
@@ -108,40 +101,38 @@
         }
       }
 
-      if (!is.null(N.loc.crit) | !is.null(N.loc.rel.crit)){
-        loc.id1 <- .get_ids(po, unique(samp.xy),first.p, data.frame(
-          x = unlist(pairs_pts[i,c(1,3)]), y = unlist(pairs_pts[i,c(2,4)])) )
-        loc.id2 <- .get_ids(virs, unique(samp.xy),first.p, data.frame(
-          x = unlist(pairs_pts[i,c(1,3)]), y = unlist(pairs_pts[i,c(2,4)])) )
-        if (!is.null(N.loc.crit)){
-          cond <- length(loc.id1) > N.loc.crit &
-            length(loc.id2) > N.loc.crit
+      if (N.loc.crit > 0 | N.loc.rel.crit > 0){
+        n.uni.1 <- nrow(unique(samp.xy[id1,]))
+        n.uni.2 <- nrow(unique(samp.xy[id2,]))
+        if (N.loc.crit > 0){
+          cond <- n.uni.1 > N.loc.crit &
+            n.uni.2 > N.loc.crit
           if (!cond){
             message <- paste0("Not enough locations.",
-                              "\nObtained: ", length(loc.id1),
-                              ' and ', length(loc.id2),
+                              "\nObtained: ", n.uni.1,
+                              ' and ', n.uni.2,
                               "\nRequired: >", N.loc.crit)
             next
           }
         }
-        if (!is.null(N.loc.rel.crit)){
+        if (N.loc.rel.crit > 0){
           n.uni <- nrow(unique(samp.xy))
-          cond <- length(loc.id1) / n.uni > N.loc.rel.crit &
-            length(loc.id2) / n.uni > N.loc.rel.crit
+          cond <- n.uni.1 / n.uni > N.loc.rel.crit &
+            n.uni.2 / n.uni > N.loc.rel.crit
           if (!cond){
             message <- paste0("Too low proportion of locations.",
-                              "\nObtained: ", round(length(loc.id1) / n.uni,2),
-                              ' and ', round(length(loc.id2) / n.uni, 2),
+                              "\nObtained: ", round(n.uni.1 / n.uni,2),
+                              ' and ', round(n.uni.2 / n.uni, 2),
                               "\nRequired: >", N.loc.rel.crit)
             next
           }
         }
       }
 
-      if (!is.null(S.crit) | !is.null(S.rel.crit)){
+      if (S.crit > 0 | S.rel.crit > 0 ){
         SpjuvioI <- abs(pracma::polyarea(x=virs[,1],y=virs[,2]))
         SpjuvioII <- abs(pracma::polyarea(x=po[,1],y=po[,2]))
-        if (!is.null(S.crit)) {
+        if (S.crit > 0) {
           cond <- SpjuvioI > S.cond & SpjuvioII > S.cond
           if (!cond){
             message <- paste0("One of the areas was too small.\n","Obtained: ",
@@ -150,7 +141,7 @@
             next
           }
         }
-        if (!is.null(S.rel.crit)) {
+        if (S.rel.crit > 0) {
           cond <- SpjuvioI / S_org  > S.rel.crit &
             SpjuvioII / S_org > S.rel.crit
           if (!cond){
@@ -199,10 +190,10 @@
       # sd(any.split) -> anisotropy of heterogeneity
       # if all are equal, then complete randomness: no anisotropy - no splits present
       if( all(any.split==any.split[1]) & length(any.split) > 1  ){
-        warning(paste(c(
-          "All tested splits were of equal quality in "
-          , testid, " iteration. A random split were selected as it meets",
-          " all provided criteria")))
+        message(paste0(c(
+          "All tested splits were of equal quality in polygon "
+          , testid, ". A random split that meets subdivision criteria was",
+          " selected as best.")))
       }
     } else {
       mean.dif <- NA # negalejom ivertinti ne vieno padalinimo, taigi performance lygu max.
@@ -227,13 +218,45 @@
     #Jei rastas tinkamas padalinimas - ieskom geriausios padalinimo kreives,
     #issaugom duomenis ir ziurim ar galima skaidyti toliau
     if (maxid>0) {
-      del.id <- unique(unlist(pairs_pts[,6:7]))
-      except <- c(unlist(apply(pairs_pts[maxid,6:7],2,function(o)
-        which(o == del.id))),which(del.id == 1))
-      del.id <- del.id[-except]
-      perim_pts[[2]] <- perim_pts[[2]][-del.id,]
-      min.x.id <- pairs_pts[maxid,6] - sum(del.id<pairs_pts[maxid,6])
-      max.x.id <- pairs_pts[maxid,7] - sum(del.id<pairs_pts[maxid,7])
+      # skirtas sumazinti poligona pateikiama?
+      del.id <- unique(unlist(pairs_pts[,6:7])) # visi prideti taskai (atrinkti, taip kad nesidubliuotu)
+      dub.id <- which(duplicated(perim_pts[[2]][-nrow(perim_pts[[2]]),]))
+      except <- unique(c(
+        unlist(apply(pairs_pts[maxid,6:7],2,function(o) which(del.id %in% o))),
+        which(del.id == 1), # kurie prideti taskai yra pirmas taskas arba geriausias
+        which(apply(perim_pts[[2]][del.id,],1,function(o)
+          any(o[1] == perim_pts[[2]][dub.id,1] &
+                o[2] == perim_pts[[2]][dub.id,2]) ))
+      )) # kurie taskai yra kartu ir dubliai su
+      # poligono taskais.
+
+      del.id <- del.id[-except] # pasalinam situos taskus is del.id
+
+      if (length(dub.id) > 0){
+        if(any(c(pairs_pts[maxid,6:7]) %in% dub.id)) {
+          except.id <- which(dub.id %in% pairs_pts[maxid,6:7])
+          dubs <- dub.id[-except.id]
+          except.id <- dub.id[except.id]
+          alter.ids <- which(perim_pts[[2]]$x.poly %in%
+                               perim_pts[[2]]$x.poly[except.id] &
+                               perim_pts[[2]]$y.poly %in%
+                               perim_pts[[2]]$y.poly[except.id])
+          alter.ids <- alter.ids[ !alter.ids %in%
+                                    c(pairs_pts[maxid,6],pairs_pts[maxid,7])]
+          dub.id <- c(dubs, alter.ids)
+        }
+      }
+      del.id <- unique(c(del.id, dub.id))
+      if (length(del.id) > 0){
+        perim_pts[[2]] <- perim_pts[[2]][-del.id,] # istrinam del.id is poligono
+        min.x.id <- pairs_pts[maxid,6] - sum(del.id<pairs_pts[maxid,6])
+        max.x.id <- pairs_pts[maxid,7] - sum(del.id<pairs_pts[maxid,7]) # pakoreguojam min.x.id ir max.x.id pagal istrintu
+        # tasku kieki
+      } else {
+        min.x.id <- pairs_pts[maxid,6]
+        max.x.id <- pairs_pts[maxid,7]
+      }
+
       if ( c.splits) {
         .visualise_splits.best_straight(what = trace.object,
                                         pairs_pts, maxid, maxdif)
@@ -277,7 +300,7 @@
       if (!.comp(maxdif, Q.crit) ){
         maxid <- 0
       }
-      }
+    }
 
 
     if (maxid > 0){ # save the split and perform new splits if TRUE
@@ -308,10 +331,9 @@
           ),
         close.line = best.splitl
       )
-      up.ids <- .get_ids(up.pol,samp.xy,first.p, data.frame(
-        x = unlist(pairs_pts[maxid,c(1,3)]), y = unlist(pairs_pts[maxid,c(2,4)])))
-      up.xy <- .slicer.table(samp.xy,up.ids)
-      up.dat <- .slicer(samp.dat,up.ids)
+      up.ids <- .get_ids(up.pol, samp.xy)
+      up.xy <- .slicer.table(samp.xy, up.ids)
+      up.dat <- .slicer(samp.dat, up.ids)
 
       do.pol <- .close_poly(
         open.poly =
@@ -325,10 +347,9 @@
           ),
         close.line = best.splitl
       )
-      do.ids <- .get_ids(do.pol,samp.xy,first.p, data.frame(
-        x = unlist(pairs_pts[maxid,c(1,3)]), y = unlist(pairs_pts[maxid,c(2,4)])))
-      do.xy <- .slicer.table(samp.xy,do.ids)
-      do.dat <- .slicer(samp.dat,do.ids)
+      do.ids <- .get_ids(do.pol, samp.xy)
+      do.xy <- .slicer.table(samp.xy, do.ids)
+      do.dat <- .slicer(samp.dat, do.ids)
 
       assign(x = "rims" ,value = do.call(c,list(rims,list(up.pol))) ,envir = e)
 
@@ -338,24 +359,29 @@
 
 
     } # else no adequate split
-    } else {
-      assign(x = "poly.info" ,value = rbind(poly.info, data.frame(
-        root.id = root.id,
-        n.splits = 0,
-        n.obs = nrow(samp.xy),
-        mean = NA, # NA if 0
-        sd = NA, # NA if 1 or 0 split
-        str.best = NA,
-        str.z.score = NA, # NA if 1 or 0 split
-        has.split = FALSE,
-        is.curve = FALSE,
-        crv.best = NA,
-        crv.z.score = NA,
-        c.improv = NA))
-        , envir = e)
-    print("no adequate pair of points on perimeter of the polygon.
-                 Maybe too irregular polygon or too low n.pts")
-      }
+  } else {
+    assign(x = "str.split.quals" ,
+           value = do.call(c,list(str.split.quals,list(any.split))),
+           envir = e)
+    assign(x = "poly.info" ,value = rbind(poly.info, data.frame(
+      root.id = root.id,
+      n.splits = 0,
+      n.obs = nrow(samp.xy),
+      mean = NA, # NA if 0
+      sd = NA, # NA if 1 or 0 split
+      str.best = NA,
+      str.z.score = NA, # NA if 1 or 0 split
+      has.split = FALSE,
+      is.curve = FALSE,
+      crv.best = NA,
+      crv.z.score = NA,
+      c.improv = NA))
+      , envir = e)
+    if (!is.null(trace.level))
+      cat(paste("No adequate pair of points on perimeter of the polygon.",
+                "\nMaybe too irregular polygon, too detailed subdivisions",
+                "or too low n.pts."))
+  }
 }
 
 

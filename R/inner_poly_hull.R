@@ -4,10 +4,11 @@
 #' @author Liudas Daumantas
 #' @noRd
 .create_ints <- function(rule,cut_poly){
-  data.frame(x1 = cut_poly[which(rule),1],
-             y1 = cut_poly[which(rule),2],
-             x2 = cut_poly[which(rule)+1,1],
-             y2 = cut_poly[which(rule)+1,2])
+  IDs <- which(rule)
+  data.frame(x1 = cut_poly[IDs,1],
+             y1 = cut_poly[IDs,2],
+             x2 = cut_poly[IDs+1,1],
+             y2 = cut_poly[IDs+1,2])
 }
 
 #' Indicate whether the provided polygon is above zero

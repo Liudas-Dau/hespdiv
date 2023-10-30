@@ -8,5 +8,8 @@ Description: Provides functions for hierarchical data subdivision in space, usin
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-Imports: sp, pracma, DescTools, ggplot2, viridis, ggrepel, grDevices, RColorBrewer, rgl
+Imports: sp, pracma, DescTools, ggplot2, viridis, ggrepel, grDevices, RColorBrewer, rgl, scales, graphics
+Remotes: github::Liudas-Dau/hespdiv_data
 RoxygenNote: 7.2.1
+Depends: 
+    R (>= 2.10)

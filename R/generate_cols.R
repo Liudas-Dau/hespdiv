@@ -1,3 +1,5 @@
+#' @importFrom RColorBrewer brewer.pal.info
+#' @importFrom grDevices colors
 #' @noRd
 .generate_cols <- function(n,seed){
   set.seed(seed)

@@ -14,28 +14,58 @@ blok3d(
 )
 }
 \arguments{
-\item{obj}{hespdiv object}
+\item{obj}{An object of the hespdiv class}
 
-\item{height}{character (default 'mean'). What information from poly.stats
-data frame do you wish to encode as the height of the polygons? Options:
-"mean", "sd", "best", "z.score", "str.best", "str.z.score","id". See details
-for explanations.}
+\item{height}{A character vector with a default value of 'mean'. Which
+information from the "poly.stats" data frame do you want to encode as the
+height of the polygons? Options:
+"mean", "sd", "best", "z.score", "str.best", "str.z.score","rank". Multiple
+values are allowed.}
 
-\item{color.seed}{integer. Controls the color of polygons. Change it to a
-different number if you want to get a different set of colors.}
+\item{color.seed}{An integer that controls the colors of the polygons. Change
+it to a different number if you want to get a different set of colors.}
 
-\item{lines}{logical. Do you want split-lines to be displayed over the top of
-the polygons?}
+\item{lines}{A Boolean value. Do you want split-lines to be displayed over
+the top of the polygons?}
 
-\item{pnts.col}{vector. Color codes to be used for displaying observations.}
+\item{pnts.col}{A character or numeric vector. Color codes to be used for
+displaying observations.}
 
-\item{obs}{logical. Do you want observations to be displayed over the top of
+\item{obs}{A Boolean value. Do you want observations to be displayed over the top of
 the polygons?}
 }
 \description{
-This function vizualise polygons obtained by hespdiv function. Polygon height
-(z coordinate) encodes chosen information from the poly.stats data frame.
+This function visualizes HespDiv polygons in 3D space. The height axis
+corresponds to a chosen column from the "poly.stats" data frame.
+}
+\details{
+The function opens an rgl device for each column selected from the 'poly.stats'
+data frame.
+
+Visualizing the column values of "poly.stats" as polygon height can provide
+insight into the spatial heterogeneity of the analyzed data and its spatial
+hierarchical structure.
+
+Additionally, the 'height = rank' option provides a more intuitive way to
+understand the location of each polygon compared to the poly_scheme function.
+
+As polygons of higher rank are displayed on top of the lower rank polygons,
+a higher rank polygon might obscure the view. For this reason, the
+\code{polypop(obj,height)} function with the same arguments can be used to
+interactively select unwanted polygons and remove them from a plot.
+}
+\seealso{
+Other {HespDiv visualization options}: 
+\code{\link{plot_hespdiv}()},
+\code{\link{plot_hsa_q}()},
+\code{\link{plot_hsa}()},
+\code{\link{poly_scheme}()}
+
+Other {function for hespdiv visualization in 3D}: 
+\code{\link{polypop}()}
 }
 \author{
 Liudas Daumantas
 }
+\concept{{HespDiv visualization options}}
+\concept{{function for hespdiv visualization in 3D}}

@@ -1,19 +1,41 @@
 #' Draw hespdiv polygons in 3D space
 #'
-#' This function vizualise polygons obtained by hespdiv function. Polygon height
-#' (z coordinate) encodes chosen information from the poly.stats data frame.
-#' @param obj hespdiv object
-#' @param height character (default 'mean'). What information from poly.stats
-#' data frame do you wish to encode as the height of the polygons? Options:
-#' "mean", "sd", "best", "z.score", "str.best", "str.z.score","id". See details
-#' for explanations.
-#' @param color.seed integer. Controls the color of polygons. Change it to a
-#' different number if you want to get a different set of colors.
-#' @param lines logical. Do you want split-lines to be displayed over the top of
+#' This function visualizes HespDiv polygons in 3D space. The height axis
+#' corresponds to a chosen column from the "poly.stats" data frame.
+#'
+#' @param obj An object of the hespdiv class
+#' @param height A character vector with a default value of 'mean'. Which
+#' information from the "poly.stats" data frame do you want to encode as the
+#' height of the polygons? Options:
+#' "mean", "sd", "best", "z.score", "str.best", "str.z.score","rank". Multiple
+#' values are allowed.
+#' @param color.seed An integer that controls the colors of the polygons. Change
+#' it to a different number if you want to get a different set of colors.
+#' @param lines A Boolean value. Do you want split-lines to be displayed over
+#' the top of the polygons?
+#' @param obs A Boolean value. Do you want observations to be displayed over the top of
 #' the polygons?
-#' @param obs logical. Do you want observations to be displayed over the top of
-#' the polygons?
-#' @param pnts.col vector. Color codes to be used for displaying observations.
+#' @param pnts.col A character or numeric vector. Color codes to be used for
+#' displaying observations.
+#' @details
+#' The function opens an rgl device for each column selected from the 'poly.stats'
+#' data frame.
+#'
+#' Visualizing the column values of "poly.stats" as polygon height can provide
+#' insight into the spatial heterogeneity of the analyzed data and its spatial
+#' hierarchical structure.
+#'
+#' Additionally, the 'height = rank' option provides a more intuitive way to
+#' understand the location of each polygon compared to the poly_scheme function.
+#'
+#' As polygons of higher rank are displayed on top of the lower rank polygons,
+#' a higher rank polygon might obscure the view. For this reason, the
+#' \code{polypop(obj,height)} function with the same arguments can be used to
+#' interactively select unwanted polygons and remove them from a plot.
+#' @importFrom rgl open3d plot3d rgl.linestrips polygon3d persp3d rgl.points rgl.texts
+#' @importFrom pracma poly_center
+#' @family {HespDiv visualization options}
+#' @family {function for hespdiv visualization in 3D}
 #' @author Liudas Daumantas
 #' @export
 blok3d <- function(obj,height = "mean", color.seed=1, lines=TRUE, pnts.col = NULL,
@@ -43,12 +65,8 @@ blok3d <- function(obj,height = "mean", color.seed=1, lines=TRUE, pnts.col = NUL
       poly.stats$best <- obj$poly.stats$str.best
       poly.stats$z.score <- obj$poly.stats$str.z.score
     }
-
-    if (is.null(obj$call.info$Call_ARGS$xy.dat)){
-      xy.dat <- obj$call.info$Call_ARGS$data[,c('x','y')]
-    } else {
       xy.dat <- obj$call.info$Call_ARGS$xy.dat
-    }
+
     if (height == "rank") {
       ZZ <- data.frame(zmin = obj$poly.stats$rank-1, zmax = obj$poly.stats$rank)
       del.id <- numeric()
@@ -68,7 +86,7 @@ blok3d <- function(obj,height = "mean", color.seed=1, lines=TRUE, pnts.col = NUL
       pnts.col <- 1
     }
     # ZZ - is data.frame of z coordinates of blocks. Col 1 is z cord of the bottom
-    # and col 2 is z cord of the ceiling. Rows correspond to polygons in
+    # and coDl 2 is z cord of the ceiling. Rows correspond to polygons in
     # obj$poly.stats
 
 
@@ -163,15 +181,19 @@ blok3d <- function(obj,height = "mean", color.seed=1, lines=TRUE, pnts.col = NUL
 #' @noRd
 .draw_poly<-function(obj,i,color,ZZ, Zoff){
   #bloko koordinates
+  if (any(duplicated(obj$polygons.xy[[i]][-nrow(obj$polygons.xy[[i]]),])))
+    obj$polygons.xy[[i]] <- obj$polygons.xy[[i]][
+      -which(duplicated(obj$polygons.xy[[i]][-nrow(obj$polygons.xy[[i]]),])),]
+
   x <- obj$polygons.xy[[i]]$x
   y <- obj$polygons.xy[[i]]$y
 
   zmini <- ZZ[i,1]
   zmaxi <- ZZ[i,2]
   #virsus
-  rgl::polygon3d(x, y, z=rep(zmaxi,length(x)), col = color,add=T,fill = T)
+  rgl::polygon3d(x, y, z=rep(zmaxi,length(x)), col = color,add=TRUE,fill = TRUE)
   #apacia
-  rgl::polygon3d(x, y, z=rep(zmini,length(x)), col =color, add=T, fill =T)
+  rgl::polygon3d(x, y, z=rep(zmini,length(x)), col =color, add=TRUE, fill = TRUE)
   #sonai
   xmat <- matrix(NA, 2, length(x))
   ymat <- matrix(NA, 2, length(x))

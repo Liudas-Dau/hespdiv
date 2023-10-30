@@ -2,3 +2,5 @@
 ^\.Rproj\.user$
 ^darbinis\.R$
 ^test_fun\.R$
+^data-raw$
+^LICENSE\.md$

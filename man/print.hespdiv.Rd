@@ -7,7 +7,7 @@
 \method{print}{hespdiv}(x, ...)
 }
 \arguments{
-\item{x}{hespdiv object}
+\item{x}{A hespdiv class object.}
 
 \item{...}{other arguments}
 }
@@ -15,8 +15,8 @@
 x
 }
 \description{
-Function formats and prints the results
-of R object of class "hespdiv". It prints rounded split.stats data frame.
+Function formats and prints the rounded split.stats data frame.
+ from "hespdiv" class R object.
 }
 \author{
 Liudas Daumantas

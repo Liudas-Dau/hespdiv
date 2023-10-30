@@ -1,15 +1,17 @@
 #' Print the results of hespdiv object
 #'
 #' @method print hespdiv
-#' @description  Function formats and prints the results
-#' of R object of class "hespdiv". It prints rounded split.stats data frame.
-#' @param x hespdiv object
+#' @description  Function formats and prints the rounded split.stats data frame.
+#'  from "hespdiv" class R object.
+#' @param x A hespdiv class object.
 #' @param ... other arguments
 #' @return x
 #' @author Liudas Daumantas
 #' @export
 print.hespdiv <- function(x, ...){
   dat <- x$split.stats
+  if (!inherits(x,"hespdiv"))
+    stop("x should have 'hespdiv' class.")
   if (x$call.info$METHOD$method.type == "custom"){
     type <- "Custom"
     cat(paste0("\n","Information about the split-lines:", "\n\n",type,
@@ -19,7 +21,7 @@ print.hespdiv <- function(x, ...){
     if (x$call.info$METHOD$method == "biozonation"){
       method <- "Spatial biozonation"
       if (x$call.info$METHOD$metric == "sorensen") {
-        metric <- paste0("S",rawToChar(as.raw(184)),
+        metric <- paste0("So",
         "rensen-Dice coefficient")
         variant <- x$call.info$METHOD$variant
         if (variant == '1'){
@@ -34,11 +36,11 @@ print.hespdiv <- function(x, ...){
           }
         } else {
           if (x$call.info$METHOD$metric == "pielou"){
-            metric <- paste0("Percentage of Pielou entropy reduction")
+            metric <- paste0("Proportion of mean reduction in Pielou entropy")
             variant <- x$call.info$METHOD$variant
             if (variant == '1'){
-              variant <- paste0("100 x (1 - \u0394Pe / Pe.base)(",
-              "ref. in manual)")
+              variant <- paste0("(1 - \u0394Pe / Pe.base)(",
+              "ref. in hespdiv documentation)")
             }
           } else {
             if (x$call.info$METHOD$metric == "horn.morisita"){

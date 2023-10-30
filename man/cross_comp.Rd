@@ -2,18 +2,42 @@
 % Please edit documentation in R/cross_comp.R
 \name{cross_comp}
 \alias{cross_comp}
-\title{Calculate polygon cross-comparison matrix}
+\title{Calculate polygon object cross-comparison matrix}
 \usage{
 cross_comp(obj)
 }
 \arguments{
-\item{obj}{hespdiv object}
+\item{obj}{A hespdiv class object.}
+}
+\value{
+A cross-comparison matrix of hespdiv polygon objects.
 }
 \description{
-This function calculates cross-comparison matrix of polygons identified by
-hespdiv. This matrix can be transformed into distance matrix to be used in
-cluster analysis.
+This function computes the cross-comparison matrix of hespdiv polygon objects.
+This matrix can be used as a distance matrix, either in its original form or after
+undergoing a transformation if necessary, for further cluster analysis.
+The matrix provides a quantitative measure of the similarity or
+dissimilarity between different hespdiv polygon objects, enabling the
+exploration of spatial relationships and patterns among them.
+}
+\details{
+The \code{cross_comp} function uses the \code{compare.f} function
+from the \code{'obj$call.info$Call_ARGS'} list to perform the
+pairwise  comparisons of the hespdiv polygon objects from the
+\code{'obj$poly.obj'} list, producing a cross-comparison matrix.
+}
+\note{
+The polygon cross-comparison functionality is currently not available
+for the "pielou" method. Additionally, the functionality is not supported for the
+custom methods that like "pielou" rely on variables from other environments within the
+'compare.f' function.
+}
+\seealso{
+Other {functions for hespdiv post-prossesing}: 
+\code{\link{hsa_detailed}()},
+\code{\link{hsa}()}
 }
 \author{
 Liudas Daumantas
 }
+\concept{{functions for hespdiv post-prossesing}}

@@ -6,255 +6,417 @@
 \usage{
 hespdiv(
   data,
+  xy.dat = NULL,
   n.split.pts = 15,
+  same.n.split = TRUE,
+  method = "horn.morisita",
   generalize.f = NULL,
-  maximize = NULL,
-  method = NULL,
-  same.n.split = FALSE,
   compare.f = NULL,
+  maximize = NULL,
   N.crit = 1,
   N.rel.crit = 0.2,
-  N.loc.crit = NULL,
-  N.loc.rel.crit = NULL,
+  N.loc.crit = 1,
+  N.loc.rel.crit = 0.2,
   S.crit = 0.05,
   S.rel.crit = 0.2,
-  Q.crit,
+  Q.crit = NULL,
   c.splits = TRUE,
   c.Q.crit = NULL,
   c.crit.improv = 0,
   c.X.knots = 5,
   c.Y.knots = 10,
-  xy.dat = NULL,
-  c.max.iter.no = 5,
-  c.fast.optim = TRUE,
+  c.max.iter.no = +Inf,
+  c.fast.optim = FALSE,
   c.corr.term = 0.05,
-  filter.all = FALSE,
   study.pol = NULL,
+  use.chull = TRUE,
   tracing = NULL,
   pnts.col = 1,
-  display = TRUE
+  display = FALSE,
+  pacific.region = FALSE
 )
 }
 \arguments{
-\item{data}{an R object containing data to be analyzed. Required data
-structure depends on the method selected (see ...) or created.}
+\item{data}{An R object that contains the data to be analyzed. The required data
+structure depends on the selected method (e.g., character vector of taxa names).}
 
-\item{n.split.pts}{number of points that are used in creation of split-lines
-since these points serve as endings / origins of straight, as well as
-curvi-linear split-lines. Thus, the bigger this number, the more split-lines
-will be created and tested. Higher values of this parameter greatly
-increase the computation time dedicated to the search of straight
-split-lines, but increase the fit to the data.}
+\item{xy.dat}{A data.frame containing the coordinates for observations in the
+\code{data}. This parameter can be ignored if \code{data} is a data frame or
+ matrix with columns \code{x} or \code{y}.}
 
-\item{generalize.f}{a function used to estimate some emergent data quality.
-It must have one argument to which a spatially filtered subset of \code{data}
-could be assigned. However, \code{generalize.f} can access the
-\code{hespdiv} environment, thus inside this function other variables from
-\code{hespdiv} environment could be used, without requiring them as
-arguments (see the list of free variables available in \code{generalize.f}
-- list). As an output, \code{generalize.f} should produce
-an R object, that is recognized and used by \code{compare.f} function to
-estimate the quality of the split-lines (difference between two data groups
-separated in space by a split-line)}
+\item{n.split.pts}{integer. The number of split-points - 1. These points are
+used in creating straight split-lines (see details). The total number of straight
+split-lines generated can be obtained by \code{sum(1:n.split.pts)}.
+Increasing the value of \code{n.split.pts} leads to an increase in both the
+computation time and the fit to the data.}
 
-\item{maximize}{logical. Should the value returned by \code{compare.f} be
-maximized or minimized? Needs only to be provided when custom
-\code{compare.f} function is used.}
+\item{same.n.split}{logical. Should the number of split-points
+(\code{n.split.pts}) remain the same within each lower-ranked polygon?
+Choosing \code{TRUE} would result in a higher density of straight split-lines
+within lower-ranked polygons, whereas \code{FALSE} would preserve the same
+split-line density. Thus, essentially you are choosing between cross-scale
+and fixed-scale analysis.}
 
-\item{method}{String. A name of preset method. Determines which
-preset \code{generalize.f} and \code{compare.f} functions will be used to
-perform hierarchical subdivisions of spatial data, if \code{compare.f}
-function is not provided.}
+\item{method}{character. A name (or its abbreviation) of a preset method:
+'sorensen', 'pielou', 'morisita' or 'horn.morisita'. Internally determines
+values for \code{compare.f}, \code{generalize.f} and \code{maximize}.}
 
-\item{same.n.split}{logical. Should the \code{n.split.pts} in each
-consecutive study area polygon be the same? That would mean a narrowing distance
-in the placement of points of origin of linear split-lines and, thus, an
-increase in detail of study with a decreasing scale.}
+\item{generalize.f}{function. Optional function used in custom methods to
+prepare input for \code{compare.f} function (see details). It requires a
+single argument (e.g. "x") to which a spatially filtered subset of the
+\code{data} could be assigned (see notes for exceptions).}
 
-\item{compare.f}{a function used to quantify the difference between two data
-groups separated in space by a split-line. The estimated difference
-represents the quality of a split-line. This function must have two
-arguments to which the outputs of \code{generalize.f} could be assigned.
-These outputs are the emergent data qualities estimated at opposite sides of
-a split-line. Thus, \code{compare.f} must define how these data qualities
-should be compared to produce a difference measure that represents the
-quality of a split line. Similar to \code{generalize.f}, \code{compare.f}
-can access the \code{hespdiv} environment. Thus, inside \code{compare.f}
-function other variables from \code{hespdiv} environment could be used,
-without requiring them as arguments (see the list of free variables
-available in \code{generalize.f} - list).}
+\item{compare.f}{function. Only required in custom methods. Employed to
+quantify the comparison value of a split-line. For this purpose, the
+\code{compare.f} function requires two arguments where the outputs of the
+\code{generalize.f} function can be assigned (see notes for exceptions).}
 
-\item{N.crit}{Subdivision stopping criteria - number of observations.
-Minimum number of observations (rows in data) that should
-be present in areas separated by a split-line in order to establish the
-split-line. Default is 1.}
+\item{maximize}{logical. Only required in custom methods. Determines whether
+the split-line comparison value should be maximized or minimized during the
+optimization process.}
 
-\item{N.rel.crit}{number from 0 to 0.5. The minimum allowed observation
-proportion in polygon containing less data.}
+\item{N.crit}{number. Minimum required number of observations that should
+be present in each polygon obtained by a split-line in order for it to meet
+this criterion.}
 
-\item{N.loc.crit}{Subdivision stopping criteria - number of unique locations.
-Only meaningful when there are observations from the same location. Default
-0.2.}
+\item{N.rel.crit}{number from 0 to 0.5. Each polygon obtained with a
+split-line must have at least such proportion of observations to pass this
+criterion. Equation of the proportion:  (Number of observations in 1st/2nd
+resulting polygon) / (Number of observations in the polygon being subdivided)}
 
-\item{N.loc.rel.crit}{number from 0 to 0.5. The minimum allowed unique
-locations proportions in polygon containing less locations.}
+\item{N.loc.crit}{number. Minimum required number of different locations that
+should be present in each polygon obtained by a split-line in order for it to
+meet this criterion.}
 
-\item{S.crit}{Subdivision stopping criteria - size of plots.
-Minimum area expressed as a proportion of study area
-(provided polygon or estimated as convex hull of \code{xy_dat}) that plots
-separated by a split-line should have so that the split-line could be
-established. Default is 0.}
+\item{N.loc.rel.crit}{number from 0 to 0.5. Each polygon obtained with a
+split-line must have at least such proportion of different locations to pass this
+criterion. Equation of the proportion:  (Number of different locations in 1st/2nd
+resulting polygon) / (Number of different locations in the polygon being subdivided)}
 
-\item{S.rel.crit}{number from 0 to 0.5. The minimum allowed area
-proportion of a smaller polygon. Default 0.2.}
+\item{S.crit}{number from 0 to 1. Each polygon obtained with a
+split-line must have at least such area proportion to pass this
+criterion. Equation of the proportion:  (Area of 1st/2nd resulting polygon) /
+(Area of the first polygon). The first polygon is the provided study area
+or convex hull of observation locations.}
 
-\item{Q.crit}{Subdivision stopping criteria - upper limit of split-line
-quality applied to the final split-line. This is a minimum difference as
-estimated by \code{compare.f} function that separated
-plots should exhibit, so that a subdivision of a plot using the
-best split-line would be established. Default is -Inf.}
+\item{S.rel.crit}{number from 0 to 0.5. Each polygon obtained with a
+split-line must have at least such area proportion to pass this
+criterion. Equation of the proportion:  (Area of 1st/2nd resulting polygon) /
+(Area of the polygon being subdivided).}
 
-\item{c.splits}{Logical (default TRUE).
-Should non-linear split-lines be estimated?}
+\item{Q.crit}{number. The threshold for a split-line comparison value to be
+considered acceptable for a subdivision. When \code{maximize = TRUE}, higher
+values of the comparison value indicate a better subdivision. Conversely, when
+\code{maximize = FALSE}, lower values of the comparison value indicate a
+better subdivision.}
 
-\item{c.Q.crit}{integer (default NULL). Only meaningful when c.splits is
-TRUE. c.Q.crit determines the minimum performance that the best obtained
-straight-split line should have so that attempt would be made to generate
-from it a better non-linear split-line. Recommendation is to leave this value
-set to default (no performance requirement) and only use different value,
-when you are quite sure what are the limitations of improvements that
-non-linear split-lines can make over straight split-lines (e.g. if maximize
-is TRUE, c.Q.crit = Q.crit - MAX.c.improv).}
+\item{c.splits}{logical. When set to TRUE, the algorithm will explore
+nonlinear split-lines in addition to straight split-lines in order to
+find the optimal subdivision.}
 
-\item{c.crit.improv}{integer. How much non-linear split must be
-better than straight (in units of provided metric) for it to be selected?
-When 0 is set (default), then non-linear split-line still won't be selected
-if it performs the same as straight split line.}
+\item{c.Q.crit}{number.  The threshold for a split-line comparison value to
+be considered acceptable for generating nonlinear split-lines. It is
+recommended to use the default value, which does not impose a performance
+requirement, unless you have a clear understanding of the potential
+improvements that nonlinear split-lines can achieve over straight split-lines.
+ If \code{maximize = TRUE}, a suggested value for \code{c.Q.crit} is
+ \code{Q.crit} minus the maximum potential improvement.}
 
-\item{c.X.knots}{Curve parameter. The number of columns in the net of
-spline knots. These columns are distributed regularly along to the straight
-split-line. This parameter controls wiggliness (wave length) of the
-curvi-linear split-lines. Higher values allow  wigglier curves, thus
-increasing the fit to the data, but increases the optimization time of
-curvi-linear split-lines. Default value is 5.}
+\item{c.crit.improv}{number. The threshold for the improvement in a
+split-line comparison value required for a nonlinear split-line to be
+selected instead of a straight split-line for subdivision. The default value
+of 0 means that even if a nonlinear split-line performs equally to a
+straight split-line, the straight split-line will still be chosen.}
 
-\item{c.Y.knots}{Curve parameter. The number of rows in the net of
-spline knots. These rows are distributed regularly orthogonal to the straight
-split-line. This parameter controls wiggliness (resolution of tested wave
-amplitudes) of the curvi-linear split-lines. Higher values allow higher
-variety of wave amplitudes to be tested, when optimizing the shape of
-curvi-linear split-lines. Thus higher values increase the fit to the data at
-the cost of optimization time. Default value is 10.}
+\item{c.X.knots}{integer. Specifies the number of columns in a network of
+spline knots used to generate nonlinear split-lines. These knots are evenly
+distributed along the straight split-line. Adjusting the value of
+\code{c.X.knots} controls the degree of wiggliness (number of turns) in the
+resulting nonlinear  split-lines.}
 
-\item{xy.dat}{a data.frame containing coordinates for objects in \code{data}.
- If \code{data} is data frame or matrix that has columns x or y, can be
-ignored (default NULL).}
+\item{c.Y.knots}{integer. specifies the number of  rows in a network of
+spline knots used to generate nonlinear split-lines. These knots are
+distributed regularly along lines orthogonal to the straight
+split-line. Adjusting the value of \code{c.Y.knots} controls the number
+of amplitudes tested in each wiggle of a spline, influencing the shape of
+nonlinear split-lines.}
 
-\item{c.max.iter.no}{the maximum number of allowed iterations through the
-columns of spline knots (default 5). Setting higher values (eg Inf) increases
-the odds of convergence to the best possible curve. Higher values recommended
-if c.fast.optim is FALSE, because then only one spline knot can be
-changed each iteration.}
+\item{c.max.iter.no}{integer. The maximum number of iterations allowed through
+the network of spline knots when searching for the optimal shape of a
+nonlinear split-line. Setting a higher value, such as \code{+Inf}, increases
+the chances of converging to the best possible curve. It is recommended to
+use higher values when \code{c.fast.optim = FALSE}, as in this case, only a
+single spline knot can be selected per iteration.}
 
-\item{c.fast.optim}{Logical (default TRUE). Determines when spline knots
-are selected: TRUE - when first better curve than before is obtained, FALSE -
-when the best curve is obtained (after all spline knots are checked).}
+\item{c.fast.optim}{logical. Determines when spline knots are selected. If
+\code{TRUE}, the algorithm selects the first knot that generates a curve with
+a better comparison value, ensuring faster convergence. If set to
+\code{FALSE}, the algorithm completes a full iteration through the network
+of spline knots, which may result in slower convergence but potentially
+better overall performance.}
 
-\item{c.corr.term}{The term that defines the correction size of problematic
-curvi-linear split-lines which intersect the boundary of the polygon.
-Possible values are between 0 and 1, though small values are recommended
-(default is 0.05). These values define how much the interval of a generated
-spline, that crosses the boundary of polygon, should be shifted away from the
-boundary, inside the polygon, in direction orthogonal to the straight
-split-line, in  terms of proportion of polygon width where spline intersects
+\item{c.corr.term}{number from 0.01 to 0.2. A correction term for nonlinear
+split-lines that intersect the boundary of the polygon. Smaller values
+(default is 0.05) are recommended, as they determine the extent to
+which the outlying interval of the generated spline, which crosses the
+polygon boundary, should be shifted away from the boundary and inside the
+polygon in a direction orthogonal to the straight split-line. This shift is
+specified as a proportion of the polygon height where the spline intersects
 the polygon boundary.}
 
-\item{filter.all}{logical (default TRUE). Defines which data points are
-filtered by polygons. FALSE - only points strictly inside the polygon are
-filtered by polygons. TRUE - points located on a split-line are filtered as
-well in addition to those strictly inside a polygon.}
-
-\item{study.pol}{A polygon of study area (optional). It should be data.frame
-with two columns 'x' and 'y' containing coordinates of vertexes
-of a polygon that encompasses the locations of \code{data}. If not
-provided (default is NULL), convex hull of \code{data} will be used a
+\item{study.pol}{data frame with two columns, 'x' and 'y'. Rows of this data
+frame should correspond to vertexes of a polygon that defines the study area
+encompassing all observation locations (\code{xy.dat}). If not provided
+(default is NULL), convex hull of \code{xy.dat} will be used as
 study area polygon.}
 
-\item{tracing}{a character vector of two elements. First indicates the level
-("best", "main", "all"), second - the object ("curves", "straight" or "both")
-that will be traced. NULL (default) would mean no tracing.}
+\item{use.chull}{logical. If \code{study.pol} is provided, you can use
+\code{use.chull = TRUE} (which is default) to use it only for visualization.}
 
-\item{pnts.col}{Color of data points, default is 1. Argument is used when
-\code{trace} > 0. If set to NULL, data points will not be displayed.}
+\item{tracing}{a character vector with two elements. The first element
+indicates the level of tracing, which can be "best", "main", or "all". The
+second element specifies the object to be traced, which can be "curves",
+"straight", or "both". By default, when set to NULL, no tracing will be
+performed.}
 
-\item{display}{logical. Display the resulting polygons at the output?}
+\item{pnts.col}{character or numeric. Specifies the color of observations
+in a plot. The argument is used when \code{tracing} is not NULL. If
+\code{pnts.col = NULL}, observations will not be displayed.}
+
+\item{display}{logical. Display a simple plot of results at the end of
+computations?}
+
+\item{pacific.region}{logical (default is FALSE). When set to TRUE, indicates
+that the study area is crossed by the 180th meridian, such as being within
+the Pacific Ocean. In this case, the coordinates of  \code{xy.dat} and
+\code{study.pol} are transformed to eliminate the artificial abrupt change
+in x-coordinate values at the 180th meridian.}
 }
 \value{
-hespdiv class object, a list of at least 5 elements (see details):
+The 'hespdiv' class object eith a list with seven elements:
 \describe{
-  \item{\code{split.lines}}{ a list containing data frames of
-  split-lines coordinates}
-  \item{\code{poly.stats}}{ a data frame containing information about
-  polygons established by the split-lines. Columns:}
+ \item{\code{poly.stats}}{ The data frame containing information about
+  hespdiv polygons established by the selected split-lines. Columns of the
+  data frame:}
   \itemize{
-  \item \code{mean.dif} - mean quality of straight split-lines that were
-  produced and tested inside a polygon. Can be interpreted as a spatial
-  heterogeneity of emergent data quality.
-  \item \code{sd.dif} - standard deviation of quality of straight split-lines
-  that were produced and tested inside a polygon. Can be interpreted as the
-  extent of anisotropy in spatial heterogeneity of emergent data quality.
-  \item \code{str.z.score} - z-score of the best straight split-line quality
-  produced in a polygon. Indicates, how outstanding the produced straight
-  split-line is, when compared to other tested straight split-lines.
-  \item \code{iteration} - ID of \code{hespdiv} iteration, in which a
-  polygon was analyzed. Can be considered as the ID of a polygon.
-  \item \code{root.id} - the ID of \code{hespdiv} iteration, which produced the
-  split-line, isolating a polygon. Can be considered as the ID of
-  a polygon's parent-polygon.
+  \item \code{rank} - The rank of a polygon. It corresponds to the rank of the
+  split-line that produced the polygon and polygon position in the
+   hierarchical structure of the subdivisions.
+  \item \code{plot.id} - The ID assigned to the polygon. Corresponds to the
+  order within hespdiv analysis in which it was processed.
+  \item \code{root.id} - The ID of the parent polygon whose subdivision
+  resulted in the current polygon.
+  \item \code{n.splits} - The count of straight split-lines that were
+  evaluated for comparison values in an attempt to subdivide the polygon.
+  This count excludes split-lines that crossed the polygon boundary or did
+  not meet area, sample size or location number criteria.
+  \item \code{n.obs} - The number of observations (e.g., data points) inside
+  the polygon.
+  \item \code{mean} - The average comparison value of the straight
+  split-lines used in the attempted subdivision of the polygon. This value
+  reflects the general spatial heterogeneity of the data
+  \item \code{sd} - The standard deviation of the comparison values of the
+  straight split-lines used in the attempted subdivision. It indicates
+  the extent of anisotropy or variation in the spatial heterogeneity of
+  the data within the polygon.
+  \item \code{str.best} - The comparison value of the best straight
+  split-line produced within the polygon.
+  \item \code{str.z.score} - The z-score of the comparison value of the best
+  straight split-line within the polygon. It indicates how outstanding
+  the best straight split-line is compared to other evaluated random straight
+  subdivisions. Normally, this value should rarely reach extremely low or
+  high values (+-2-3) since the comparison values of split-lines are
+  spatially autocorrelated.
+  \item \code{has.split} - A Boolean indicator (TRUE or FALSE) that shows
+  whether a subdivision was established in the polygon.
+  \item \code{is.curve} - A Boolean indicator (TRUE or FALSE) that shows
+  whether the established subdivision was obtained using a curve.
+  If \code{has.split} is FALSE, this column will have an NA value.
+  \item \code{crv.best} - The same as \code{str.best} but for nonlinear split-lines.
+  \item \code{crv.z.score} - The same as \code{crv.z.score} but for nonlinear
+  split-lines.
+  \item \code{c.improv} - The improvement in comparison values
+  achieved by using nonlinear split-lines over straight split-lines.
   }
-  \item{\code{polygons.xy}}{a list, containing data frames of polygons,
-  produced by split-lines. Who corresponds to who??????????????}
-  \item{\code{poly.obj}}{a list of \code{generalize.f} outputs of each
-  polygon. Names of \code{poly.obj} elements correspond
-  to the \code{iteration} column of \code{poly.stats}}
-  \item{\code{split.stats}}{a data frame containing information about the
-  produced split-lines. Its contents depend on the choice of method and
-  the use of null models (see details)}
+  \item{\code{split.stats}}{ A data frame containing information about the
+  established split-lines. Columns of this data frame can be interpreted
+  the same way as in \code{poly.stats}, expect through the perspective of the
+  split-line (e.g. \code{rank} - is the rank of the split-line, not the
+   polygon). Additionally, \code{performance} column is the comparison value
+   of the split-line, and is the same as \code{str.best} or \code{crv.best} in \code{poly.stats},
+   depending on the value of is.curve column. The same applies to the z.score
+   column.}
+  \item{\code{split.lines}}{ A list containing data frames with the
+  coordinates of the established split-lines. The order of split-lines
+  in this list corresponds to their order in the \code{split.stats} data frame..}
+  \item{\code{polygons.xy}}{ A list containing data frames of the established
+  polygons resulting from the split-lines. The order of polygons in this
+  list corresponds to their order in the \code{poly.stats} data frame.}
+  \item{\code{poly.obj}}{ A list containing the polygons objects (the outputs of the \code{generalize.f}
+  function for each polygon). The order of elements in this list corresponds
+  to the row order of \code{poly.stats} and the polygon order in \code{polygons.xy}.}
+  \item{\code{call.info}}{Information about hespdiv call: method and
+  arguments used.}
+  \item{\code{str.difs}}{ A list containing comparison values of
+  evaluated straight split-lines from each polygon. The elements of this
+  list correspond to the rows of \code{poly.stats}.
+  }
   }
 }
 \description{
-This is the main function of HespDiv package that performs hierarchical
-spatial data subdivision. It recursively divides the data in space using
-random split-lines and evaluates their performance by estimating how well
-have they separated the data in space in terms of the magnitude of difference
-in emergent data qualities of interest. The best performing straight
-split-line is then used as an axis around which various shape curves are
-created and tested in a similar manner. Thus, each recursive iteration can
-produce either a straight or curvi-linear split-line that divides the study
-area and data into two parts. Each part can be further subdivided in
-the subsequent iterations to ultimately produce a hierarchical subdivision of
-space and data. \cr Two main functions must be provided to estimate the
-separation of data in
-space. First one (argument = \code{generalize.f}) is needed to calculate some
-emergent data quality (eg. some model, summary statistic, etc.).
-The second one (argument = \code{compare.f}) defines how the difference between
-emergent data qualities estimated from different areas should be
-quantified (e.g. prediction error, change in model structure, absolute
-difference in statistic, etc). \cr In some sense, data generalization
-functions similar to the distance
-calculation method and comparison function - to the linkage function of
-cluster analysis. The difference is, that the top-down approach used here
-allows to quantify the distance between groups of data in ways that require
-certain amount of data points. As bottom-up approaches proceed from
-comparing and first grouping single data points, they cannot use more
-emergent data qualities (whose estimation requires certain amount of points
-distributed in space) to calculate distance between clusters.
+This function is an implementation of spatial data analysis method "HespDiv".
+It performs hierarchical spatial data subdivision by recursively
+dividing the data using random split-lines, evaluating their comparison
+values (how well they separate data), and using the best to perform
+subdivisions.
 }
 \details{
-Nothing to detail yet (split.stats, null model results).
+\subsection{The Algorithm}{
+\bold{1) Split-point Placement:} The function places a predetermined number of
+split-points (\code{n.split.pts + 1}) along the perimeter of the study area
+(\code{study.pol}) or the convex hull of observation locations
+(\code{xy.dat}) if a study area polygon is not provided. These split-points
+are evenly spaced.
+
+\bold{2) Straight Split-lines:} Straight split-lines are generated by connecting
+the split-points. The total number of straight split-lines generated is equal
+to the value of \code{sum(1:n.split.pts)}.This holds true only in the first iteration when
+\code{same.n.split} is set to \code{FALSE} or in all iterations when
+\code{same.n.split} is set to \code{TRUE}. Note that the total number of
+split-lines generated will not be equal to the number of split-lines
+evaluated since split-lines that cross polygon boundary or do not pass
+sample size, area or location number subdivision criteria are not evaluated.
+
+\bold{3) Subdivisions:} Each split-line spatially divides the data and study area
+polygon into two subsets.
+
+\bold{4) Criteria:} Both subsets are then checked to see if they meet
+sample size, area and location number criteria.
+
+\bold{5) Obtaining Comparison Values:} Subsets that meet criteria are
+compared using \code{generalize.f} and \code{compare.f} functions to obtain
+a comparison value. First, each subset is passed into the
+\code{generalize.f} function to obtain a generalization value
+(e.g., Pielou evenness index in 'pielou' method) for it (please refer to the
+'note' section for clarification). Then these values are used in the
+\code{compare.f} function to compare the subsets, producing a comparison
+value. This way each split-line that passed all subdivision criteria is
+assigned a comparison value.
+
+\bold{6) Best Straight Split-line Selection:} The best performing straight
+split-line is determined based on whether the \code{maximize} argument is
+set to \code{TRUE} or \code{FALSE}. If \code{maximize} is \code{TRUE}, the
+best split-line is the one with the highest comparison value; if
+\code{maximize} is \code{FALSE}, the best split-line has the lowest
+comparison value.
+
+The combination of the \code{generalize.f}, \code{compare.f}, and
+\code{maximize} arguments can be provided, enabling the creation of custom
+methods, or it can be determined internally based on the chosen preset
+subdivision methods (see below).
+
+\bold{7) Nonlinear Split-lines:} If the best straight split-line meets
+the quality criteria specified by the \code{c.Q.crit}, it serves as the basis
+for generating variously shaped curves (nonlinear split-lines). These curves
+are produced using splines, which are mathematical functions that can create
+smooth and flexible curves.
+
+To generate the curves, a number of knots (control points) for the splines are
+distributed evenly along a set of lines orthogonal to the best straight
+split-line. These orthogonal lines are also evenly distributed along the
+straight split-line itself. The number of knots and lines used can be
+adjusted through the parameters \code{c.Y.knots} and \code{c.X.knots},
+respectively.
+
+The algorithm then iterates through this network of knots, considering
+different combinations of knots, to produce curves. By varying the selection
+and arrangement of knots, different shapes of curves are generated.
+
+
+\bold{8) Nonlinear Split-line Evaluation and Selection:} Curves are then
+processed in the same manner as straight split-lines in steps 3 to 6.
+
+\bold{9) Final Split-line Selection and Establishment of Subdivision:} If the best
+curve outperforms the best straight split-line by a margin of
+\code{c.crit.improv}, the best split-line becomes nonlinear. Otherwise, it
+remains straight. The split-line must also satisfy the criteria established
+by the \code{Q.crit} argument to be used for subdivision.
+
+\bold{10) Recursive Iteration:} The process described above is iteratively applied,
+resulting in a collection of selected split-lines with their performance
+values. These split-lines hierarchically subdivide space and data, forming
+polygons of various shapes.
+}
+\subsection{Preset Methods}{
+Preset methods and their combinations of \code{compare.f},
+\code{generalize.f} and \code{maximize} arguments:
+\describe{
+\itemize{
+  \item "sorensen" - functions calculate Sorensen similarity index
+  (Sorensen 1948), maximize = FALSE. Values vary from 0 to 1.
+  \item "pielou" - functions calculate the mean proportional decrease in
+  Pielou evenness (Pielou 1966) that occurs after polygon subdivision,
+  maximize = TRUE. Values vary from 0 to 1.
+  \item "morisita" - functions calculate Morista overlap index
+  (Morisita 1959), maximize = FALSE. Values vary from 0 to 1.
+  \item "horn.morisita" - functions calculate Morista overlap index,
+  as modified by Horn (1966), maximize = FALSE. Values vary from 0 to 1.
+  }
+  }
+All the preset methods currently available are specifically designed for
+bioregionalization purposes.These methods necessitate two key inputs: the
+coordinates of fossil taxa occurrences (\code{xy.dat}) and the names or IDs
+of the taxa (\code{data}).These names or IDs should be structured as
+character or numeric vectors, with each element corresponding to a row in the
+\code{xy.dat} data frame. Each method compares fossil communities on
+opposite sides of a split-line, aiming to minimize similarity or
+maximize difference. Their outcome yields biogeographical provinces with a
+hierarchical structure.
+}
 }
 \note{
-Nothing to note yet.
+Please note that if you use the \code{method} argument, the arguments
+\code{generalize.f}, \code{compare.f}, and \code{maximize} are determined
+internally and should not be provided. Therefore, you should only assign
+values to these arguments when using a custom method, not a predefined one.
+Additionally, you can ignore the \code{generalize.f} argument even when
+applying custom methods. If \code{generalize.f} is set to NULL (default), the
+data remains unchanged, as \code{generalize.f} acts as an identity function.
+Hence, \code{generalize.f} is only an optional argument that allows to omit
+the transformation or generalization step in \code{compare.f} function,
+simplifying it.
+
+Both \code{generalize.f} and \code{compare.f} functions inherit parent
+function environments (e. g. hespdiv, .spatial_div), allowing to use
+additional variables (such as xy.dat, samp.xy, id1, id2) as arguments from
+those environments.
+
+There is a small possibility for a nonlinear split-line to cross a polygon
+boundary. If the result contains such a split-line, or if an error was received
+related to this issue, the recommendation would be to make a small change
+in some of the arguments (e.g., 'n.split.pts') and re-run hespdiv.
+}
+\examples{
+## DO NOT RUN:
+## Preparing fossil assemblage data:
+## loading hespdiv data package that contains fossil mammal occurrence data from US
+# library(HDData)
+# species <- mio_mams$accepted_name # taxa names
+# sp_coords <- data.frame(x = mio_mams$lng, y = mio_mams$lat)
+## Running HespDiv with default arguments
+# h <- hespdiv(data = species, xy.dat = sp_coords, study.pol = us)
+# us is just a polygon of contiguous US for visualization, see str(us)
+# plot_hespdiv(h, n.loc = TRUE)
+
+}
+\references{
+Horn, H. S. (1966). Measurement of" overlap" in comparative ecological studies. The American Naturalist, 100(914), 419-424.
+
+Morisita, M. (1959). Measuring of interspecific association and similarity between assemblages. Mem Fac Sci Kyushu Univ Ser E Biol, 3, 65-80.
+
+Pielou, E. C. (1966). The measurement of diversity in different types of biological collections. Journal of theoretical biology, 13, 131-144.
+
+Sorensen, T. A. (1948). A method of establishing groups of equal amplitude in plant sociology based on similarity of species content and its application to analyses of the vegetation on Danish commons. Biol. Skar., 5, 1-34.
 }
 \author{
 Liudas Daumantas

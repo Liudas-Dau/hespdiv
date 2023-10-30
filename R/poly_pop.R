@@ -1,9 +1,15 @@
 #' Remove polygons from rgl device
 #'
-#' Function that allows interactively select and remove polygons from the graph.
-#' @param obj hespdiv object which was used to create currently active rgl
-#' device with poly3d_hespdiv function.
-#' @param height character vector. Indicates what is the z coordinate.
+#' This function allows you to interactively select and remove unwanted polygons
+#' from a 3D plot created with the \code{blok3d} function.
+#'
+#' @param obj The hespdiv object used to create the currently active rgl
+#' device with the \code{blok3d} function.
+#' @param height A character value that indicates the height co-ordinate.
+#' @family {function for hespdiv visualization in 3D}
+#' @author Liudas Daumantas
+#' @importFrom pracma poly_center
+#' @importFrom rgl identify3d rgl.ids rgl.pop
 #' @export
 polypop <- function(obj,height){
   height <- .arg_check("height",height, c("mean","sd","best","z.score",

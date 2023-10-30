@@ -1,0 +1,335 @@
+---
+title: 'HespDiv Walkthrough: Case of US Miocene Mammals'
+author: "Liudas Daumantas"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true
+    toc_float: 
+      collapsed: false
+      smooth_scroll: false
+    theme: readable
+vignette: >
+  %\VignetteIndexEntry{HespDiv Walkthrough: Case of US Miocene Mammals}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 1. Walktrough introduction
+
+In this walkthrough tutorial, I will guide you through a simple case of the "hespdiv" package application. The purpose of this walkthrough is to provide you with a general understanding of the HespDiv method, the capabilities of the "hespdiv" package, and how you can apply it for spatial analysis of fossil occurrence data.
+
+If you come across any unfamiliar expressions in the tutorial or require clarification how the *hespdiv* algorithm works, you can refer to the ["HespDiv: Concepts and Methodology"](Introduction.Html) vignette that provides a glossary of key terms used in the HespDiv methodology and explains its concepts.
+
+# 2. Installation
+
+First of all, if you haven't already, install the "hespdiv" and its data package from GitHub repositories:
+```{r eval = FALSE}
+devtools::install_github("Liudas-Dau/hespdiv")
+devtools::install_github("Liudas-Dau/hespdiv_data")
+```
+
+# 3. Data
+
+In this walkthrough, we will be using the <code>mio_mams</code> dataset, which contains Miocene terrestrial mammal species' fossil occurrence data in the US, as well as the <code>us</code> dataset, which consists of a contiguous US polygon.
+
+The <code>mio_mams</code> dataset was derived from tidying data downloaded from the [Paleobiology database](https://paleobiodb.org/#/). The tidying process involved removing marine mammals, flying mammals, and occurrences with imprecise location information.
+
+You can find the script that produced both datasets in the "data_prep.R" file. This file, along with the raw data and metadata files, is located in the [GitHub repository of the "HHData" package](https://github.com/Liudas-Dau/hespdiv_data), specifically in the raw-data folder. The "HDData" package provides exemplary data for use with this package.
+
+Once you load the "HDData" package using <code>library(HDData)</code>, you can use these datasets straight away. Don't forget to load the "hespdiv" package as well to access its functions.
+
+# 4. Performing HespDiv Analysis
+```{r mio_mams}
+library(HDData)
+mio_mams
+library(hespdiv)
+```
+
+Let's take a look at the <code>mio_mams</code> dataset. It consists of 5244 fossil occurrence observations and a considerable number of variables (132), which is typical for Paleodb datasets. However, for our <code>hespdiv()</code> analysis, we only require a few specific variables: the coordinates of the observations and the names or IDs of the taxa. The coordinates should be formatted as a data frame with "x" and "y" columns.
+
+```{r variables}
+species <- mio_mams$accepted_name # Taxa names
+sp_coords <- data.frame(x = mio_mams$lng, y = mio_mams$lat) # Coordinates of observations
+```
+
+While it is not mandatory, I recommend providing a polygon representing the study area. This polygon serves as a geographical reference point when interpreting the results. The polygon should also be formatted as a data frame with "x" and "y" columns.
+
+```{r us}
+str(us)
+```
+
+Now, let's try the Morisita-Horn subdivision method using the default <code>hespdiv()</code> variables. This will allow us to perform hierarchical bioregionalization of the <code>mio_mams</code> dataset.
+
+```{r eval = FALSE}
+# The 'hd' object exists pre-calculated in HDData library, so don't need to run this code:
+hd <- hespdiv(data = species, xy.dat = sp_coords, study.pol = us)
+```
+
+Please note that running this call may take some time. The computation time is primarily influenced by the 'n.split.pts' argument, which controls the number of alternative subdivisions considered. The default value of 15 generates 120 split-lines (<code>sum(1:15)</code>) for each subdivision attempt. Increasing this value improves the fit of straight split-lines to the data but also increases computation time. In this tutorial, we will use lower values to avoid lengthy computation times.
+
+# 5. Interpreting The Results
+After the computations are complete, you will see a table in the console containing information about the established split-lines:
+
+```{r echo = FALSE}
+hd
+```
+
+This table provides various information about the subdivisions and the performance of the split-lines. For instance, the "performance" column shows the Morisita-Horn values of the best split-lines, while the "mean" and "sd" columns indicate the average and standard deviation of the Morisita-Horn values for all tested split-lines in a single subdivision. The "z.score" column represents the outstandingness of the best split-line, calculated as (performance - mean) / sd. It is important to note that split-line performances are highly correlated in space, and extremely high or low z-scores (>|-+3|) should be uncommon, while medium z-score values (>|-+1.5|) suggest split-lines that are notably outstanding. Each split-line's performance is represented by its outstandingness (z-score), Morisita-Horn value (performance), and order in the hierarchy tree (rank).
+
+The obtained result (<code>hd</code>) is a *hespdiv* class object, which is a list containing seven elements. These elements store the coordinates of the HespDiv polygons and split-lines, along with various information about all the subdivisions (both attempted and established), and call information. 
+One of the significant outcomes is the "poly.stats" data frame, which offers comprehensive information regarding the established HespDiv polygons. For more detailed information about the output and the printed table containing information about split-lines, please refer to the documentation of the <code>hespdiv()</code> function by executing <code>?hespdiv::hespdiv</code>) in your R environment.
+
+## 5.1. Visualizing The Results
+
+To gain a better understanding of the HespDiv results, it is recommended to visualize them. The "hespdiv" package offers several options for visualization. The main method, <code>plot_hespdiv()</code>, displays all established split-lines along with their performance. You can choose to visualize the performance using either line width or color. Additionally, there is an option to display the number of occurrences from the same location.
+
+```{r visualization}
+plot_hespdiv(hd, n.loc = TRUE) # Using color for split-line performance and displaying the number of fossil occurrences from each location
+
+plot_hespdiv(hd, type = "w") # Using line width for split-line performance
+```
+
+These plots provide a clear visualization of how the study area is subdivided and the performance of each split-line. The numbers next to each split-line indicate their order in the split-line table, corresponding to the order in which the algorithm established them. The rank of each split-line can also be checked in the table or distinguished directly from the plot. For example, the split-line with ID 1 was established first, dividing the study area and data into two parts. The second rank split-lines are with IDs 2 and 4, further subdividing these parts. The best split-line is of the 3rd rank (ID 6) and is located in the southeast, with a Morisita-Horn similarity value of 0.06. Split-lines established in the interior of the US appear to have lower performance, possibly due to more permeable communities at the center of the continent and the uniqueness of coastal communities.
+
+However, <code>plot_hespdiv()</code> lacks the ability to convey information about the established HespDiv polygons and explicitly reveal the hierarchical structure of the results. For this purpose, the function <code>blok3d()</code> can be used. It opens an interactive 3D RGL device where the obtained polygons are displayed as 3D blocks, with their "height" corresponding to a selected variable from the <code>hd$poly.stats</code> data frame. By default, the height of the polygons corresponds to the mean performance of evaluated split-lines.
+
+```{r 3d bloks, eval=FALSE}
+blok3d(hd)
+```
+
+![*Snapshot of the blok3d(hd) output.*](.\\3Dblock.png)
+
+In the 3D plot, you can observe that some polygons are tall while others are short. The tall polygons have higher Morisita-Horn similarities across all tested split-lines, indicating greater spatial homogeneity in taxa composition. Conversely, short polygons have spatially more heterogeneous taxa composition and probably more than one equally suitable subdivision. By selecting the standard deviation of Morisita-Horn values as the height of polygons, you can assess the variability of community composition heterogeneity across the territory.
+
+If certain polygons obstruct the view, you can interactively remove them using the <code>polypop()</code> function.
+
+```{r polypop, eval=FALSE}
+polypop(hd, height = "mean") # Set the "height" to the same value as was set in the blok3D function
+```
+
+![*Snapshot of the same RGL plot, but only the 1st, 2nd and 3nd polygons are left using the polypop function.*](.\\polypop.png)
+
+In the output of blok3d(), you can easily identify the position of each polygon in the spatial hierarchy tree, as higher-order polygons are always on top of lower-order ones. This also demonstrates that higher-order HespDiv polygons and clusters are strict subsets of lower-order ones. However, not all HespDiv polygons are displayed in the output of <code>blok3d(hd)</code> if not enough split-lines were evaluated to obtain a metric for height. By checking the <code>hd$poly.stats[,c("plot.id","n.splits")]</code> data frame, you can see how many split-lines were evaluated in each polygon.
+
+To display the location of each polygon, you can use the polygon rank as their height. However, irregularities may appear in the polygon geometry obtained with nonlinear split-lines when split-lines cross polygon boundaries by any amount. In such cases, the <code>blok3d()</code> function produce an error. To resolve this, you would need to remove the points that make the polygon geometries irregular before running <code>blok3d()</code>.
+
+```{r blok3d bug, eval=FALSE}
+# The following code demonstrates a potential issue with the `blok3d()` function
+blok3d(hd, height = "rank") # This should result in an error, occurring before rendering the 14th polygon in the RGL device. Thus, in this case, the problem appears to be with the 14th polygon. Closer inspection reveals which polygon points are problematic. Removing them solves the problem.
+
+# Removing problematic points from the 14th polygon
+hd$polygons.xy$'14' <- hd$polygons.xy$'14'[-2:-4,]
+
+# Running `blok3d()` again after removing the problematic points
+blok3d(hd, height = "rank")
+```
+
+![*All polygons displayed in a way that reflects their location in spatial hierarchy.*](.\\polyrank.png)
+
+The plots generated by <code>blok3d()</code> may not be suitable for paper publications. Additionally, to make the location of each polygon clear, you may need to use the <code>polypop()</code> function. Furthermore, as previously mentioned, rendering issues can occur, especially with many polygons created using nonlinear split-lines. In such cases, the <code>poly_scheme()</code> function can be used. While it does not visualize polygon statistics like <code>blok3d()</code>, it helps pinpoint the location of each polygon and track its position in the spatial hierarchy tree.
+
+```{r polyscheme}
+poly_scheme(hd, seed = 4) # Different 'seed' values produce different sets of colors
+```
+
+In the <code>poly_scheme()</code> plot, polygons are indicated by three elements of the same color: their IDs, centroids, and dotted segments connecting centroids to the split-lines that produced the polygons. Polygon IDs can be used to look up polygon information in the <code>hd$poly.stats</code> data frame. The first HespDiv polygon corresponds to the undivided study area, and its centroid is connected to the study area's boundary rather than a split-line. All other HespDiv polygons are displayed regularly. By examining the plot, you can see the relationships between polygons and their subdivisions. For example, the <code>poly_scheme(hd, seed = 4)</code> plot shows that the 2nd and 7th brown polygons are produced by the first split-line which is also brown (note that a centroid of a polygon can fall outside a polygon if it has an irregular shape like the 2nd polygon). Imagining a 3D view of the polygons with an added height dimension can enhance understanding of the spatial hierarchy tree.
+
+## 5.2. Cross-Comparison of HespDiv Clusters
+
+The <code>cross_comp()</code> function allows for the cross-comparison of the produced HespDiv clusters, corresponding to different HespDiv polygons. In the output of <code>hespdiv()</code>, comparison values (performance) are provided only for pairs of clusters obtained by the same split-line. On the other hand, the <code>cross_comp()</code> function takes each HespDiv cluster and compares its data to the data of every other HespDiv cluster using the same subdivision method approach, resulting in a matrix of cross-comparison results. This matrix can be further processed and used with other data exploration methods. For example, it can be transformed into a distance matrix and utilized as input for cluster or network analysis, effectively visualizing the interrelations between HespDiv clusters.
+
+```{r cross_comp_cl}
+sim_m <- cross_comp(hd) # Obtain cross-comparison matrix
+cl <- hclust(as.dist(1-sim_m)) # Convert similarity to distance and perfomring cluster analysis
+plot(cl)
+```
+
+```{r cross_compgr1, eval=FALSE}
+# install.packages("igprah")
+library(igraph)
+ gr <- graph.adjacency(
+     as.matrix(as.dist(sim_m)), # Zero the diagonal of the similarity matrix for the graph
+     mode = "undirected",
+     weighted = TRUE,
+     diag = FALSE
+ )
+plot(gr)
+```
+
+```{r cross_compgr2, echo=FALSE}
+ gr <- igraph::graph.adjacency(
+     as.matrix(as.dist(sim_m)), # Zero the diagonal of the similarity matrix for the graph
+     mode="undirected",
+     weighted=TRUE,
+     diag=FALSE
+ )
+plot(gr)
+```
+
+The cluster analysis clearly reveals three main clusters of fossil taxa assemblages corresponding to the east, west, and central US HespDiv polygons. Additionally, the graph illustrates that fossil taxa assemblages from peripheral polygons are the most distinct, while the first HespDiv cluster, encompassing all study data from the entire US, occupies the center of the graph. These characteristics may reflect a fundamental aspect of how community change is distributed in space: it accelerates from the interior towards the periphery of the continent. This phenomenon might be explained by the spatial autocorrelation of fossil assemblages at a continental/regional scale. Consequently, regions with more neighboring regions exhibit less distinct fossil taxa assemblages compared to regions on the periphery of the continent, which have fewer neighboring regions.
+
+# 6. Significance of The Results
+
+The performance of subdivisions is demonstrated by the performance of split-lines, their z-scores, and ranks. However, there is a reasonable need to estimate the significance of the HespDiv output by other means, since the result might be sensitive to the subdivision criteria used, or similar performances can be obtained from totally randomized data.
+
+## 6.1. Null Hyphothesis of Split-line Perfomance
+
+If the spatial structure within the data is weak, very similar split-line performances can be obtained after randomly shuffling the data. The <code>nulltest()</code> function does exactly that: it shuffles the data n times and re-measures the performance of the established split-lines each time. It then compares the original performance with those obtained after data shuffling.
+
+```{r nulltest, eval=FALSE}
+# The 'nl' object exists pre-calculated in HDData library, so don't need to run this code:
+set.seed(1) # The seed is used to obtain the same result of an experiment with random properties.
+nl <- nulltest(hd, n = 1000) 
+```
+
+```{r plot_nl}
+plot(nl)
+nl
+```
+
+The boxplot diagram here reveals the distribution of 1000 re-measured performances of each split-line after data shuffling; the red dot indicates the original performances. Only the third split-line appears to be insignificant. The printed data frame also corroborates this fact, as the quantile (proportion of instances when split-line performed better after data shuffling) of the third split-line is 0.616. Results of other split-lines indicate a very strong spatial structure in the fossil assemblage data.
+
+## 6.2. HespDiv Sensitivity Analysis
+
+The <code>hespdiv()</code> function has a considerable number of arguments, and it would be helpful to understand how changing these arguments affects the result. For this purpose, the <code>hsa()</code> and <code>hsa_detailed()</code> functions are available, which allow you to specify alternative values for the arguments and re-run the <code>hespdiv()</code> function. However, the recommended function for performing *hespdiv* sensitivity analysis is <code>hsa()</code>, as it can more effectively sample a broader range of argument values.
+
+When using <code>hsa()</code>, you can provide any number of alternative values for any number of arguments and specify the desired number of <code>hespdiv()</code> re-runs. Each re-run is performed with a random selection of values for each argument. The values for each argument are drawn from a pool that includes the value used in the original <code>hespdiv()</code> call and the alternative values provided.
+
+Here is an example where changes are made to the algorithm type, study area, and the fit to data. The subdivision method, subdivision criteria, and study data remain unchanged.
+
+```{r hsa,eval=FALSE}
+# The 'hsa_rez' object exists pre-calculated in HDData library, so there's no need to run this code:
+set.seed(2) # The seed is used to obtain the same result for an experiment with random properties.
+hsa_rez <- hsa(obj = hd,
+               n.runs = 100, # 100 alternative hespdiv re-runs
+               n.split.pts = 8:30, # The number of split-points determines the fit to data of straight split-lines 
+               same.n.split = FALSE, # The regularity of split-point placement determines whether the scale of analysis changes depending on the order of subdivision 
+               c.splits = FALSE,  # This argument controls whether curves are generated in an attempt to improve the performance of the best linear split-lines
+               c.X.knots = 3:8, # Controls the number of wiggles in generated curves, determining their fit to the data
+               c.Y.knots = 5:15, # Controls the number of different shapes each curve wiggle can achieve, also determining their fit to the data
+               c.fast.optim = TRUE, # Determines the optimization algorithm for non-linear split-lines
+               use.chull = FALSE) # Determines whether the convex polygon of occurrences is used as the study area polygon. If not, the study area polygon becomes the provided US polygon.
+```
+
+The obtained 'hsa_rez' object contains the results of alternative subdivisions. These results can be investigated to check the stability of the HespDiv polygons and the HespDiv clusters obtained with the original <code>hespdiv()</code> call.
+
+### 6.2.1. Stability of HespDiv Polygons
+
+The <code>hsa_plot()</code> function can be used to visualize all alternative subdivisions in the same plot along with the basal (original) subdivision and assess the stability of HespDiv polygons.
+
+```{r hsa_plot1}
+plot_hsa(hsa_rez, type = 1) # Using the default plot option - everything in one window
+```
+
+In the resulting plot, a high degree of variation in the boundaries of the produced HespDiv polygons is evident. However, there are also some convergence zones where the boundaries come closer together.
+
+The stability of HespDiv polygons is expected to be low due to changes in the study area polygon and the types of allowed split-lines. Setting <code>'c.splits = FALSE'</code> in the <code>hsa()</code> call results in subdivisions with only straight split-lines. Similarly, setting <code>'use.chull = FALSE'</code> leads to a different initial polygon compared to the one obtained using the convex hull. Changes in the study area also indirectly affect the absolute subdivision criterion for area size, as the same proportion value corresponds to different area size.
+
+Now let’s see how the picture changes if we consider split-line ranks:
+
+```{r hsa_plot2, eval = FALSE}
+plot_hsa(hsa_rez, 
+         type = 2, # Displays ranks with different colors
+         alpha = 0.3, # Adjusts transparency
+         basal.col = 1, # Color of the basal subdivision
+         split.col.seed = 1) # Seed to generate random colors for each split-line rank 
+```
+![ ](.\\hsa_plot2.png)
+
+The plot obtained using <code>'type = 2'</code> uses colors and width to distinguish split-lines of different ranks. It can be observed that split-lines of the same rank tend to be placed in similar zones that are relatively wide. These zones could represent the fuzzy boundaries that exist between different fossil assemblages.
+
+The picture created with <code>'type = 2'</code> provides a lot of information and may appear crowded with split-lines. However, you can use the <code>'type = 4'</code> setting to plot split-lines of each rank in a separate device. The <code>'type = 3'</code> setting would be intermediate between 2 and 4 since it cumulatively adds higher-ranked split-lines in each device.
+
+```{r hsa_plot4, eval = FALSE}
+plot_hsa(hsa_rez, 
+         type = 4, # Displays different ranks in different plot devices
+         alpha = 0.3, # Adjusts transparency
+         basal.col = 1, # Color of the basal subdivision
+         split.col.seed = 1 # Seed to generate random colors for each split-line
+         # rank
+         ) 
+```
+
+The above code opens seven graphical devices, and in each one, split-lines of different ranks are plotted.
+
+![](.\\1p.png)
+
+![](.\\2p.png)
+
+![](.\\3p.png)
+
+![](.\\4p.png)
+
+![](.\\5p.png)
+
+![](.\\6p.png)
+
+![](.\\7p.png)
+
+The obtained figures provide an even clearer picture. For example, the split-lines of the 1st rank concentrate in the west of the US and are mostly oriented longitudinally. However, the 1st rank split-line in the basal subdivision ('hd' object) appears to be slightly further west than the major convergence zone of split-lines. The split-lines of the 2nd rank exhibit higher variation. There are two clusters of split-lines, one located more to the east and the other to the west. The western cluster has two alternative dominant orientations, while the eastern split-line cluster has a dominant orientation and a point of convergence around which the split-lines seem to be slightly spun or rotated. The 2nd rank split-lines in the basal subdivision correspond quite well to both of these split-line clusters. The 3rd rank split-lines show less pronounced, but still visible clusters. The clusters of split-lines become even less pronounced in ranks four to five. There are very few split-lines of rank 6, and they are located in the eastern part of the US. Finally, only one split-line of rank 7 was obtained, also in the east.
+
+If desired, you can change the basal subdivision with an alternative subdivision using the <code>change_base()</code> function.
+
+```{r change_base, eval = TRUE}
+new_hsa <- change_base(hsa_rez, id = 95) # Choosing the alternative subdivision that is the 95th in hsa_rez$Alternatives to become the new basal subdivision. The old basal subdivision will become the 95th alternative subdivision in new_hsa
+```
+```{r plotnewbase1, eval=FALSE}
+
+plot_hespdiv(new_hsa$Basis)
+
+```
+```{r plotnewbase2, echo=FALSE}
+new_hsa$Basis$call.info$Call_ARGS$study.pol <- us 
+plot_hespdiv(new_hsa$Basis)
+```
+
+Next, you can use the <code>plot_hsa()</code> function to visualize the split-lines of different ranks in separate graphical devices after changing the basal subdivision.
+
+```{r change_base3, eval = FALSE}
+plot_hsa(new_hsa, 
+         type = 4, # Displays different ranks in different plot devices
+         alpha = 0.3, # Adjusts transparency
+         basal.col = 1, # Color of the basal subdivision
+         split.col.seed = 1 # Seed to generate random colors for each split-line rank
+         )
+```
+
+![*In this graphical device split-lines of 1st rank are displayed. Better alligment of basal subdivision with zones of split-line convergence is achieved after changing the basal subdivision.*](.\\1a.png)
+
+![*In this graphical device split-lines of 2nd rank are displayed. Better alligment of basal subdivision with zones of split-line convergence is achieved after changing the basal subdivision.*](.\\2a.png)
+
+![*In this graphical device split-lines of 3rd rank are displayed. Better alligment of basal subdivision with zones of split-line convergence is achieved after changing the basal subdivision.*](.\\3a.png)
+
+by using the <code>plot_hsa()</code> function, you can identify where the split-lines converge and choose an alternative subdivision that better aligns with these convergence zones using the <code>change_base()</code> function.
+
+### 6.2.2. Stability of HespDiv Clusters
+
+When the distribution of fossil occurrence data is irregular, clustered, and contains wide spatial gaps, the boundaries of HespDiv polygons can vary significantly. However, different subdivisions can still result in HespDiv clusters that are quite similar, as differently shaped and positioned HespDiv polygons may filter similar subsets of study data.
+
+The <code>hsa_quant()</code> function assesses the similarity between basal HespDiv clusters and alternative HespDiv clusters. It does this by calculating the Jaccard similarity between the basal and alternative HespDiv clusters. For each basal HespDiv cluster, the function identifies an "analog HespDiv cluster" from each alternative subdivision. This analog cluster has the highest Jaccard similarity with a given basal HespDiv cluster. The function provides the IDs of these analog clusters, along with their Jaccard similarity values and quantiles. Using <code>plot_hsa_q()</code>, you can visualize the distribution of Jaccard similarity values for the analog clusters associated with each basal HespDiv cluster. These distributions help assess the stability of each basal HespDiv cluster. For instance, if there is a single peak at high values (> ~0.8), it indicates that very similar HespDiv clusters consistently appear in alternative subdivisions, indicating a stable basal cluster. A unimodal distribution with a peak at medium values (0.4-0.6) and a tail towards higher values could also suggest a more persistent spatial structure. On the other hand, a single peak at low values (<0.4) indicates low cluster stability (e.g., the bioregion does not exist). Finally, uniform, bimodal, or other complex distributions may indicate that the stability and existence of the corresponding basal cluster depend on the parameters used in alternative hespdiv calls.
+
+According to the provided guide, the plots below indicate the relative stability of the 2nd, 3rd, 6th, 7th, 8th, 9th, 10th, 12th, 13th, 14th, and 16th clusters. The 5th and 15th clusters show less stability. The 4th cluster is truly unstable or "non-existent," while there is high uncertainty surrounding the existence of the 11th and 17th clusters.
+
+```{r hsa_quant, eval = FALSE}
+# The 'clst' object exists pre-calculated in HDData library, so don't need to run this code:
+clst <- hsa_quant(hsa_rez)
+
+plot_hsa_q(clst, hist = TRUE)
+```
+```{r plot_hsa_q, echo = FALSE, fig.width=6, fig.height=10}
+plot_hsa_q(clst, hist = TRUE)
+```
+
+
+# 7. Moving Forward
+
+I invite you to delve deeper into the world of HespDiv using the functions and techniques presented in this vignette. Experiment with different arguments, datasets, and scenarios to uncover new insights and applications. Remember, this vignette only scratches the surface, and there is much more to explore.
+
+If you encounter any unfamiliar terms or concepts along the way, I encourage you to refer to the glossary vignette. It provides a comprehensive list of definitions and explanations for the key terminology used in this package.
+
+Thank you for joining me on this journey. I look forward to seeing how you apply these tools in your own analyses and investigations. Happy exploring!

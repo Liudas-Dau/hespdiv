@@ -1,38 +1,51 @@
-#' Plot the results of hespdiv object
+#' Plot hespdiv results
 #'
-#' @description  Function prints the results of hespdiv object.
-#' @param obj hespdiv object
-#' @param xy.dat data.frame. coordinates of locations of data points used in
-#' hespdiv.
-#' @param type character. Either "width" or "color" (default "color").
+#' @description This function is used to plot the results obtained with the \code{hespidv}
+#' function. The plot showcases subdivisions of the study area by split-lines,
+#' visualizing their performances with colors or line widths. Additionally,
+#' it can display the spatial distribution of observations and number of
+#' observations in each location.
+#' @param obj A hespdiv object.
+#' @param type A character. Either "width" or "color" (default "color").
 #' Determines whether quality of split-lines is expressed by line width or
 #' color.
-#' @param n.loc logical. Would you like to visualize the number of observations
+#' @param n.loc A Boolean value. Would you like to visualize the number of observations
 #' at each location? Only possible, when there are localities with more than
-#' one observation. If type is 'color', then no. of obs. are expressed via point
-#' sizes. Otherwise, they are expressed by color in logarithmic scale.
-#' @param title character. Metric title in legend. The default is built
-#' according to the obj$call.info$METHOD$metric.
-#' @param seed integer. Seed used to randomized the colors of the split-lines.
-#' Only meaningful, when argument type is 'width'.
-#' Try setting different value, if colors of parallel split-lines or nearby
+#' one observation. If the type is 'color,' the number of observations is
+#' expressed through point sizes. Otherwise, they are expressed using color in
+#' a logarithmic scale.
+#' @param legend_title A character value that indicates the title of the legend
+#' for the split-lines. The default is built according to the method information
+#' available in "obj$call.info".
+#' @param title A character that indicates the title of the plot.
+#' @param subtitle A character that indicates the subtitle of the plot.
+#' @param seed An integer value that indicates seed used to randomize the colors
+#' of the split-lines. Only meaningful, when argument \code{type = "width"}.
+#' Try setting a different value, if colors of parallel split-lines or nearby
 #' labels look too similar or to increase the general appeal of the graph.
-#' @param pnts.col color of data points.
-#' @param ... other arguments
-#' @return ggplot object
-#' @importFrom ggplot2 aes geom_point geom_path guides guide_legend
+#' @param pnts.col A character or numeric vector providing color codes
+#' for data points.
+#' @return A ggplot object.
+#' @importFrom ggrepel geom_label_repel
+#' @importFrom viridis scale_color_viridis
+#' @importFrom ggplot2 aes_ geom_point geom_path guides guide_legend ggtitle scale_size_area guide_colourbar scale_size_continuous theme_set theme element_rect element_blank element_blank
+#' @importFrom stats aggregate na.omit
+#' @details The return ggplot object can be edited as any other ggplot objects
+#' by removing undesired elements, changing theme or overlying the plot
+#' with additional elements.
 #' @author Liudas Daumantas
+#' @family {HespDiv visualization options}
 #' @export
-ggplot_hespdiv <- function(obj, xy.dat, type = "color",n.loc = FALSE,
-                          title = NULL,  pnts.col =
-                           NULL,seed = 10,...){
-
+plot_hespdiv <- function(obj, type = "color",n.loc = FALSE,
+                           legend_title = NULL, title = NULL,subtitle = NULL,
+                           pnts.col = NULL,seed = 10){
+  xy.dat <- obj$call.info$Call_ARGS$xy.dat
   type <- .arg_check("type",type,c("width","color"))
 
   if (n.loc){
     xy_df <- xy.dat
     xy_df$n <- 1
-    uni.loc.n <- aggregate(n~., data = xy_df ,FUN = sum)
+    uni.loc.n <- stats::aggregate(n~., data = xy_df ,FUN = sum)
     uni.loc.n <- uni.loc.n[order(uni.loc.n$n,decreasing = FALSE),]
     if (nrow(uni.loc.n) == nrow(xy_df)){
       stop("All observations are from unique locations.",
@@ -63,21 +76,21 @@ ggplot_hespdiv <- function(obj, xy.dat, type = "color",n.loc = FALSE,
 
   split.stats <- obj$split.stats
   maximize <- obj$call.info$METHOD$maximize
-  if (is.null(title)){
+  if (is.null(legend_title)){
     if (obj$call.info$METHOD$method.type == "custom"){
-      title <- obj$call.info$METHOD$metric
+      legend_title <- obj$call.info$METHOD$metric
     } else {
       if (obj$call.info$METHOD$metric == "sorensen"){
-        title <- paste0("S",rawToChar(as.raw(184)),"rensen-Dice\ncoefficient")
+        legend_title <- paste0("S",rawToChar(as.raw(184)),"rensen-Dice\ncoefficient")
       } else {
         if (obj$call.info$METHOD$metric == "morisita"){
-          title <- paste0("Morisita\n","overlap")
+          legend_title <- paste0("Morisita\nSimilarity")
         } else {
           if (obj$call.info$METHOD$metric == "pielou"){
-            title <- paste0("Pielou\nentropy\nreduction\n(%)")
+            legend_title <- paste0("Pielou\nentropy\nreduction\n")
           } else {
             if (obj$call.info$METHOD$metric == "horn.morisita"){
-              title <- paste0("Morisita\n","overlap\n(Horn)")
+              legend_title <- paste0("Morisita-\nHorn\nSimilarity")
             }
           }
         }
@@ -99,58 +112,63 @@ ggplot_hespdiv <- function(obj, xy.dat, type = "color",n.loc = FALSE,
   }
   df$group <- factor(rep(1:length(split.lines),times=npt.in.split))
 
-  base <- ggplot2::ggplot(obj$polygons.xy[[1]],aes(x,y),xlab = 'x', ylab = 'y') +
-    geom_path(data= obj$polygons.xy[[1]],aes(x,y), size=0.5,
+  base <- ggplot2::ggplot(obj$polygons.xy[[1]],ggplot2::aes_(~x,~y),xlab = 'x', ylab = 'y') +
+    geom_path(data= obj$call.info$Call_ARGS$study.pol,aes_(~x,~y), size=0.5,
+                     lineend = "round",linejoin = "round",color = "gray20",alpha = 0.5)+
+    geom_path(data= obj$polygons.xy[[1]],ggplot2::aes_(~x,~y), size=0.5,
               lineend = "round",linejoin = "round",color = 1)
+    if (!is.null(title)){
+      base <- base + ggplot2::ggtitle(title, subtitle = subtitle)
+    }
 
   if (n.loc){
     scale_id <- 2
     if (type == "color"){
-      base <- base + geom_point(data=uni.loc.n,aes(x=x,y=y,size=n),
+      base <- base + ggplot2::geom_point(data=uni.loc.n,ggplot2::aes_(x=~x,y=~y,size=~n),
                                 pch =rep(1,nrow(uni.loc.n)),color = pnts.col) +
-        guides(size=guide_legend(title=paste0("Number of", "\nobservations" ,
+        ggplot2::guides(size=ggplot2::guide_legend(title=paste0("Number of", "\nobservations" ,
        "\nin a location"),title.hjust = 0.5,label.position = "left",
        label.hjust = 1))+
         ggplot2::scale_size_area(max_size = 8)
     } else {
-      base <- base + geom_point(data=uni.loc.n,aes(x=x,y=y,color=n),
+      base <- base + ggplot2::geom_point(data=uni.loc.n,ggplot2::aes_(x=~x,y=~y,color=~n),
                                 pch =rep(19,nrow(uni.loc.n)),size =2) +
         viridis::scale_color_viridis(guide ="colourbar",trans = "log") +
-        guides(color = ggplot2::guide_colourbar(
+        ggplot2::guides(color = ggplot2::guide_colourbar(
           title = paste0("Number of", "\nobservations" ,
                          "\nin a location"),label.position = "left",
           label.hjust = 1, title.hjust = 0.5,title.vjust = 1))
 
       base$scales$scales[[1]]$limits <-  range(log(uni.loc.n$n))
-      base$scales$scales[[1]]$labels <- round(exp(as.numeric(na.omit(
+      base$scales$scales[[1]]$labels <- round(exp(as.numeric(stats::na.omit(
         base$scales$scales[[1]]$get_breaks() ))))
 
     }
 
   } else {
     scale_id <- 1
-  base <- base + geom_point(
+  base <- base + ggplot2::geom_point(data = xy.dat, mapping = ggplot2::aes_(~x,~y),
     pch=16,color=pnts.col) +
-    geom_path(data= obj$polygons.xy[[1]],aes(x,y), size=.5,
+    ggplot2::geom_path(data= obj$polygons.xy[[1]],ggplot2::aes_(~x,~y), size=.5,
                            lineend = "round",linejoin = "round")
   }
   if (type == "width"){
     color <- .generate_cols(nrow(split.stats), seed)
     df$color <- rep(color, times=npt.in.split)
     df$size <- size
-    base<-base + geom_path(data = df, aes(x,y,group=group,
-                                          size = size),
+    base<-base + ggplot2::geom_path(data = df, ggplot2::aes_(~x,~y,group=~group,
+                                          size = ~size),
                            color=df$color) +
       ggplot2::scale_size_continuous(range = c(0.5,2))
     size.l <- seq(0.5,2,0.5)
-    base <- base + guides(size = guide_legend(override.aes =
+    base <- base + ggplot2::guides(size = ggplot2::guide_legend(override.aes =
                                                 list(size = size.l))) +
-      guides(size=guide_legend(title=title, title.hjust = 0.5))
+      ggplot2::guides(size=ggplot2::guide_legend(title=legend_title, title.hjust = 0.5))
   } else {
     df$color <- color
-    base<-base + geom_path(data = df, aes(x,y,group=group, color=color),size = 2) +
+    base<-base + ggplot2::geom_path(data = df, aes_(~x,~y,group=~group, color=~color),size = 2) +
       viridis::scale_color_viridis(guide ="colourbar") +
-    guides(color = ggplot2::guide_colourbar(title = title, title.hjust = 0.5,
+      ggplot2::guides(color = ggplot2::guide_colourbar(title = legend_title, title.hjust = 0.5,
                                    label.position = "left",label.hjust = 1))
   }
   if (!maximize) {
@@ -185,14 +203,14 @@ ggplot_hespdiv <- function(obj, xy.dat, type = "color",n.loc = FALSE,
         }
   }
   if (is.null(split.stats$p.val)){
-    base<-base + ggrepel::geom_label_repel(data=mid.pt, aes(x,y),alpha=rep(3/5, nrow(mid.pt)),
+    base<-base + ggrepel::geom_label_repel(data=mid.pt, aes_(~x,~y),alpha=rep(3/5, nrow(mid.pt)),
                                   label = paste0(ord,") ",
                                                 round(obj$split.stats[ord,"performance"],2)),
                                   fill  = color, size = 4,
                                   direction="both",fontface='bold',
                                   colour  = rep(1, nrow(mid.pt)))
   } else {
-    base<-base + ggrepel::geom_label_repel(data=mid.pt, aes(x,y),alpha=rep((3/5), (nrow(mid.pt))),
+    base<-base + ggrepel::geom_label_repel(data=mid.pt, aes_(~x,~y),alpha=rep((3/5), (nrow(mid.pt))),
                                   label = paste(ord,") p = ",
                                                 split.stats$p.val,
                                                 "\n  Div. qual. = ",
@@ -200,5 +218,6 @@ ggplot_hespdiv <- function(obj, xy.dat, type = "color",n.loc = FALSE,
                                   fill = color,
                                   size = 3.5,direction="both",fontface='bold')
   }
+
   base
 }

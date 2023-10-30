@@ -7,19 +7,39 @@
 poly_scheme(obj, segment = TRUE, id = TRUE, seed = 1)
 }
 \arguments{
-\item{obj}{hespdiv object}
+\item{obj}{A hespdiv object.}
 
-\item{segment}{Boolean. Display the segments joining the centroids with
-the split-lines?}
+\item{segment}{A Boolean value. Display the punctuated lines joining the
+polygon centroids with the split-lines?}
 
-\item{id}{Boolean. Display the IDs of polygons?}
+\item{id}{A Boolean value. Display the IDs of polygons?}
 
-\item{seed}{Integer. Randomization seed to produce colors. Optimize by trial
-and error, if too confusing colors appear.}
+\item{seed}{An integer value that determines the random set of colors used
+in visualization of split-lines and polygons.}
+}
+\value{
+A ggplot object.
 }
 \description{
-Produces a schematic visualization of subdivided territory, in which
-the location of each polygon is made clear via their centroinds, their ID
-label, and punctuated lines that join polygon centroids with the split-lines
-that produced that polygons.
+This function generates a schematic visualization of subdivided territory.
+It highlights the location of each polygon by displaying their centroids,
+ID labels, and punctuated lines that connect the polygon centroids with the
+split-lines that created them. This visualization represents the spatial
+arrangement of hespdiv polygons within the territory in 2D.
 }
+\note{
+A much clearer way to visualize polygons is by using the \code{blok3D}
+function, with \code{height = "rank"}. However, a 3D plot is less suitable
+option for papers.
+}
+\seealso{
+Other {HespDiv visualization options}: 
+\code{\link{blok3d}()},
+\code{\link{plot_hespdiv}()},
+\code{\link{plot_hsa_q}()},
+\code{\link{plot_hsa}()}
+}
+\author{
+Liudas Daumantas
+}
+\concept{{HespDiv visualization options}}

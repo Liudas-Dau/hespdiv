@@ -1,15 +1,24 @@
 #' Schematic plot of hespdiv polygons
 #'
-#' Produces a schematic visualization of subdivided territory, in which
-#' the location of each polygon is made clear via their centroinds, their ID
-#' label, and punctuated lines that join polygon centroids with the split-lines
-#' that produced that polygons.
-#' @param obj hespdiv object
-#' @param segment Boolean. Display the segments joining the centroids with
-#' the split-lines?
-#' @param id Boolean. Display the IDs of polygons?
-#' @param seed Integer. Randomization seed to produce colors. Optimize by trial
-#' and error, if too confusing colors appear.
+#' This function generates a schematic visualization of subdivided territory.
+#' It highlights the location of each polygon by displaying their centroids,
+#' ID labels, and punctuated lines that connect the polygon centroids with the
+#' split-lines that created them. This visualization represents the spatial
+#' arrangement of hespdiv polygons within the territory in 2D.
+#'
+#' @param obj A hespdiv object.
+#' @param segment A Boolean value. Display the punctuated lines joining the
+#' polygon centroids with the split-lines?
+#' @param id A Boolean value. Display the IDs of polygons?
+#' @param seed An integer value that determines the random set of colors used
+#' in visualization of split-lines and polygons.
+#' @return A ggplot object.
+#' @family {HespDiv visualization options}
+#' @author Liudas Daumantas
+#' @importFrom ggplot2 ggplot geom_path theme_set theme theme_void element_blank geom_point geom_segment geom_text
+#' @note A much clearer way to visualize polygons is by using the \code{blok3D}
+#' function, with \code{height = "rank"}. However, a 3D plot is less suitable
+#' option for papers.
 #' @export
 poly_scheme <- function(obj,segment = TRUE, id = TRUE, seed = 1){
 
@@ -21,13 +30,13 @@ poly_scheme <- function(obj,segment = TRUE, id = TRUE, seed = 1){
   npt.in.split <- as.numeric(lapply(split.lines,nrow))
   df$group <- factor(rep(1:length(split.lines),times=npt.in.split))
 
-  base <- ggplot2::ggplot(obj$polygons.xy[[1]],aes(x,y),xlab = '', ylab = '') +
-    ggplot2::geom_path(data= obj$polygons.xy[[1]],aes(x,y), size=0.5,
+  base <- ggplot2::ggplot(obj$polygons.xy[[1]],aes_(~x,~y),xlab = '', ylab = '') +
+    ggplot2::geom_path(data= obj$polygons.xy[[1]],aes_(~x,~y), size=0.5,
               lineend = "round",linejoin = "round",color = 1)
   scale_id <- 1
   color <- .generate_cols(nrow(split.stats), seed)
   df$color <- rep(color, times=npt.in.split)
-  base<-base + ggplot2::geom_path(data = df, aes(x,y),group=df$group, color=df$color,size = 1)+
+  base<-base + ggplot2::geom_path(data = df, aes_(~x,~y),group=df$group, color=df$color,size = 1)+
     ggplot2::theme_set(ggplot2::theme_void())  +
     ggplot2::theme(panel.grid = ggplot2::element_blank(),panel.background =
                      ggplot2::element_blank())
@@ -35,7 +44,7 @@ poly_scheme <- function(obj,segment = TRUE, id = TRUE, seed = 1){
     pracma::poly_center(x = o[,1],y = o[,2])})))
   names(centrai) <- c("x1","y1")
 
-  base <- base + ggplot2::geom_point(data=centrai,aes(x1,y1),shape = 20,size=3,
+  base <- base + ggplot2::geom_point(data=centrai,aes_(~x1,~y1),shape = 20,size=3,
                                      color = c(1,
                                                color[
                                                  match(obj$poly.stats$root.id[-1],
@@ -59,12 +68,12 @@ poly_scheme <- function(obj,segment = TRUE, id = TRUE, seed = 1){
                       split.mid.p[c(1,match(obj$poly.stats$root.id[-1],
                                             obj$split.stats$plot.id)+1),])
     base <- base + ggplot2::geom_segment(data=segments, linetype = 3,
-                                aes(x=x1,y=y1,xend = x2,yend =y2),
+                                aes_(x=~x1,y=~y1,xend = ~x2,yend =~y2),
                                 color=c(1,color[match(obj$poly.stats$root.id[-1],
                                                       split.stats$plot.id)]))}
   if (id){
     base <- base + ggplot2::geom_text(data=centrai,
-                             aes(x=x1,y=y1,label=obj$poly.stats$plot.id),
+                             aes_(x=~x1,y=~y1,label=~obj$poly.stats$plot.id),
                              nudge_y = 1,
                              color=c(1,color[match(obj$poly.stats$root.id[-1],
                                                    split.stats$plot.id)]))}
