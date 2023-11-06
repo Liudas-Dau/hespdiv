@@ -1,15 +1,34 @@
 Package: hespdiv
 Type: Package
 Title: Recursive, hierarchical spatial data partitioning based on manually defined criterias 
-Version: 0.1.0
-Author: Liudas  Daumantas <liudasdau@gmail.com>
-Maintainer: Liudas  Daumantas <liudasdau@gmail.com>
-Description: Provides functions for hierarchical data subdivision in space, using user defined criterias. 
+Version: 1.1.0
+Date: 2023-11-06
+Author: Liudas  Daumantas <liudas.daumantas@chgf.vu.lt>
+Maintainer: Liudas  Daumantas <liudas.daumantas@chgf.vu.lt>
+Description: Provides functions for hierarchical data subdivision in space. The main
+function hespdiv() produces topologically contiguous clusters in geographical space
+based on manually defined or preset subdivision methods.
+Other function allow further analysis of the results, various visualisation options,
+as well as means to perform sensitivity analysis. Note that blok3D may only work
+properly on windows OS.
 License: GPL-3
 Encoding: UTF-8
-LazyData: true
-Imports: sp, pracma, DescTools, ggplot2, viridis, ggrepel, grDevices, RColorBrewer, rgl, scales, graphics
-Remotes: github::Liudas-Dau/hespdiv_data
+Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.1
+OS_type: windows
+LazyData: true
+Imports: 
+  sp, 
+  pracma, 
+  DescTools, 
+  ggplot2, 
+  viridis, 
+  ggrepel, 
+  grDevices, 
+  RColorBrewer, 
+  rgl, 
+  scales, 
+  graphics
+Remotes: github::Liudas-Dau/hespdiv_data
 Depends: 
     R (>= 2.10)
