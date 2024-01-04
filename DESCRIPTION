@@ -26,4 +26,4 @@ Imports:
   graphics
 Remotes: github::Liudas-Dau/hespdiv_data
 Depends: 
-    R (>= 4.04)
+    R (>= 4.0)
