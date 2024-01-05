@@ -99,7 +99,7 @@ A 'hsa' class object. It is a list of two items:
 alternative hespdiv objects. }
 \item{\bold{Basis}}{ The basal hespdiv object whose call was modified to produce
 alternative subdivisions.}
-  }
+}
 }
 \description{
 This function is one of the two that perform HespDiv sensitivity analysis.

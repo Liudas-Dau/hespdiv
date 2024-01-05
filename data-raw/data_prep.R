@@ -3,7 +3,6 @@ library(readxl)
 library(xlsx)
 library(janitor)
 library(spData)
-library(sp)
 library(hespdiv)
 library(tidyverse)
 # Importing raw paleodb data
@@ -160,7 +159,7 @@ us <- data.frame(
 
 # FIltering obs. by us polygon
 us_l <- lapply(ter_l, function(o) {
-  o[which(sp::point.in.polygon(pol.x = us[,1],
+  o[which(hespdiv:::.point.in.polygon(pol.x = us[,1],
                                                   pol.y = us[,2],
                                                   point.x = o$lng,
                                                   point.y = o$lat) != 0),]
@@ -180,7 +179,7 @@ x
 # Where are they?
 layout(1)
 plot(us,type = 'l')
-points(ter_l[[1]][which(sp::point.in.polygon(pol.x = us[,1],
+points(ter_l[[1]][which(hespdiv:::.point.in.polygon(pol.x = us[,1],
                                              pol.y = us[,2],
                                              point.x = ter_l[[1]]$lng,
                                              point.y = ter_l[[1]]$lat) == 0),

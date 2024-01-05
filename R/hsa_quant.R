@@ -12,7 +12,7 @@
 #' indicates that the basal cluster is stable.
 #' @param obj An object of class \code{hsa}.
 #' @param probs A numeric vector of probabilities with values in the range
-#' [0, 1]. This argument is used to calculate quantiles of Jaccard similarity
+#' \eqn{[0, 1]}. This argument is used to calculate quantiles of Jaccard similarity
 #' values.
 #' @return The function returns a list containing three data frames, each providing specific information for each basal hespdiv cluster:
 #'  \describe{

@@ -15,7 +15,6 @@
 #' }
 #' @note If both points have the same x coordinate, a point with lower ID will be treated as the one with lower x coordinate.
 #' @author Liudas Daumantas
-#' @importFrom sp point.in.polygon
 #' @examples #Creating data.frame of a polygon
 #' poly<-data.frame(X=c(3.38,3.30,1.70,0.78,-0.06,-2.30,-2.94,-3.97,-1.61,
 #'                     -0.39,0.68,1.28,1.60,3.38),
@@ -49,16 +48,16 @@
         a1 <- y[1] - b1*x[1]
         mid.x <- mean(x)
         mid.y <- a1 + mid.x * b1
-        if (sp::point.in.polygon(point.x = mid.x + 7e-14, point.y = mid.y+7e-14,
+        if (.point.in.polygon(point.x = mid.x + 7e-14, point.y = mid.y+7e-14,
                                  pol.x = polygon[,1], pol.y = polygon[,2]
         ) == 1 &
-        sp::point.in.polygon(point.x = mid.x - 7e-14, point.y = mid.y-7e-14,
+        .point.in.polygon(point.x = mid.x - 7e-14, point.y = mid.y-7e-14,
                                       pol.x = polygon[,1], pol.y = polygon[,2]
         ) == 1 &
-        sp::point.in.polygon(point.x = mid.x - 7e-14, point.y = mid.y+7e-14,
+        .point.in.polygon(point.x = mid.x - 7e-14, point.y = mid.y+7e-14,
                                       pol.x = polygon[,1], pol.y = polygon[,2]
         ) == 1 &
-        sp::point.in.polygon(point.x = mid.x + 7e-14, point.y = mid.y-7e-14,
+        .point.in.polygon(point.x = mid.x + 7e-14, point.y = mid.y-7e-14,
                              pol.x = polygon[,1], pol.y = polygon[,2]
         ) == 1){
           for ( seg in 1:(nrow(polygon)-1) ){

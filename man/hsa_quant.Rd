@@ -10,17 +10,17 @@ hsa_quant(obj, probs = c(0.05, 0.5, 0.95))
 \item{obj}{An object of class \code{hsa}.}
 
 \item{probs}{A numeric vector of probabilities with values in the range
-[0, 1]. This argument is used to calculate quantiles of Jaccard similarity
+\eqn{[0, 1]}. This argument is used to calculate quantiles of Jaccard similarity
 values.}
 }
 \value{
 The function returns a list containing three data frames, each providing specific information for each basal hespdiv cluster:
- \describe{
- \enumerate{
- \item{\bold{jaccard.quantiles:} This data frame contains the quantiles of Jaccard similarities between the basal cluster and the 'analog' clusters from alternative subdivisions.}
- \item{\bold{jaccard.similarity:} This data frame provides the Jaccard similarity values between the basal cluster and the 'analog' cluster from each alternative subdivision.}
- \item{\bold{analog.clusters:} This data frame includes the IDs of the hespdiv polygons that produced the 'analog' clusters in each alternative subdivision.}
- }}
+\describe{
+\enumerate{
+\item{\bold{jaccard.quantiles:} This data frame contains the quantiles of Jaccard similarities between the basal cluster and the 'analog' clusters from alternative subdivisions.}
+\item{\bold{jaccard.similarity:} This data frame provides the Jaccard similarity values between the basal cluster and the 'analog' cluster from each alternative subdivision.}
+\item{\bold{analog.clusters:} This data frame includes the IDs of the hespdiv polygons that produced the 'analog' clusters in each alternative subdivision.}
+}}
 }
 \description{
 This function evaluates the stability of the basal subdivision

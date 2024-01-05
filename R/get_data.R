@@ -9,7 +9,6 @@
 #' polygon (if the polygon is not closed) will be included in the
 #' filtered data frame.
 #' @author Liudas Daumantas
-#' @importFrom  sp point.in.polygon
 #' @examples #Creating data.frame of a polygon
 #' poly<- data.frame(c(3.38,3.30,1.70,0.78,-0.06,-2.30,-2.94,-3.97,-1.61,-0.39,0.68,1.28,1.60,3.38),
 #' c(-0.12,-0.31,-2.73,-3.22,-3.29,-2.19,-1.62,0.94,3.10,3.00,2.91,2.49,2.20,-0.12))
@@ -23,7 +22,7 @@
 #' points(get_data(poly,xy.dat),pch=19,col=2)
 #' @export
 get_data<-function(polygon, xy.dat){
-  data.frame(xy.dat[sp::point.in.polygon(pol.x = polygon[,1],
+  data.frame(xy.dat[.point.in.polygon(pol.x = polygon[,1],
                                    pol.y = polygon[,2],
                                    point.x = xy.dat$x,
                                    point.y = xy.dat$y)!=0,])

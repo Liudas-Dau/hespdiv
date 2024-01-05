@@ -56,15 +56,15 @@ The type parameter determines the type of plot to be generated:
 Basic plot - Displays the alternative and basal hespdiv subdivisions on the
 same plot without split-line ranks or titles.}
 \item{type = 2:}{
- Plot with split-line ranks - Includes split-lines ranks in the plot.
- Each split-line is assigned a different line width based on its rank.}
+Plot with split-line ranks - Includes split-lines ranks in the plot.
+Each split-line is assigned a different line width based on its rank.}
 \item{type = 3:}{
- Plot with separate ranks - Generates multiple plots, each representing
- split-line ranks up to a certain value.}
+Plot with separate ranks - Generates multiple plots, each representing
+split-line ranks up to a certain value.}
 \item{type = 4:}{
- Plot with separate and isolated ranks - Similar to mode 3 but isolates the
- split-line ranks. Generates multiple plots, each representing a
- specific split-line rank.}
+Plot with separate and isolated ranks - Similar to mode 3 but isolates the
+split-line ranks. Generates multiple plots, each representing a
+specific split-line rank.}
 }
 
 If the alternative subdivisions spatially converge, but the basal

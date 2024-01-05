@@ -13,7 +13,6 @@ RoxygenNote: 7.2.1
 OS_type: windows
 LazyData: true
 Imports: 
-  sp, 
   pracma, 
   DescTools, 
   ggplot2, 

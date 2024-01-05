@@ -87,7 +87,7 @@ A 'hsa' class object. It is a list of two items:
 alternative hespdiv objects. }
 \item{\bold{Basis}}{ The basal hespdiv object whose call was modified to produce
 alternative subdivisions.}
-  }
+}
 }
 \description{
 This function is the main function that performs HespDiv sensitivity analysis.
@@ -128,8 +128,8 @@ If a particular call produces a warning or error, a list of length 2
 will be returned for that call. If a warning was produced, the first element
 of the list will hold the created hespdiv object, and the second element
 will contain the warning message. In case of an error, the first element will
- be a list of arguments used to produce the call, and the second element will
- contain the error message.
+be a list of arguments used to produce the call, and the second element will
+contain the error message.
 }
 \seealso{
 Other {functions for hespdiv sensitivity analysis}: 

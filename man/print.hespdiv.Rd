@@ -16,7 +16,7 @@ x
 }
 \description{
 Function formats and prints the rounded split.stats data frame.
- from "hespdiv" class R object.
+from "hespdiv" class R object.
 }
 \author{
 Liudas Daumantas

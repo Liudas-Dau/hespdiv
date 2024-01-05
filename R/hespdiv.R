@@ -858,7 +858,7 @@ hespdiv<-function(data,
 #  get ids of observations within polygon
 #' @noRd
 .get_ids <- function(polygon, xy_dat) {
-  which(sp::point.in.polygon(pol.x = polygon[,1],
+  which(.point.in.polygon(pol.x = polygon[,1],
                              pol.y = polygon[,2],
                              point.x = xy_dat$x,
                              point.y = xy_dat$y) != 0 )

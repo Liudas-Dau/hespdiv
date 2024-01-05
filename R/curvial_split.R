@@ -156,17 +156,17 @@
 
   if (length(m_ids_up) > 0 | length(m_ids_do) > 0 ){
     ids.on.pol.updo <-
-    unique(c(which(sp::point.in.polygon(pol.x = poli.up[,1],
+    unique(c(which(.point.in.polygon(pol.x = poli.up[,1],
                                pol.y = poli.up[,2],
                                point.x = samp.xy$x,
                                point.y = samp.xy$y) == 3),
-    which(sp::point.in.polygon(pol.x = poli.do[,1],
+    which(.point.in.polygon(pol.x = poli.do[,1],
                                pol.y = poli.do[,2],
                                point.x = samp.xy$x,
                                point.y = samp.xy$y) == 3)))
     split_pt_ids <- ids.on.pol.updo[
       ids.on.pol.updo %in%
-        which(sp::point.in.polygon(pol.x = poly.x,
+        which(.point.in.polygon(pol.x = poly.x,
                                    pol.y = poly.y,
                                    point.x = samp.xy$x,
                                    point.y = samp.xy$y) == 1)]
@@ -966,12 +966,11 @@
 #' then function returns a data frame of x and y coordinates that should be combined with coordinates of other knots used to produce the curve.
 #' If no such intervals are present function returns "FALSE".
 #' @author Liudas Daumantas
-#' @importFrom sp point.in.polygon
 #' @noRd
 .y_corrections<-function(spline.x,spline.y,Xup,Xdown,Yup,Ydown,
                         c.corr.term){
   #tikrinam, ar kreive polygone, nuimam po viena taska krastini, nes jie ant poligono ribos
-  curve.in.polygon <- sp::point.in.polygon(
+  curve.in.polygon <- .point.in.polygon(
     point.x = spline.x,
     point.y = spline.y,
     pol.x = c(Xup,rev(Xdown)),
