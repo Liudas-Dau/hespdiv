@@ -12,8 +12,13 @@
 #' }
 #' @param obj An object of class \code{hsa}
 #' @param n Number of permutations
+#' @param shuffle.type specify "all" or "within". Latter shuffles data locally,
+#' within a polygon in which subdivision is established. Former shuffles all
+#' data, within all study area.
 #' @export
-nulltest <- function(obj, n){
+nulltest <- function(obj, n, shuffle.type = "all"){
+  shuffle.type <- .arg_check(name = "shuffle.type", given = shuffle.type,
+                             NAMES = c("all", "within"))
   if (!inherits(obj,"hespdiv"))
     stop("obj should have 'hespdiv' class.")
   coords <- obj$call.info$Call_ARGS$xy.dat
@@ -37,16 +42,25 @@ nulltest <- function(obj, n){
     if (is.list(data)) {
       .slicer <- .slicer.list
     } else {
-        .slicer <- .slicer.vect
+      .slicer <- .slicer.vect
     }
   }
   for ( i in 1:n) {
-    ids <- sample(1:N,N,replace = FALSE)
-    co <- coords[ids,]
-    dat <- .slicer(data, ids)
+
+    if (shuffle.type == "all") {
+      ids <- sample(1:N,N,replace = FALSE)
+      co <- coords[ids,]
+    }
 
     for (split.id in 1 : l){
-      pol_ids <- which(obj$poly.stats$root.id == obj$split.stats$plot.id[split.id])
+      if (shuffle.type == "within"){
+        ids <- .get_ids(obj$polygons.xy[[obj$split.stats$plot.id[split.id]]],
+                        coords)
+        ids <- sample(ids,length(ids),replace = FALSE)
+        co <- coords[ids,]
+      }
+      pol_ids <- which(obj$poly.stats$root.id ==
+                         obj$split.stats$plot.id[split.id])
 
       split.ids1 <- .get_ids(obj$polygons.xy[[pol_ids[1]]], co)
       split.ids2 <- .get_ids(obj$polygons.xy[[pol_ids[2]]], co)
@@ -56,7 +70,7 @@ nulltest <- function(obj, n){
         obj$call.info$Call_ARGS$generalize.f(dat_pol1),
         obj$call.info$Call_ARGS$generalize.f(dat_pol2))
       p.vals[[i]][split.id] <- pal(comp.vals[[i]][split.id],
-                                     obj$split.stats$performance[split.id])
+                                   obj$split.stats$performance[split.id])
     }
 
   }
@@ -72,5 +86,3 @@ nulltest <- function(obj, n){
   return(print.nullhespdiv(structure(list(stats, comp.vals), class = "nullhespdiv")))
 
 }
-
-

@@ -4,12 +4,16 @@
 \alias{nulltest}
 \title{Test significance of spatial structure in data}
 \usage{
-nulltest(obj, n)
+nulltest(obj, n, shuffle.type = "all")
 }
 \arguments{
 \item{obj}{An object of class \code{hsa}}
 
 \item{n}{Number of permutations}
+
+\item{shuffle.type}{specify "all" or "within". Latter shuffles data locally,
+within a polygon in which subdivision is established. Former shuffles all
+data, within all study area.}
 }
 \value{
 A "nullhespdiv" class object. It is a list containing two elements:
