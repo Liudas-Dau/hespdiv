@@ -13,7 +13,7 @@
 #' @param seed An integer value that determines the random set of colors used
 #' in visualization of split-lines and polygons.
 #' @return A ggplot object.
-#' @family {HespDiv visualization options}
+#' @family HespDiv visualization options
 #' @author Liudas Daumantas
 #' @importFrom ggplot2 ggplot geom_path theme_set theme theme_void element_blank geom_point geom_segment geom_text
 #' @note A much clearer way to visualize polygons is by using the \code{blok3D}

@@ -53,6 +53,15 @@ If you want to transform similarity to difference externally, before applying de
 # dendro(HDData::hd, scheme, offset.factor = 2)
 ## End(Not run)
 }
+\seealso{
+Other HespDiv visualization options: 
+\code{\link{create_gif}()},
+\code{\link{plot.nullhespdiv}()},
+\code{\link{plot_hespdiv}()},
+\code{\link{plot_hsa_q}()},
+\code{\link{plot_hsa}()},
+\code{\link{poly_scheme}()}
+}
 \author{
 Liudas Daumantas
 }

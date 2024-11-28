@@ -14,6 +14,16 @@
 \description{
 plot method for nullhespdiv class object
 }
+\seealso{
+Other HespDiv visualization options: 
+\code{\link{create_gif}()},
+\code{\link{dendro}()},
+\code{\link{plot_hespdiv}()},
+\code{\link{plot_hsa_q}()},
+\code{\link{plot_hsa}()},
+\code{\link{poly_scheme}()}
+}
 \author{
 Liudas Daumantas
 }
+\concept{HespDiv visualization options}

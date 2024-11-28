@@ -94,8 +94,8 @@
 #' are paired when paired is TRUE. Thus, the lists of "compare.f",
 #' "generalize.f", and "maximize" should be of the same length.
 #' }
-#' @family {functions for hespdiv sensitivity analysis}
-#' @family {functions for hespdiv post-prossesing}
+#' @family functions for hespdiv sensitivity analysis
+#' @family functions for hespdiv post-prossesing
 #' @note Use "pnts.col" of length >1 only when the number of observations does
 #' not change.
 #'

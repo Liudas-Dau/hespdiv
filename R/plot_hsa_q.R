@@ -20,9 +20,9 @@
 #' uniform, bimodal, or other more complex distributions may indicate that the
 #' stability and existence of the corresponding basal cluster depend on the
 #' parameters used in alternative hespdiv calls.
-#' @family {functions for hespdiv sensitivity analysis}
-#' @family {HespDiv visualization options}
-#' @family {functions to evaluate hesdpiv cluster stability}
+#' @family functions for hespdiv sensitivity analysis
+#' @family HespDiv visualization options
+#' @family functions to evaluate hesdpiv cluster stability
 #' @author Liudas Daumantas
 #' @importFrom graphics plot hist layout
 #' @importFrom stats density

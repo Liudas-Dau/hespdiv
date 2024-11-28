@@ -6,6 +6,7 @@
 #' @param ... other arguments
 #' @return NULL
 #' @author Liudas Daumantas
+#' @family HespDiv visualization options
 #' @importFrom graphics boxplot points
 #' @export
 plot.nullhespdiv <- function(x, ...){

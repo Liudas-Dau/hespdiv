@@ -77,18 +77,17 @@ and dynamics in hespdiv subdivisions over time.
 1 and 2.
 }
 \seealso{
-Other {functions for hespdiv sensitivity analysis}: 
-\code{\link{change_base}()},
+Other functions for hespdiv sensitivity analysis: 
 \code{\link{hsa_detailed}()},
 \code{\link{hsa}()},
 \code{\link{plot_hsa_q}()},
 \code{\link{plot_hsa}()}
 
-Other {functions to evaluate hesdpiv cluster stability}: 
+Other functions to evaluate hesdpiv cluster stability: 
 \code{\link{plot_hsa_q}()}
 }
 \author{
 Liudas Daumantas
 }
-\concept{{functions for hespdiv sensitivity analysis}}
-\concept{{functions to evaluate hesdpiv cluster stability}}
+\concept{functions for hespdiv sensitivity analysis}
+\concept{functions to evaluate hesdpiv cluster stability}

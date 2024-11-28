@@ -61,8 +61,8 @@
 #' that occur between time bin 1 and 2. This allows for the analysis of changes
 #' and dynamics in hespdiv subdivisions over time.
 #' 1 and 2.
-#' @family {functions for hespdiv sensitivity analysis}
-#' @family {functions to evaluate hesdpiv cluster stability}
+#' @family functions for hespdiv sensitivity analysis
+#' @family functions to evaluate hesdpiv cluster stability
 #' @author Liudas Daumantas
 #' @importFrom stats quantile density
 #' @importFrom graphics plot hist

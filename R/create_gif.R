@@ -10,7 +10,7 @@
 #' @family HespDiv visualization options
 #' @importFrom rgl par3d rotationMatrix view3d rotate3d rgl.snapshot
 #' @importFrom magick image_read image_animate image_write
-#' @notes You can adjust the size of rgl device window to control the size of gif.
+#' @note You can adjust the size of rgl device window to control the size of gif.
 #' @export
 create_gif <- function(output_file = "rotating_polygons.gif",
                                              frames = 90, angle_per_frame = 5,

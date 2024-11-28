@@ -17,7 +17,7 @@
 #' for the "pielou" method. Additionally, the functionality is not supported for the
 #' custom methods that like "pielou" rely on variables from other environments within the
 #' 'compare.f' function.
-#' @family {functions for hespdiv post-prossesing}
+#' @family functions for hespdiv post-prossesing
 #' @export
 
 cross_comp <- function(obj){

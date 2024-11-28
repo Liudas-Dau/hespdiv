@@ -36,7 +36,7 @@
 #' by removing undesired elements, changing theme or overlying the plot
 #' with additional elements.
 #' @author Liudas Daumantas
-#' @family {HespDiv visualization options}
+#' @family HespDiv visualization options
 #' @export
 plot_hespdiv <- function(obj, type = "color",n.loc = FALSE, performance = TRUE,
                            legend_title = NULL, title = NULL,subtitle = NULL,

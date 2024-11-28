@@ -23,9 +23,16 @@ create_gif(
 \description{
 Functions creates a gif of rotating polygons displayed in a currently actively rgl device produced with blok3D
 }
+\note{
+You can adjust the size of rgl device window to control the size of gif.
+}
 \seealso{
 Other HespDiv visualization options: 
 \code{\link{dendro}()},
+\code{\link{plot.nullhespdiv}()},
+\code{\link{plot_hespdiv}()},
+\code{\link{plot_hsa_q}()},
+\code{\link{plot_hsa}()},
 \code{\link{poly_scheme}()}
 }
 \author{

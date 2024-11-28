@@ -132,16 +132,15 @@ be a list of arguments used to produce the call, and the second element will
 contain the error message.
 }
 \seealso{
-Other {functions for hespdiv sensitivity analysis}: 
-\code{\link{change_base}()},
+Other functions for hespdiv sensitivity analysis: 
 \code{\link{hsa_detailed}()},
 \code{\link{hsa_quant}()},
 \code{\link{plot_hsa_q}()},
 \code{\link{plot_hsa}()}
 
-Other {functions for hespdiv post-prossesing}: 
+Other functions for hespdiv post-prossesing: 
 \code{\link{cross_comp}()},
 \code{\link{hsa_detailed}()}
 }
-\concept{{functions for hespdiv post-prossesing}}
-\concept{{functions for hespdiv sensitivity analysis}}
+\concept{functions for hespdiv post-prossesing}
+\concept{functions for hespdiv sensitivity analysis}

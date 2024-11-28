@@ -33,8 +33,10 @@ function, with \code{height = "rank"}. However, a 3D plot is less suitable
 option for papers.
 }
 \seealso{
-Other {HespDiv visualization options}: 
-\code{\link{blok3d}()},
+Other HespDiv visualization options: 
+\code{\link{create_gif}()},
+\code{\link{dendro}()},
+\code{\link{plot.nullhespdiv}()},
 \code{\link{plot_hespdiv}()},
 \code{\link{plot_hsa_q}()},
 \code{\link{plot_hsa}()}
@@ -42,4 +44,4 @@ Other {HespDiv visualization options}:
 \author{
 Liudas Daumantas
 }
-\concept{{HespDiv visualization options}}
+\concept{HespDiv visualization options}

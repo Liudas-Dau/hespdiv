@@ -38,8 +38,8 @@
 #' the \code{change_base} function to select a more representative alternative
 #' subdivision to be used as the basal subdivision. However, you should check
 #' if the arguments used in that subdivision makes sense.
-#' @family {functions for hespdiv sensitivity analysis}
-#' @family {HespDiv visualization options}
+#' @family functions for hespdiv sensitivity analysis
+#' @family HespDiv visualization options
 #' @note 'newplot' allows to correctly render legend in types 2 and 3, and lines
 #' in general when drawing in an active device (use 'broom' otherwise to delete
 #' devices).

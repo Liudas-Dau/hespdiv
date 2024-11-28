@@ -55,12 +55,6 @@ a higher rank polygon might obscure the view. For this reason, the
 interactively select unwanted polygons and remove them from a plot.
 }
 \seealso{
-Other {HespDiv visualization options}: 
-\code{\link{plot_hespdiv}()},
-\code{\link{plot_hsa_q}()},
-\code{\link{plot_hsa}()},
-\code{\link{poly_scheme}()}
-
 Other {function for hespdiv visualization in 3D}: 
 \code{\link{polypop}()}
 }

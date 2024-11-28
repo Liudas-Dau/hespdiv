@@ -33,11 +33,11 @@ custom methods that like "pielou" rely on variables from other environments with
 'compare.f' function.
 }
 \seealso{
-Other {functions for hespdiv post-prossesing}: 
+Other functions for hespdiv post-prossesing: 
 \code{\link{hsa_detailed}()},
 \code{\link{hsa}()}
 }
 \author{
 Liudas Daumantas
 }
-\concept{{functions for hespdiv post-prossesing}}
+\concept{functions for hespdiv post-prossesing}
