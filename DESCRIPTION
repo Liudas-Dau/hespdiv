@@ -22,7 +22,12 @@ Imports:
   RColorBrewer, 
   rgl, 
   scales, 
-  graphics
+  graphics,
+  igraph,
+  gridExtra,
+  grid,
+  gridGraphics,
+  stats
 Remotes: github::Liudas-Dau/hespdiv_data
 Depends: 
     R (>= 4.0)
