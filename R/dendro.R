@@ -126,14 +126,16 @@ dendro <- function(obj, poly.scheme = NULL, color = 1, performance.col = "blue",
   igraph::V(g)$color <- pols$color
 
   # Assign edge colors based on the child node's color
-  igraph::E(g)$color <- igraph::V(g)$color[as.numeric(igraph::ends(g,
-                                                                   igraph::E(g))[, 2])]
+  vertex_map <- stats::setNames(seq_along(igraph::V(g)), names(igraph::V(g)))
+
+  igraph::E(g)$color <- igraph::V(g)$color[
+    vertex_map[as.character(igraph::ends(g,igraph::E(g))[, 2])]]
 
   # Step 4: Calculate node positions manually
-  node_positions <- rep(0, igraph::vcount(g))  # Initialize positions for all nodes
+  node_positions <- numeric(length(vertex_map))  # Initialize positions for all nodes
   for (edge in igraph::E(g)) {
-    parent <- as.numeric(igraph::ends(g, edge)[1])
-    child <- as.numeric(igraph::ends(g, edge)[2])
+    parent <- vertex_map[as.character(igraph::ends(g, edge)[1])]  # Map parent to index
+    child <- vertex_map[as.character(igraph::ends(g, edge)[2])]  # Map child to index
     node_positions[child] <- node_positions[parent] + igraph::E(g)$weight[edge]
   }
 
@@ -143,13 +145,12 @@ dendro <- function(obj, poly.scheme = NULL, color = 1, performance.col = "blue",
 
   # Step 6: Prepare data for lateral-first edges
   edge_segments <- data.frame(
-    x0 = layout[as.numeric(igraph::ends(g, igraph::E(g))[, 1]), 1],  # Parent x
-    y0 = layout[as.numeric(igraph::ends(g, igraph::E(g))[, 1]), 2],  # Parent y
-    x1 = layout[as.numeric(igraph::ends(g, igraph::E(g))[, 2]), 1],  # Child x
-    y1 = layout[as.numeric(igraph::ends(g, igraph::E(g))[, 2]), 2],  # Child y
+    x0 = layout[vertex_map[as.character(igraph::ends(g, igraph::E(g))[, 1])], 1],  # Parent x
+    y0 = layout[vertex_map[as.character(igraph::ends(g, igraph::E(g))[, 1])], 2],  # Parent y
+    x1 = layout[vertex_map[as.character(igraph::ends(g, igraph::E(g))[, 2])], 1],  # Child x
+    y1 = layout[vertex_map[as.character(igraph::ends(g, igraph::E(g))[, 2])], 2],  # Child y
     weight = igraph::E(g)$weight  # Edge weight for segment length
   )
-
   # Step 7: Plot the dendrogram with lateral-first edges
   plot(
     NULL,
