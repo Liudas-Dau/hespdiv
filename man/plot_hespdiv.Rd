@@ -8,6 +8,7 @@ plot_hespdiv(
   obj,
   type = "color",
   n.loc = FALSE,
+  performance = TRUE,
   legend_title = NULL,
   title = NULL,
   subtitle = NULL,
@@ -18,7 +19,7 @@ plot_hespdiv(
 \arguments{
 \item{obj}{A hespdiv object.}
 
-\item{type}{A character. Either "width" or "color" (default "color").
+\item{type}{A character. Either "rakwidth" or "color" (default "color").
 Determines whether quality of split-lines is expressed by line width or
 color.}
 
@@ -27,6 +28,9 @@ at each location? Only possible, when there are localities with more than
 one observation. If the type is 'color,' the number of observations is
 expressed through point sizes. Otherwise, they are expressed using color in
 a logarithmic scale.}
+
+\item{performance}{logical. TRUE - display split-line performance,
+FALSE - rank. Displaying rank makes the spatial dendrogram clearer.}
 
 \item{legend_title}{A character value that indicates the title of the legend
 for the split-lines. The default is built according to the method information
@@ -50,7 +54,7 @@ A ggplot object.
 \description{
 This function is used to plot the results obtained with the \code{hespidv}
 function. The plot showcases subdivisions of the study area by split-lines,
-visualizing their performances with colors or line widths. Additionally,
+visualizing their performances or rank with colors or line widths. Additionally,
 it can display the spatial distribution of observations and number of
 observations in each location.
 }

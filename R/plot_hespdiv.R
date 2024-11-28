@@ -2,13 +2,15 @@
 #'
 #' @description This function is used to plot the results obtained with the \code{hespidv}
 #' function. The plot showcases subdivisions of the study area by split-lines,
-#' visualizing their performances with colors or line widths. Additionally,
+#' visualizing their performances or rank with colors or line widths. Additionally,
 #' it can display the spatial distribution of observations and number of
 #' observations in each location.
 #' @param obj A hespdiv object.
-#' @param type A character. Either "width" or "color" (default "color").
+#' @param type A character. Either "rakwidth" or "color" (default "color").
 #' Determines whether quality of split-lines is expressed by line width or
 #' color.
+#' @param performance logical. TRUE - display split-line performance,
+#' FALSE - rank. Displaying rank makes the spatial dendrogram clearer.
 #' @param n.loc A Boolean value. Would you like to visualize the number of observations
 #' at each location? Only possible, when there are localities with more than
 #' one observation. If the type is 'color,' the number of observations is
@@ -36,12 +38,14 @@
 #' @author Liudas Daumantas
 #' @family {HespDiv visualization options}
 #' @export
-plot_hespdiv <- function(obj, type = "color",n.loc = FALSE,
+plot_hespdiv <- function(obj, type = "color",n.loc = FALSE, performance = TRUE,
                            legend_title = NULL, title = NULL,subtitle = NULL,
                            pnts.col = NULL,seed = 10){
   xy.dat <- obj$call.info$Call_ARGS$xy.dat
   type <- .arg_check("type",type,c("width","color"))
-
+  if (type == "width" & !performance){
+    stop("There is currently no option to display rank using line widths.")
+  }
   if (n.loc){
     xy_df <- xy.dat
     xy_df$n <- 1
@@ -77,6 +81,9 @@ plot_hespdiv <- function(obj, type = "color",n.loc = FALSE,
   split.stats <- obj$split.stats
   maximize <- obj$call.info$METHOD$maximize
   if (is.null(legend_title)){
+    if (!performance){
+      legend_title <- "Rank"
+    } else {
     if (obj$call.info$METHOD$method.type == "custom"){
       legend_title <- obj$call.info$METHOD$metric
     } else {
@@ -96,19 +103,26 @@ plot_hespdiv <- function(obj, type = "color",n.loc = FALSE,
         }
       }
     }
+    }
   }
-  if (!maximize){
+  if (performance){
+    key <- "performance"
+  } else {
+    key <- "rank"
+    split.stats[,"rank"] <- as.integer(split.stats[,"rank"])
+  }
+  if (!maximize & performance){
     split.stats[,"performance"] <- -obj$split.stats[,"performance"]
   }
-  ord <- order(split.stats[,"performance"], decreasing = FALSE)
+  ord <- order(split.stats[,key], decreasing = FALSE)
   split.stats <- split.stats[ord,]
   split.lines <- lapply(ord,function(id){obj$split.lines[[id]]})
   df <- Reduce(rbind,split.lines)
   npt.in.split <- as.numeric(lapply(split.lines,nrow))
   if (type == "width"){
-    size <- rep(split.stats[,"performance"], times = npt.in.split)
+    size <- rep(split.stats[,key], times = npt.in.split)
   } else {
-    color <- rep(split.stats[,"performance"], times = npt.in.split)
+    color <- rep(split.stats[,key], times = npt.in.split)
   }
   df$group <- factor(rep(1:length(split.lines),times=npt.in.split))
 
@@ -166,26 +180,49 @@ plot_hespdiv <- function(obj, type = "color",n.loc = FALSE,
       ggplot2::guides(size=ggplot2::guide_legend(title=legend_title, title.hjust = 0.5))
   } else {
     df$color <- color
+    if (performance) {
     base<-base + ggplot2::geom_path(data = df, aes_(~x,~y,group=~group, color=~color),size = 2) +
       viridis::scale_color_viridis(guide ="colourbar") +
       ggplot2::guides(color = ggplot2::guide_colourbar(title = legend_title, title.hjust = 0.5,
                                    label.position = "left",label.hjust = 1))
+    } else {
+      base<-base + ggplot2::geom_path(
+        data = df, aes_(~x,~y,group=~group, color=~factor(color)), size = 2) +
+        viridis::scale_color_viridis(labels = levels(factor(color)),
+                                     discrete = TRUE) +
+        ggplot2::guides(
+          color = ggplot2::guide_legend(
+            title = legend_title,
+            title.hjust = 0.5,              # Center the title
+            label.position = "left",        # Position labels on the left of the bar
+            label.hjust = 1,                # Align labels horizontally
+          )
+        )
+
+    }
   }
-  if (!maximize) {
-      base$scales$scales[[scale_id]]$limits <-  range(split.stats[,"performance"])
+
+  if (!maximize & performance) {
+      base$scales$scales[[scale_id]]$limits <-  range(split.stats[,key])
       base$scales$scales[[scale_id]]$breaks <-
         as.numeric(na.omit( base$scales$scales[[scale_id]]$get_breaks() ))
       base$scales$scales[[scale_id]]$labels <-
         -base$scales$scales[[scale_id]]$breaks
 }
-  if (type == "color") {
+  if (type == "color" & performance) {
     if (maximize){
-      base$scales$scales[[scale_id]]$limits <-  range(split.stats[,"performance"])
+      base$scales$scales[[scale_id]]$limits <-  range(split.stats[,key])
     }
     self <- base$scales$scales[[scale_id]]
-    x <- self$rescale(self$oob(split.stats[,"performance"], range = self$limits), self$limits)
+    x <- self$rescale(self$oob(split.stats[,key], range = self$limits), self$limits)
     color <- self$palette(x)
   }
+  if (!performance) {
+    color <- base$scales$scales[[scale_id]]$
+      palette(n = length(unique(split.stats$rank)))
+    names(color) <-  unique(split.stats$rank)
+    color <- color[split.stats$rank]
+    }
   base <- base +
     ggplot2::theme_set(ggplot2::theme_bw())  +
     ggplot2::theme(legend.key= ggplot2::element_rect(fill = "white"),
@@ -215,7 +252,7 @@ plot_hespdiv <- function(obj, type = "color",n.loc = FALSE,
                                                 split.stats$p.val,
                                                 "\n  Div. qual. = ",
                                                 round(split.stats$delta.E,2)),
-                                  fill = color,
+                                  fill = unique(color),
                                   size = 3.5,direction="both",fontface='bold')
   }
 
