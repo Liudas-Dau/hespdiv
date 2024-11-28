@@ -32,7 +32,7 @@
 #' a higher rank polygon might obscure the view. For this reason, the
 #' \code{polypop(obj,height)} function with the same arguments can be used to
 #' interactively select unwanted polygons and remove them from a plot.
-#' @importFrom rgl open3d plot3d rgl.linestrips polygon3d persp3d rgl.points rgl.texts
+#' @importFrom rgl open3d plot3d lines3d polygon3d persp3d points3d text3d
 #' @importFrom pracma poly_center
 #' @family {HespDiv visualization options}
 #' @family {function for hespdiv visualization in 3D}
@@ -125,7 +125,7 @@ blok3d <- function(obj,height = "mean", color.seed=1, lines=TRUE, pnts.col = NUL
     }
     if (lines==TRUE){
       for (i in seq(nrow(ZZ))){
-        rgl::rgl.linestrips(x=obj$polygons.xy[[i]]$x,y=obj$polygons.xy[[i]]$y,
+        rgl::lines3d(x=obj$polygons.xy[[i]]$x,y=obj$polygons.xy[[i]]$y,
                             z=highest.z,col=1)
       }
     }
@@ -211,8 +211,8 @@ blok3d <- function(obj,height = "mean", color.seed=1, lines=TRUE, pnts.col = NUL
   #ID
 
   centras <- pracma::poly_center(x,y)
-  rgl::rgl.points(x=centras[1],y=centras[2],z=zmaxi,col=1,pch=19,labels=i)
-  rgl::rgl.texts(x=centras[1],y=centras[2],z=zmaxi+Zoff, text = c(i),
+  rgl::points3d(x=centras[1],y=centras[2],z=zmaxi,col=1,pch=19,labels=i)
+  rgl::text3d(x=centras[1],y=centras[2],z=zmaxi+Zoff, text = c(i),
                  justify="left")
 
 }
