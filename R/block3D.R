@@ -41,31 +41,31 @@
 blok3d <- function(obj,height = "mean", color.seed=1, lines=TRUE, pnts.col = NULL,
                    obs = TRUE) {
   height <- as.vector(sapply(height, .arg_check, name = "height", NAMES = c("mean","sd","best","z.score",
-                                                 "str.best", "str.z.score","rank")))
+                                                                            "str.best", "str.z.score","rank")))
   for (height in height){
     rgl::open3d()
     poly.stats <- obj$poly.stats
     if (obj$call.info$Call_ARGS$c.splits){
-    if (height == "best"){
-      poly.stats$best <- ifelse(is.na(obj$poly.stats$is.curve),
-                                obj$poly.stats$str.best,
-                                ifelse(obj$poly.stats$is.curve,
-                                       obj$poly.stats$crv.best,
-                                       obj$poly.stats$str.best))
-    } else {
-      if (height == "z.score" ){
-        poly.stats$z.score <- ifelse(is.na(obj$poly.stats$is.curve),
-                                     obj$poly.stats$str.z.score,
-                                     ifelse(obj$poly.stats$is.curve,
-                                            obj$poly.stats$crv.z.score,
-                                            obj$poly.stats$str.z.score))
+      if (height == "best"){
+        poly.stats$best <- ifelse(is.na(obj$poly.stats$is.curve),
+                                  obj$poly.stats$str.best,
+                                  ifelse(obj$poly.stats$is.curve,
+                                         obj$poly.stats$crv.best,
+                                         obj$poly.stats$str.best))
+      } else {
+        if (height == "z.score" ){
+          poly.stats$z.score <- ifelse(is.na(obj$poly.stats$is.curve),
+                                       obj$poly.stats$str.z.score,
+                                       ifelse(obj$poly.stats$is.curve,
+                                              obj$poly.stats$crv.z.score,
+                                              obj$poly.stats$str.z.score))
+        }
       }
-    }
     } else {
       poly.stats$best <- obj$poly.stats$str.best
       poly.stats$z.score <- obj$poly.stats$str.z.score
     }
-      xy.dat <- obj$call.info$Call_ARGS$xy.dat
+    xy.dat <- obj$call.info$Call_ARGS$xy.dat
 
     if (height == "rank") {
       ZZ <- data.frame(zmin = obj$poly.stats$rank-1, zmax = obj$poly.stats$rank)
@@ -113,7 +113,7 @@ blok3d <- function(obj,height = "mean", color.seed=1, lines=TRUE, pnts.col = NUL
                 zlim = range(unlist(c(ZZ)),
                              na.rm = T),
                 zlab = height, xlab = "x", ylab = "y")
-#
+    #
     #paisom kiekvieno bloko pavirsius
     if (length(del.id) == 0){
       IDs <- seq(nrow(ZZ))
@@ -156,9 +156,9 @@ blok3d <- function(obj,height = "mean", color.seed=1, lines=TRUE, pnts.col = NUL
 }
 #' Return bottom z coordinate for a polygon of given poly.id
 #' @noRd
-.zmin <- function(poly.id, poly.stats, height){
-  roots <- poly.stats$root.id #[[3]][,5]-1, turi prasideti nuo 1
-  ids <- .collector(poly.id = poly.id,roots = roots) # ids surenka iki duoto polio
+.zmin <- function(poly.id, poly.stats, roots, height){
+
+  ids <- .collector(poly.id = poly.id, roots = roots) # ids surenka iki duoto polio
   zmin <- sum(poly.stats[ids,height])
   return(zmin)
 }
@@ -166,11 +166,14 @@ blok3d <- function(obj,height = "mean", color.seed=1, lines=TRUE, pnts.col = NUL
 #' performance scores.
 #' @noRd
 .Zcoords<-function(poly.stats,height){
-  len <- nrow(poly.stats)
-  zmini <- numeric(len) # bottom z coord. for each poly.
-  zmaxi <- numeric(len) # ceiling z coord. for each poly.
-  for (poly.id in 1:len){
-    zmini[poly.id] <- .zmin(poly.id,poly.stats,height)
+  ids.relative <- 1:nrow(poly.stats)
+  names(ids.relative) <- poly.stats$plot.id
+  roots <- ids.relative[as.character(poly.stats$root.id)]
+  roots[1] <- 0
+  zmini <- numeric(length(ids.relative)) # bottom z coord. for each poly.
+  zmaxi <- numeric(length(ids.relative)) # ceiling z coord. for each poly.
+  for (poly.id in ids.relative){
+    zmini[poly.id] <- .zmin(poly.id,poly.stats,roots, height)
     zmaxi[poly.id] <- zmini[poly.id]+
       ifelse(is.na(poly.stats[poly.id,height]),0,
              poly.stats[poly.id,height]) # [[3]]
