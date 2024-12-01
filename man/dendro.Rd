@@ -6,17 +6,21 @@
 \usage{
 dendro(
   obj,
+  type = 1,
   poly.scheme = NULL,
   color = 1,
   performance.col = "blue",
   labels.col = 1,
   offset.factor = 1,
   arrange = TRUE,
-  grob = TRUE
+  grob = TRUE,
+  label.size = 0.5
 )
 }
 \arguments{
 \item{obj}{A hespdiv object.}
+
+\item{type}{integer 1 (floating endnodes) or 2 (endnotes at zero distance).}
 
 \item{poly.scheme}{ggplot2 object produced with poly_scheme function. Provide if you want identical colors for polygons in both plots.}
 
@@ -31,6 +35,8 @@ dendro(
 \item{arrange}{logical. Plot hespdiv dendrogram above polygon scheme?}
 
 \item{grob}{logical. Convert plot to grob? Must be true, if you want to arrange polygon scheme and the dendrogram in a single plot.}
+
+\item{label.size}{size of labels.}
 }
 \value{
 A \code{grob} or \code{TableGrob} object if \code{grob = TRUE}, otherwise \code{NULL}.
@@ -51,6 +57,8 @@ If you want to transform similarity to difference externally, before applying de
 # dendro(HDData::hd, scheme, arrange = FALSE)
 ## When arranging plots, you may need to experimentally adjust offset.factor.
 # dendro(HDData::hd, scheme, offset.factor = 2)
+## Classical dendrogram
+# dendro(HDData::hd, type = 2)
 ## End(Not run)
 }
 \seealso{
