@@ -51,7 +51,7 @@ remove_splits <- function(obj, split.id, depend.splits = TRUE) {
   for (id in split.id) {
     d <- depend_splits(obj, id)
     #browser()
-    if (!depend.splits & length(d$splits) != 0 & !any(d$splits %in% split.id)){
+    if (!depend.splits & length(d$splits) != 0 & any(!d$splits %in% split.id)){
       all.splits <- all.splits[all.splits != id]
     } else {
       all.splits <- c(all.splits, d$splits)
