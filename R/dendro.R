@@ -275,10 +275,11 @@ dendro <- function(obj, type = 1, poly.scheme = NULL, color = 1, performance.col
 
 #' @noRd
 .find_pol_parents <- function(obj,id){
-  parent_id <- obj$poly.stats$root.id[id]
+  parent_id <- obj$poly.stats$root.id[which(obj$poly.stats$plot.id == id)]
   ids <- parent_id
   while (parent_id != 1){
-    parent_id <- obj$poly.stats$root.id[parent_id]
+    parent_id <- obj$poly.stats$root.id[which(obj$poly.stats$plot.id ==
+                                                parent_id)]
     ids <- c(ids, parent_id)
   }
   ids
