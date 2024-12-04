@@ -182,8 +182,11 @@ dendro <- function(obj, type = 1, poly.scheme = NULL, color = 1, performance.col
   }
   if (type == 1 ) {
     layout <- as.matrix(data.frame(x_kords,-y_koords))
+    ylimit <-  c(min(layout[, 2] - 0.1 * offset.factor * stats::dist(range(layout[, 2]) * 1.1) /
+      length(unique(obj$split.stats$rank))), 0)
   } else {
     layout <- as.matrix(data.frame(x_kords,y_koords))
+    ylimit <- c(0, max(y_koords))
   }
 
   # Step 5: Prepare data for lateral-first edges
@@ -198,7 +201,7 @@ dendro <- function(obj, type = 1, poly.scheme = NULL, color = 1, performance.col
   plot(
     NULL,
     xlim = range(layout[, 1]),  # Set x-axis limits
-    ylim = range(layout[, 2]),  # Set y-axis limits
+    ylim = ylimit,  # Set y-axis limits
     xlab = "",          # Label for x-axis
     ylab = "",            # Label for y-axis
     main = "",
