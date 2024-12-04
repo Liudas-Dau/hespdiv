@@ -197,8 +197,8 @@ dendro <- function(obj, type = 1, poly.scheme = NULL, color = 1, performance.col
   # Step 6: Plot the dendrogram with lateral-first edges
   plot(
     NULL,
-    xlim = range(layout[, 1])*1.1,  # Set x-axis limits
-    ylim = range(layout[, 2])*1.1,  # Set y-axis limits
+    xlim = range(layout[, 1]),  # Set x-axis limits
+    ylim = range(layout[, 2]),  # Set y-axis limits
     xlab = "",          # Label for x-axis
     ylab = "",            # Label for y-axis
     main = "",
