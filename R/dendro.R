@@ -145,7 +145,7 @@ dendro <- function(obj, type = 1, poly.scheme = NULL, color = 1, performance.col
   x_kords[as.character(end_nodes_id)] <- 1:length(end_nodes_id)
   y_koords <- rep(NaN, nrow(obj$poly.stats))
   names(y_koords) <- obj$poly.stats$plot.id
-  end_node_parents <- sapply(end_nodes_id, .find_pol_parents, obj = obj)
+  end_node_parents <- sapply(end_nodes_id, .find_pol_parents, obj = obj, simplify = FALSE)
 
   if (type == 1) {
     y_koords["1"] <- 0
