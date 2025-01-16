@@ -28,7 +28,9 @@ Imports:
   grid,
   gridGraphics,
   stats,
-  magick
+  magick,
+  future.apply,
+  future
 Remotes: github::Liudas-Dau/hespdiv_data
 Depends: 
     R (>= 4.0)

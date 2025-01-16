@@ -33,7 +33,8 @@ hespdiv(
   tracing = NULL,
   pnts.col = 1,
   display = FALSE,
-  pacific.region = FALSE
+  pacific.region = FALSE,
+  .do_recurse = TRUE
 )
 }
 \arguments{
@@ -191,6 +192,9 @@ that the study area is crossed by the 180th meridian, such as being within
 the Pacific Ocean. In this case, the coordinates of  \code{xy.dat} and
 \code{study.pol} are transformed to eliminate the artificial abrupt change
 in x-coordinate values at the 180th meridian.}
+
+\item{.do_recurse}{Logical. Controls recursion (for internal use only). Default is \code{TRUE}.
+Normal users should not modify this parameter.}
 }
 \value{
 The 'hespdiv' class object eith a list with seven elements:

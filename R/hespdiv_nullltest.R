@@ -10,7 +10,7 @@
 #' the ones estimated with hespdiv analysis by providing a quantiles and z-scores.}
 #' \item{2)}{ A data frame with all obtained comparison values for each split-line after data shuffling.}
 #' }
-#' @param obj An object of class \code{hsa}
+#' @param obj An object of class \code{hespdiv}
 #' @param n Number of permutations
 #' @param shuffle.type specify "all" or "within". Latter shuffles data locally,
 #' within a polygon in which subdivision is established. Former shuffles all

@@ -18,6 +18,7 @@ plot method for nullhespdiv class object
 Other HespDiv visualization options: 
 \code{\link{create_gif}()},
 \code{\link{dendro}()},
+\code{\link{plot_cs_hsa}()},
 \code{\link{plot_hespdiv}()},
 \code{\link{plot_hsa_q}()},
 \code{\link{plot_hsa}()},

@@ -135,12 +135,16 @@ contain the error message.
 Other functions for hespdiv sensitivity analysis: 
 \code{\link{hsa_detailed}()},
 \code{\link{hsa_quant}()},
+\code{\link{hsa_sample_constrained}()},
+\code{\link{plot_cs_hsa}()},
 \code{\link{plot_hsa_q}()},
 \code{\link{plot_hsa}()}
 
 Other functions for hespdiv post-prossesing: 
 \code{\link{cross_comp}()},
-\code{\link{hsa_detailed}()}
+\code{\link{group_effect}()},
+\code{\link{hsa_detailed}()},
+\code{\link{hsa_sample_constrained}()}
 }
 \concept{functions for hespdiv post-prossesing}
 \concept{functions for hespdiv sensitivity analysis}

@@ -30,6 +30,7 @@ You can adjust the size of rgl device window to control the size of gif.
 Other HespDiv visualization options: 
 \code{\link{dendro}()},
 \code{\link{plot.nullhespdiv}()},
+\code{\link{plot_cs_hsa}()},
 \code{\link{plot_hespdiv}()},
 \code{\link{plot_hsa_q}()},
 \code{\link{plot_hsa}()},

@@ -132,6 +132,8 @@
 #' the Pacific Ocean. In this case, the coordinates of  \code{xy.dat} and
 #' \code{study.pol} are transformed to eliminate the artificial abrupt change
 #' in x-coordinate values at the 180th meridian.
+#' @param .do_recurse Logical. Controls recursion (for internal use only). Default is `TRUE`.
+#' Normal users should not modify this parameter.
 #' @return The 'hespdiv' class object eith a list with seven elements:
 #' \describe{
 #'  \item{\code{poly.stats}}{ The data frame containing information about
@@ -375,7 +377,8 @@ hespdiv<-function(data,
                   tracing = NULL,
                   pnts.col = 1,
                   display = FALSE,
-                  pacific.region = FALSE){
+                  pacific.region = FALSE,
+                  .do_recurse = TRUE){
 
   if (is.null(xy.dat)){
     if (class(data) %in% c("data.frame", "matrix")){
@@ -677,7 +680,7 @@ hespdiv<-function(data,
   e <- environment()
   environment(.spatial_div) <- e
   ### obtaining results:
-  .spatial_div(data,xy.dat,root.id=0)
+  .spatial_div(data,xy.dat,root.id=0, recursive = .do_recurse)
 
   ### results obtained. Formatting them.
   if (length(splits)>0) {

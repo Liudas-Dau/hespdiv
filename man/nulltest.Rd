@@ -7,7 +7,7 @@
 nulltest(obj, n, shuffle.type = "all")
 }
 \arguments{
-\item{obj}{An object of class \code{hsa}}
+\item{obj}{An object of class \code{hespdiv}}
 
 \item{n}{Number of permutations}
 

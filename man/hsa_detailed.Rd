@@ -171,12 +171,16 @@ and the second element will contain the error message.
 \seealso{
 Other functions for hespdiv sensitivity analysis: 
 \code{\link{hsa_quant}()},
+\code{\link{hsa_sample_constrained}()},
 \code{\link{hsa}()},
+\code{\link{plot_cs_hsa}()},
 \code{\link{plot_hsa_q}()},
 \code{\link{plot_hsa}()}
 
 Other functions for hespdiv post-prossesing: 
 \code{\link{cross_comp}()},
+\code{\link{group_effect}()},
+\code{\link{hsa_sample_constrained}()},
 \code{\link{hsa}()}
 }
 \author{

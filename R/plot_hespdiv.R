@@ -6,7 +6,7 @@
 #' it can display the spatial distribution of observations and number of
 #' observations in each location.
 #' @param obj A hespdiv object.
-#' @param type A character. Either "rakwidth" or "color" (default "color").
+#' @param type A character. Either "width" or "color" (default "color").
 #' Determines whether quality of split-lines is expressed by line width or
 #' color.
 #' @param performance logical. TRUE - display split-line performance,
@@ -131,7 +131,7 @@ plot_hespdiv <- function(obj, type = "color",n.loc = FALSE, performance = TRUE,
                      lineend = "round",linejoin = "round",color = "gray20",alpha = 0.5)+
     geom_path(data= obj$polygons.xy[[1]],ggplot2::aes_(~x,~y), size=0.5,
               lineend = "round",linejoin = "round",color = 1)
-    if (!is.null(title)){
+    if (!is.null(title) | !is.null(subtitle)){
       base <- base + ggplot2::ggtitle(title, subtitle = subtitle)
     }
 
@@ -203,7 +203,7 @@ plot_hespdiv <- function(obj, type = "color",n.loc = FALSE, performance = TRUE,
   }
 
   if (!maximize & performance) {
-      base$scales$scales[[scale_id]]$limits <-  range(split.stats[,key])
+      base$scales$scales[[scale_id]]$limits <-  range(split.stats[,key], na.rm = TRUE)
       base$scales$scales[[scale_id]]$breaks <-
         as.numeric(na.omit( base$scales$scales[[scale_id]]$get_breaks() ))
       base$scales$scales[[scale_id]]$labels <-
@@ -211,11 +211,28 @@ plot_hespdiv <- function(obj, type = "color",n.loc = FALSE, performance = TRUE,
 }
   if (type == "color" & performance) {
     if (maximize){
-      base$scales$scales[[scale_id]]$limits <-  range(split.stats[,key])
+      base$scales$scales[[scale_id]]$limits <-  range(split.stats[,key], na.rm = TRUE)
     }
     self <- base$scales$scales[[scale_id]]
-    x <- self$rescale(self$oob(split.stats[,key], range = self$limits), self$limits)
-    color <- self$palette(x)
+    if (any(is.na(split.stats[, key]) | is.nan(split.stats[, key]))){
+
+      # Identify which rows are NA or NaN
+      na_idx <- is.na(split.stats[, key]) | is.nan(split.stats[, key])
+
+      # Replace NAs with the lower limit of the scale (or any valid placeholder)
+      perf_vals_no_na <- split.stats[, key]
+      perf_vals_no_na[na_idx] <- mean(split.stats[, key], na.rm = TRUE)
+
+      # Rescale and map to colors
+      x <- self$rescale(self$oob(perf_vals_no_na, range = self$limits), self$limits)
+      color <- self$palette(x)
+
+      # Finally, assign a neutral color (e.g. grey) for any originally NA/NaN
+      color[na_idx] <- "grey50"
+    } else {
+      x <- self$rescale(self$oob(split.stats[,key], range = self$limits), self$limits)
+      color <- self$palette(x)
+    }
   }
   if (!performance) {
     color <- base$scales$scales[[scale_id]]$

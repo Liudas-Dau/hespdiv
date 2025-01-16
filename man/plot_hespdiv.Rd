@@ -19,7 +19,7 @@ plot_hespdiv(
 \arguments{
 \item{obj}{A hespdiv object.}
 
-\item{type}{A character. Either "rakwidth" or "color" (default "color").
+\item{type}{A character. Either "width" or "color" (default "color").
 Determines whether quality of split-lines is expressed by line width or
 color.}
 
@@ -68,6 +68,7 @@ Other HespDiv visualization options:
 \code{\link{create_gif}()},
 \code{\link{dendro}()},
 \code{\link{plot.nullhespdiv}()},
+\code{\link{plot_cs_hsa}()},
 \code{\link{plot_hsa_q}()},
 \code{\link{plot_hsa}()},
 \code{\link{poly_scheme}()}

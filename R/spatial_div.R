@@ -11,13 +11,14 @@
 #' @param samp.xy a spatial subset of \code{xy.dat}
 #' @param root.id An id of recursive iteration that produced the \code{samp.dat}.
 #' An id of parent-polygon.
+#' @param recursive logical.
 #' @return No return. Function updates variables in \code{hespdiv} environment.
 #' @author Liudas Daumantas
 #' @note Function inherits the environment of \code{hespdiv} function.
 #' @importFrom pracma poly_center
 #' @noRd
 
-.spatial_div <- function(samp.dat, samp.xy, root.id){
+.spatial_div <- function(samp.dat, samp.xy, root.id, recursive = TRUE){
 
   #testuojamas plotas
   testid <- length(rims)
@@ -352,11 +353,11 @@
       do.dat <- .slicer(samp.dat, do.ids)
 
       assign(x = "rims" ,value = do.call(c,list(rims,list(up.pol))) ,envir = e)
-
-      .spatial_div(up.dat,up.xy, root.id = testid)
       assign(x = "rims" ,value = do.call(c,list(rims,list(do.pol))) ,envir = e)
-      .spatial_div(do.dat,do.xy, root.id = testid)
-
+      if (recursive){
+        .spatial_div(up.dat,up.xy, root.id = testid)
+        .spatial_div(do.dat,do.xy, root.id = testid)
+      }
 
     } # else no adequate split
   } else {

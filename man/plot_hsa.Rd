@@ -82,13 +82,16 @@ devices).
 Other functions for hespdiv sensitivity analysis: 
 \code{\link{hsa_detailed}()},
 \code{\link{hsa_quant}()},
+\code{\link{hsa_sample_constrained}()},
 \code{\link{hsa}()},
+\code{\link{plot_cs_hsa}()},
 \code{\link{plot_hsa_q}()}
 
 Other HespDiv visualization options: 
 \code{\link{create_gif}()},
 \code{\link{dendro}()},
 \code{\link{plot.nullhespdiv}()},
+\code{\link{plot_cs_hsa}()},
 \code{\link{plot_hespdiv}()},
 \code{\link{plot_hsa_q}()},
 \code{\link{poly_scheme}()}
