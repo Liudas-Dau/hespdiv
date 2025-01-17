@@ -23,6 +23,12 @@
 #'   Increasing this value reduces the number of runs processed simultaneously in
 #'   parallel (helpful if you run out of memory). By default, \code{chunks=1}, meaning
 #'   all runs are processed at once.
+#' @param load_prop Numeric value (0,1]. Specifies the proportion of available
+#'   CPU cores or RAM to be used for setting up parallel workers. For example,
+#'   \code{load_prop = 0.8} uses 80% of the available resources. If both
+#'   \code{load_prop} and \code{RAM} are provided, the number of workers will
+#'   be the minimum based on the constraints imposed by both. Defaults to
+#'   \code{0.8} if not provided.
 #'
 #' @return A \code{hsa_constrained} class object, which is a list with two elements:
 #' \itemize{
@@ -41,13 +47,16 @@
 #'
 #' @importFrom future.apply future_lapply
 #' @importFrom future plan multisession availableCores
+#' @importFrom pracma polyarea
 #' @export
 hsa_sample_constrained <- function(obj,
                                    n.runs = 100,
                                    subsample_factor = 0.7,
-                                   RAM = 8,
-                                   chunks = 1) {
-  # ---- Input Validation ----
+                                   RAM = NULL,
+                                   load_prop = NULL,
+                                   chunks = 1,
+                                   workers = NULL) {
+  # ---- Extract and Validate Basic Args ----
   if (!is.numeric(n.runs) || length(n.runs) != 1 || n.runs < 1) {
     stop("'n.runs' must be a positive integer.")
   }
@@ -58,9 +67,18 @@ hsa_sample_constrained <- function(obj,
     stop("'obj' must be of class 'hespdiv'.")
   }
 
-  # ---- Extract Core Information ----
+  # Extract call_args AFTER we confirm obj is a hespdiv
   call_args <- obj$call.info$Call_ARGS
+  if (!call_args$same.n.split) {
+    stop("function currently works only when 'same.n.split' is TRUE.")
+  }
+
+  # ---- Extract Core Information ----
   dat_in_obj <- call_args$data
+
+  # The bounding polygon's area
+  big_poly_area <- pracma::polyarea(obj$polygons.xy[[1]])
+  S_crit_abs <- call_args$S.crit * abs(big_poly_area)
 
   # Decide on .slicer function
   if (is.data.frame(dat_in_obj) || is.matrix(dat_in_obj)) {
@@ -73,13 +91,38 @@ hsa_sample_constrained <- function(obj,
 
   # ---- Prepare Output Structure ----
   split_ids <- obj$split.stats$plot.id
-  hespdivs <- vector("list", length(split_ids))
+  hespdivs  <- vector("list", length(split_ids))
   names(hespdivs) <- split_ids
 
   # ---- Parallel Setup ----
-  num_cores <- future::availableCores()
-  safe_cores <- max(1, floor(num_cores * 0.8))  # Use ~80% of available CPU
-  safe_workers <- max(1, min(safe_cores, RAM)) # Also limit by declared RAM
+  if (is.null(workers)) {
+    num_cores <- future::availableCores()
+
+    # if load_prop is NULL, default to 0.8 (or 1, or any sensible default)
+    if (is.null(load_prop)) {
+      load_prop <- 0.8
+    }
+    if (!is.numeric(load_prop) || load_prop <= 0 || load_prop > 1) {
+      stop("'load_prop' must be a numeric in (0,1].")
+    }
+    safe_cores <- max(1, floor(num_cores * load_prop))
+
+    # if RAM is NULL, treat it as infinite
+    if (is.null(RAM)) {
+      RAM <- 16
+    } else {
+      if (!is.numeric(RAM) || length(RAM) != 1 || RAM < 1) {
+        stop("'RAM' must be a positive number if not NULL.")
+      }
+    }
+
+    safe_workers <- max(1, min(safe_cores, RAM))
+  } else {
+    if (!is.numeric(workers) || workers < 1) {
+      stop("'workers' must be a positive number of workers.")
+    }
+    safe_workers <- workers
+  }
   message("Using ", safe_workers, " parallel workers.")
 
   # Configure future
@@ -112,12 +155,16 @@ hsa_sample_constrained <- function(obj,
         l_xy_dat <- xy.dat[indices_list[[run]], , drop = FALSE]
         l_data   <- .slicer(data_for_poly, indices_list[[run]])
 
+        # Calculate S.crit for this polygon area
+        poly_area <- abs(pracma::polyarea(polygon))
+        S_crit_local <- S_crit_abs / poly_area
+
         # Call hespdiv with single-split recursion
         hespdiv(
           data         = l_data,
           xy.dat       = l_xy_dat,
           n.split.pts  = call_args$n.split.pts,
-          same.n.split = call_args$same.n.split,  # usually TRUE
+          same.n.split = call_args$same.n.split,  # must be TRUE
           method       = NULL,
           generalize.f = call_args$generalize.f,
           compare.f    = call_args$compare.f,
@@ -126,7 +173,7 @@ hsa_sample_constrained <- function(obj,
           N.rel.crit   = call_args$N.rel.crit,
           N.loc.crit   = call_args$N.loc.crit,
           N.loc.rel.crit = call_args$N.loc.rel.crit,
-          S.crit       = call_args$S.crit,
+          S.crit       = S_crit_local,  # local area-based
           S.rel.crit   = call_args$S.rel.crit,
           Q.crit       = call_args$Q.crit,
           c.splits     = call_args$c.splits,
