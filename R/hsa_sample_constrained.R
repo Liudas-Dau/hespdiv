@@ -77,7 +77,8 @@ hsa_sample_constrained <- function(obj,
   dat_in_obj <- call_args$data
 
   # The bounding polygon's area
-  big_poly_area <- pracma::polyarea(obj$polygons.xy[[1]])
+  big_poly_area <- pracma::polyarea(x = obj$polygons.xy[[1]][,1],
+                                    y = obj$polygons.xy[[1]][,2])
   S_crit_abs <- call_args$S.crit * abs(big_poly_area)
 
   # Decide on .slicer function
@@ -156,7 +157,8 @@ hsa_sample_constrained <- function(obj,
         l_data   <- .slicer(data_for_poly, indices_list[[run]])
 
         # Calculate S.crit for this polygon area
-        poly_area <- abs(pracma::polyarea(polygon))
+        poly_area <- abs(pracma::polyarea(x = polygon[,1],
+                                          y = polygon[,2]))
         S_crit_local <- S_crit_abs / poly_area
 
         # Call hespdiv with single-split recursion
