@@ -22,6 +22,7 @@
 #'
 #' @param obj A \code{hespdiv} object containing all necessary components (data, XY coordinates, etc.).
 #' @param group A factor (or coercible to factor) defining the group of each observation in \code{obj$call.info$Call_ARGS$data}.
+#' @param maxdif A numeric value specifying the output of \code{compare.f()} applied to maximally different groups.
 #' @param ...  Additional arguments passed to \code{\link{plot_hespdiv}}.
 #'             (\code{obj}, \code{performance}, and \code{subtitle} are preset within this function.)
 #'
@@ -39,6 +40,7 @@
 
 group_effect <- function(obj,
                          group,
+                         maxdif = NULL,
                          ...
 ) {
   # Convert to factor to ensure consistent indexing
@@ -67,6 +69,13 @@ group_effect <- function(obj,
   dat_in_obj <- obj$call.info$Call_ARGS$data
   xy_in_obj  <- obj$call.info$Call_ARGS$xy.dat
 
+  if (obj$call.info$call.info$METHOD$metric %in% c("pielou", "morisita",
+                                                   "sorensen", "horn.morisita")) {
+    maxdif <- 0
+  } else {
+    if (is.null(maxdif)) stop("Provide 'maxdif' value when using a sutom method")
+  }
+
   # Decide how to slice data, based on obj$call.info$Call_ARGS$data structure
   if (is.data.frame(dat_in_obj) || is.matrix(dat_in_obj)) {
     .slicer <- .slicer.table
@@ -92,13 +101,21 @@ group_effect <- function(obj,
       split.ids1 <- .get_ids(obj$polygons.xy[[pol_ids[1]]], xy_sub)
       split.ids2 <- .get_ids(obj$polygons.xy[[pol_ids[2]]], xy_sub)
 
-      dat_pol1 <- .slicer(data_sub, split.ids1)
-      dat_pol2 <- .slicer(data_sub, split.ids2)
+      if ( (length(split.ids2) > 0 | length(split.ids1) > 0) &
+           (length(split.ids2) == 0 | length(split.ids1) == 0)) {
+        # performance is maximum if groups dot not overlap
+        comp.vals[split.id, group_id] <- maxdif
 
-      comp.vals[split.id, group_id] <- obj$call.info$Call_ARGS$compare.f(
-        obj$call.info$Call_ARGS$generalize.f(dat_pol1),
-        obj$call.info$Call_ARGS$generalize.f(dat_pol2)
-      )
+      } else {
+
+        dat_pol1 <- .slicer(data_sub, split.ids1)
+        dat_pol2 <- .slicer(data_sub, split.ids2)
+
+        comp.vals[split.id, group_id] <- obj$call.info$Call_ARGS$compare.f(
+          obj$call.info$Call_ARGS$generalize.f(dat_pol1),
+          obj$call.info$Call_ARGS$generalize.f(dat_pol2)
+        )
+      }
     }
 
     # Update obj$split.stats$performance for this group (overwrites the vector)
