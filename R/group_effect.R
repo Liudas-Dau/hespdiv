@@ -69,7 +69,7 @@ group_effect <- function(obj,
   dat_in_obj <- obj$call.info$Call_ARGS$data
   xy_in_obj  <- obj$call.info$Call_ARGS$xy.dat
 
-  if (obj$call.info$call.info$METHOD$metric %in% c("pielou", "morisita",
+  if (obj$call.info$METHOD$metric %in% c("pielou", "morisita",
                                                    "sorensen", "horn.morisita")) {
     maxdif <- 0
   } else {
