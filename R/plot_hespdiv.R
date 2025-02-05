@@ -88,7 +88,7 @@ plot_hespdiv <- function(obj, type = "color",n.loc = FALSE, performance = TRUE,
       legend_title <- obj$call.info$METHOD$metric
     } else {
       if (obj$call.info$METHOD$metric == "sorensen"){
-        legend_title <- paste0("S",rawToChar(as.raw(184)),"rensen-Dice\ncoefficient")
+        legend_title <- "S\u00f8rensen-Dice\ncoefficient"
       } else {
         if (obj$call.info$METHOD$metric == "morisita"){
           legend_title <- paste0("Morisita\nSimilarity")
