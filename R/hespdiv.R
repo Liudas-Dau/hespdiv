@@ -494,13 +494,9 @@ hespdiv<-function(data,
           unique(plot.dat)
         }
         compare.f <- function(x,y) {
-          sum <- length(x) + length(y)
-          int_2x <- length(which(duplicated(c(x,y))))*2
-          if (length(int_2x)!=0){
-            int_2x/sum
-          } else {
-            0
-          }
+          sum_total <- length(x) + length(y)  # Total taxa in both samples
+          shared_taxa <- length(intersect(x, y)) * 2  # Shared taxa counted twice for Sørensen
+          sorensen_similarity <- shared_taxa / sum_total  # Sørensen similarity formula
         }
       } else {
         if (method == "morisita"){
