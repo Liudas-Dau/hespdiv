@@ -2,52 +2,61 @@
 % Please edit documentation in R/group_effect.R
 \name{group_effect}
 \alias{group_effect}
-\title{Investigate group effect}
+\title{Investigate Group Effects on Split-Line Performance}
 \usage{
-group_effect(obj, group, ...)
+group_effect(obj, group, perm.n = 500, maxdif = NULL, plot = TRUE, ...)
 }
 \arguments{
-\item{obj}{A \code{hespdiv} object containing all necessary components (data, XY coordinates, etc.).}
+\item{obj}{A \code{hespdiv} object containing all necessary components (data, XY coordinates, split-lines, etc.).}
 
 \item{group}{A factor (or coercible to factor) defining the group of each observation in \code{obj$call.info$Call_ARGS$data}.}
+
+\item{perm.n}{A positive integer specifying the number of permutations to perform (default is 500).}
+
+\item{maxdif}{A numeric value specifying the performance measure when groups are maximally different.
+(Required only if \code{obj$call.info$METHOD$metric} is not one of
+\code{c("pielou", "morisita", "sorensen", "horn.morisita")}. Defaults to 0 for supported metrics.)}
+
+\item{plot}{Logical (default \code{TRUE}). Whether to generate and store plot outputs via \code{\link{plot_hespdiv}}.}
 
 \item{...}{Additional arguments passed to \code{\link{plot_hespdiv}}.
 (\code{obj}, \code{performance}, and \code{subtitle} are preset within this function.)}
 }
 \value{
-A list containing two elements:
+A list containing the following elements:
 \itemize{
 \item \code{comp.vals}: A matrix of size \code{(number_of_splits) x (number_of_groups)},
 giving the recomputed performances for each split-line and each group.
-\item \code{plots}: A list of the \code{plot_hespdiv} outputs (one for each group).
+\item \code{elim.comp.vals}: A matrix of performance values when group-specific data is eliminated.
+\item \code{per_perf}: A nested list containing permutation test results for each split-line and group.
+\item \code{n_per_pol}: A data frame with counts of observations in each polygon for each split and group.
+\item \code{plots}: A list of the \code{plot_hespdiv} outputs (one for each group), or \code{NULL} if \code{plot = FALSE}.
 }
 }
 \description{
-Re-evaluates the performance of split-lines within a \code{hespdiv} object,
-separately for each subset defined by a grouping factor.
+This function re-evaluates the performance of split-lines within a \code{hespdiv} object,
+separately for each subset defined by a grouping factor. Additionally, it performs permutation tests
+to assess the influence of group membership on split-line performance.
 
 For each level of \code{group}, the function:
 \enumerate{
-\item Subsets the data and coordinates to observations belonging to that group
-\item Recomputes the performance measure (using \code{compare.f} and \code{generalize.f})
-for each split-line in \code{obj}
-\item Updates \code{obj$split.stats$performance} for that group
-\item Calls \code{plot_hespdiv()}, storing the resulting plot (with a group-specific subtitle)
+\item Subsets the data and coordinates to observations belonging to that group.
+\item Recomputes the performance measure using \code{compare.f} and \code{generalize.f}
+for each split-line in \code{obj}.
+\item Performs permutation tests to evaluate the robustness of group effects.
+\item Updates \code{obj} for that group and calls \code{plot_hespdiv()}, storing the resulting plot (with a group-specific subtitle)
+if \code{plot = TRUE}.
 }
 }
 \examples{
 \dontrun{
   # Suppose we have a hespdiv object called hd_obj and a grouping factor g:
-  result <- group_effect(hd_obj, g, n.loc = TRUE)
+  result <- group_effect(hd_obj, g, perm.n = 1000, plot = TRUE)
   # result$comp.vals is the matrix of performance measures
-  # result$plots is a list of ggplot/plot objects for each group
+  # result$elim.comp.vals gives performance values with group data eliminated
+  # result$per_perf contains permutation test results for robustness evaluation
+  # result$n_per_pol gives the counts per polygon for each split, per group
+  # result$plots contains visualizations if plot=TRUE
 }
 }
-\seealso{
-Other functions for hespdiv post-prossesing: 
-\code{\link{cross_comp}()},
-\code{\link{hsa_detailed}()},
-\code{\link{hsa_sample_constrained}()},
-\code{\link{hsa}()}
-}
-\concept{functions for hespdiv post-prossesing}
+\concept{functions for hespdiv post-processing}

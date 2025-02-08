@@ -142,7 +142,6 @@ Other functions for hespdiv sensitivity analysis:
 
 Other functions for hespdiv post-prossesing: 
 \code{\link{cross_comp}()},
-\code{\link{group_effect}()},
 \code{\link{hsa_detailed}()},
 \code{\link{hsa_sample_constrained}()}
 }

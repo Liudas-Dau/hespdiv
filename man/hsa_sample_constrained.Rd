@@ -8,8 +8,10 @@ hsa_sample_constrained(
   obj,
   n.runs = 100,
   subsample_factor = 0.7,
-  RAM = 8,
-  chunks = 1
+  RAM = NULL,
+  load_prop = NULL,
+  chunks = 1,
+  workers = NULL
 )
 }
 \arguments{
@@ -24,10 +26,19 @@ For example, 0.7 means 70\% of the data in each polygon are retained.}
 workers to use. The function uses up to 80\\% of your available CPU cores
 but also caps the number of workers at \code{RAM}.}
 
+\item{load_prop}{Numeric value (0,1]. Specifies the proportion of available
+CPU cores or RAM to be used for setting up parallel workers. For example,
+\code{load_prop = 0.8} uses 80\% of the available resources. If both
+\code{load_prop} and \code{RAM} are provided, the number of workers will
+be the minimum based on the constraints imposed by both. Defaults to
+\code{0.8} if not provided.}
+
 \item{chunks}{Integer. Controls how many chunks the \code{n.runs} are split into.
 Increasing this value reduces the number of runs processed simultaneously in
 parallel (helpful if you run out of memory). By default, \code{chunks=1}, meaning
 all runs are processed at once.}
+
+\item{workers}{a number of parrallel workers.}
 }
 \value{
 A \code{hsa_constrained} class object, which is a list with two elements:
@@ -64,7 +75,6 @@ Other functions for hespdiv sensitivity analysis:
 
 Other functions for hespdiv post-prossesing: 
 \code{\link{cross_comp}()},
-\code{\link{group_effect}()},
 \code{\link{hsa_detailed}()},
 \code{\link{hsa}()}
 }

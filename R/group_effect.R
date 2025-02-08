@@ -37,6 +37,8 @@
 #'
 #' @family functions for hespdiv post-processing
 #'
+#' @importFrom stats setNames
+#'
 #' @export
 #'
 #' @examples
@@ -81,12 +83,6 @@ group_effect <- function(obj, group, perm.n = 500, maxdif = NULL, plot = TRUE, .
   comp.vals <- matrix(NA, nrow = l, ncol = group.n, dimnames = list(rownames(obj$split.stats), group_levels))
   elim.comp.vals <- matrix(NA, nrow = l, ncol = group.n, dimnames = list(rownames(obj$split.stats), group_levels))
 
-  create_nested_list <- function(levels) {
-    if (length(levels) == 1) {
-      return(setNames(replicate(length(levels[[1]]), list(), simplify = FALSE), levels[[1]]))
-    }
-    setNames(lapply(levels[[1]], function(x) create_nested_list(levels[-1])), levels[[1]])
-  }
   per_perf <- create_nested_list(list(rownames(obj$split.stats), group_levels))
 
   N <- group.n * l * 2
@@ -207,4 +203,10 @@ group_effect <- function(obj, group, perm.n = 500, maxdif = NULL, plot = TRUE, .
   return(result)
 }
 
-
+#' @noRd
+create_nested_list <- function(levels) {
+  if (length(levels) == 1) {
+    return(setNames(replicate(length(levels[[1]]), list(), simplify = FALSE), levels[[1]]))
+  }
+  setNames(lapply(levels[[1]], function(x) create_nested_list(levels[-1])), levels[[1]])
+}
