@@ -29,6 +29,7 @@
 #'   \code{load_prop} and \code{RAM} are provided, the number of workers will
 #'   be the minimum based on the constraints imposed by both. Defaults to
 #'   \code{0.8} if not provided.
+#' @param workers a number of parrallel workers.
 #'
 #' @return A \code{hsa_constrained} class object, which is a list with two elements:
 #' \itemize{
