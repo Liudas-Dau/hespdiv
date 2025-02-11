@@ -137,8 +137,9 @@ hsa_sample_constrained <- function(obj,
 
     # Subset data to this polygon
     polygon <- obj$polygons.xy[[as.character(pol.id)]]
-    data_for_poly <- obj$poly.obj[[as.character(pol.id)]]
-    xy.dat <- call_args$xy.dat[.get_ids(polygon, call_args$xy.dat), ]
+    ids <- .get_ids(polygon, call_args$xy.dat)
+    xy.dat <- call_args$xy.dat[ids, ]
+    data_for_poly <- .slicer(polygon,call_args$xy.dat$data)
 
     l <- nrow(xy.dat)
 
