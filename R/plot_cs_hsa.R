@@ -3,7 +3,9 @@
 #' @description
 #' Displays the alternative (subsampled) \code{hespdiv} subdivisions and the
 #' basal (original) \code{hespdiv} subdivision on one or multiple plots,
-#' illustrating how the split-lines vary across different ranks.
+#' illustrating how the split-lines vary across different ranks. Additionally,
+#' for each alternative split-line (which is defined by a start and end coordinate),
+#' the function aggregates identical endpoints and overlays their counts on the plot.
 #'
 #' @param obj An object of class \code{hsa_constrained}, typically the output
 #'   of \code{\link{hsa_sample_constrained}}.
@@ -16,8 +18,12 @@
 #'       (default \code{"lightyellow3"}), with the basal line highlighted
 #'       in another color.}
 #'   }
+#' @param rank Integer. Optional. When \code{type = 2}, if provided the function
+#'   will only generate plots for the specified rank. If \code{NULL} (default),
+#'   plots for all unique ranks will be produced.
 #' @param col_basal Character or numeric specifying the color of basal split-lines
 #'   (default \code{"gray20"}).
+#' @param main Character. Title for the plot(s).
 #' @param col_boundary Character or numeric specifying the color of the outer
 #'   (first) polygon boundary (default \code{7}).
 #' @param col_alternatives Character or numeric specifying the color of alternative
@@ -40,16 +46,22 @@
 #'   \item In \code{type = 2}, the function creates separate plots, each focusing
 #'         on polygons of a specific rank, drawing alternative lines in the user-specified
 #'         color (with transparency) and the basal line in another color or line width.
+#'         If a specific \code{rank} is provided, only that rank is plotted.
+#'   \item In both cases, after drawing the alternative split-lines the function
+#'         aggregates their endpoints (start and end points) and overlays the count
+#'         at each unique coordinate using \code{text()}.
 #' }
 #'
-#' @importFrom graphics plot lines
+#' @importFrom graphics plot lines text
 #' @importFrom grDevices adjustcolor
 #' @family functions for hespdiv sensitivity analysis
 #' @family HespDiv visualization options
 #' @export
 plot_cs_hsa <- function(obj,
                         type = 1,
+                        rank = NULL,
                         col_basal = "gray20",
+                        main,
                         col_boundary = 7,
                         col_alternatives = "lightyellow3",
                         max_lwd = 2.5,
@@ -60,7 +72,7 @@ plot_cs_hsa <- function(obj,
     stop("`obj` must be a 'hsa_constrained' object.")
   }
   if (!type %in% c(1, 2)) {
-    warning("Unsupported 'type' provided; defaulting to type=1.")
+    warning("Unsupported 'type' provided; defaulting to type = 1.")
     type <- 1
   }
 
@@ -68,7 +80,6 @@ plot_cs_hsa <- function(obj,
   basis <- obj$Basis
   alt_list <- obj$Alternatives
 
-  # ranks: vector of ranks for each polygon (matching names of alt_list)
   if (!("poly.stats" %in% names(basis))) {
     stop("The `basis` (obj$Basis) must have 'poly.stats'.")
   }
@@ -79,91 +90,114 @@ plot_cs_hsa <- function(obj,
   ranks <- basis$poly.stats[names(alt_list), "rank"]
   unique_ranks <- unique(ranks)
 
-  # pol.n: number of polygons in the analysis
-  pol.n <- length(alt_list)
+  # If a specific rank is provided (for type==2) then use only that rank
+  if (type == 2 && !is.null(rank)) {
+    if (!rank %in% unique_ranks) {
+      warning(paste("Provided rank", rank, "is not found. Nothing will be plotted."))
+      return(invisible(NULL))
+    }
+    unique_ranks <- rank
+  }
 
-  # n.runs: assume each polygon has the same number of runs
+  pol.n <- length(alt_list)
   n.runs <- if (pol.n > 0) length(alt_list[[1]]) else 0
 
-  # 3) Helper to adjust alternative color with transparency
   alt_col_transparent <- adjustcolor(col_alternatives, alpha.f = alpha_alt)
 
-  # 4) Plot logic
+  # Helper function to overlay counts for unique endpoints
+  overlay_density_endpoints <- function(alt_coords) {
+    if (length(alt_coords) == 0) return()
+    # Each element in alt_coords is a matrix with two rows (start, end)
+    # Combine all endpoints into one matrix (each row = one endpoint)
+    all_points <- do.call(rbind, alt_coords)
+    # Create a unique key for each point by concatenating its coordinates
+    keys <- apply(all_points, 1, function(row) paste(row, collapse = ","))
+    counts <- table(keys)
+    unique_keys <- names(counts)
+    for (key in unique_keys) {
+      coords <- as.numeric(strsplit(key, split = ",")[[1]])
+      text(coords[1], coords[2], labels = counts[[key]], col = "blue", cex = 0.8)
+    }
+  }
+
+  # 3) Plot logic
   if (type == 1) {
     # ---- TYPE = 1 ----
     if (!is.null(basis$polygons.xy) && length(basis$polygons.xy) >= 1) {
-      # Plot outer boundary polygon in col_boundary
-      plot(basis$polygons.xy[[1]], type = 'l',
-           col = col_boundary,
-           main = "Constrained Sensitivity: Overlaid Subdivisions")
+      plot(basis$polygons.xy[[1]], type = 'l', col = col_boundary, main = main)
+      points(hsa_cs$Basis$call.info$Call_ARGS$xy.dat,pch=19,cex = 0.25)
     } else {
       stop("basis$polygons.xy[[1]] is not available for plotting the boundary.")
     }
 
-    # line widths for each rank, from max_lwd to min_lwd
+    # alt_coords will store the endpoints of each alternative split-line
+    alt_coords <- list()
+
     lw_vec <- seq(max_lwd, min_lwd, length.out = length(unique_ranks))
 
-    # A) Plot alternative lines
+    # A) Plot alternative lines and collect endpoints
     for (i in seq_len(pol.n)) {
       this_rank <- ranks[i]
-      # pick appropriate line width for this rank
-      lw_poly <- lw_vec[this_rank]
-
+      lw_poly <- if (length(lw_vec) > 1) lw_vec[this_rank] else lw_vec[1]
       for (run_idx in seq_len(n.runs)) {
         alt_obj <- alt_list[[i]][[run_idx]]
         if (!is.null(alt_obj$split.lines) && length(alt_obj$split.lines) >= 1) {
-          lines(alt_obj$split.lines[[1]],
-                col = alt_col_transparent,
-                lwd = lw_poly)
+          line_coords <- alt_obj$split.lines[[1]]
+          lines(line_coords, col = alt_col_transparent, lwd = lw_poly)
+          # Record the start and end points of this split-line
+          endpoints <- line_coords[c(1, nrow(line_coords)), , drop = FALSE]
+          alt_coords[[length(alt_coords) + 1]] <- endpoints
         }
       }
     }
 
-    # B) Plot basal lines (all lines in basis$split.lines)
+    # B) Plot basal lines
     if (!is.null(basis$split.lines)) {
       for (i in seq_along(basis$split.lines)) {
         lines(basis$split.lines[[i]], lwd = 0.5, col = col_basal)
       }
     }
 
+    # C) Overlay the density (number of split-lines) at each unique endpoint
+    overlay_density_endpoints(alt_coords)
+
   } else {
     # ---- TYPE = 2 ----
-    # For each unique rank, create a separate plot
     for (rk in unique_ranks) {
-      # which polygons have rank == rk?
+      alt_coords <- list()
       ids <- which(ranks == rk)
       main_txt <- paste("Rank =", rk)
 
-      # plot the boundary in col_boundary
       if (!is.null(basis$polygons.xy) && length(basis$polygons.xy) >= 1) {
-        plot(basis$polygons.xy[[1]], type = 'l',
-             col = col_boundary,
-             main = main_txt)
+        plot(basis$polygons.xy[[1]], type = 'l', col = col_boundary, main = main_txt)
+        points(hsa_cs$Basis$call.info$Call_ARGS$xy.dat,pch=19,cex = 0.25)
       } else {
         stop("basis$polygons.xy[[1]] is not available for plotting the boundary.")
       }
 
-      # A) Plot alt lines for polygons of this rank
+      # A) Plot alternative lines for polygons of this rank and collect endpoints
       for (poly_idx in ids) {
         for (run_idx in seq_len(n.runs)) {
           alt_obj <- alt_list[[poly_idx]][[run_idx]]
           if (!is.null(alt_obj$split.lines) && length(alt_obj$split.lines) >= 1) {
-            lines(alt_obj$split.lines[[1]],
-                  col = alt_col_transparent, lwd = 1.2)
+            line_coords <- alt_obj$split.lines[[1]]
+            lines(line_coords, col = alt_col_transparent, lwd = 1.2)
+            endpoints <- line_coords[c(1, nrow(line_coords)), , drop = FALSE]
+            alt_coords[[length(alt_coords) + 1]] <- endpoints
           }
         }
-        # highlight the basal line for this polygon
         if (!is.null(basis$split.lines) && length(basis$split.lines) >= poly_idx) {
           lines(basis$split.lines[[poly_idx]], lwd = 0.5, col = "red")
         }
       }
 
-      # B) Plot the other basal lines with default line width/col_basal
       all_lines <- seq_along(basis$split.lines)
       others <- setdiff(all_lines, ids)
       for (ln_idx in others) {
         lines(basis$split.lines[[ln_idx]], lwd = 0.5, col = col_basal)
       }
+
+      overlay_density_endpoints(alt_coords)
     }
   }
 

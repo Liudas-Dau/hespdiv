@@ -7,7 +7,9 @@
 plot_cs_hsa(
   obj,
   type = 1,
+  rank = NULL,
   col_basal = "gray20",
+  main,
   col_boundary = 7,
   col_alternatives = "lightyellow3",
   max_lwd = 2.5,
@@ -29,8 +31,14 @@ rank. Alternative lines are displayed in a user-defined color
 in another color.}
 }}
 
+\item{rank}{Integer. Optional. When \code{type = 2}, if provided the function
+will only generate plots for the specified rank. If \code{NULL} (default),
+plots for all unique ranks will be produced.}
+
 \item{col_basal}{Character or numeric specifying the color of basal split-lines
 (default \code{"gray20"}).}
+
+\item{main}{Character. Title for the plot(s).}
 
 \item{col_boundary}{Character or numeric specifying the color of the outer
 (first) polygon boundary (default \code{7}).}
@@ -64,6 +72,7 @@ plus all basal split-lines of the \code{hespdiv} basis.
 \item In \code{type = 2}, the function creates separate plots, each focusing
 on polygons of a specific rank, drawing alternative lines in the user-specified
 color (with transparency) and the basal line in another color or line width.
+If a specific \code{rank} is provided, only that rank is plotted.
 }
 }
 \seealso{
