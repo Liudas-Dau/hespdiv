@@ -38,6 +38,7 @@
 #' @family functions for hespdiv post-processing
 #'
 #' @importFrom stats setNames
+#' @importFrom pracma polyarea
 #'
 #' @export
 #'
@@ -140,14 +141,21 @@ group_effect <- function(obj, group, perm.n = 500, maxdif = NULL, plot = TRUE, .
           obj$call.info$Call_ARGS$generalize.f(.slicer(dat_in_obj, split.ids1_all_nogr)),
           obj$call.info$Call_ARGS$generalize.f(.slicer(dat_in_obj, split.ids2_all_nogr))
         )
+        areas <- c(
+          abs(pracma::polyarea(
+            obj$polygons.xy[[pol_ids[1]]]$x,
+            obj$polygons.xy[[pol_ids[1]]]$y)),
 
+          abs(pracma::polyarea(
+            obj$polygons.xy[[pol_ids[2]]]$x,
+            obj$polygons.xy[[pol_ids[2]]]$y))
+        )
         n <- length(split.ids1) + length(split.ids2)
         per_perf[[split.id ]][[group_id]] <- replicate(perm.n, {
-          id1 <- sample(1:n, size = sample(0:n, 1), replace = FALSE)
-          id2 <- (1:n)[-id1]
+          ids <- sample(c(TRUE, FALSE), size = n, replace = TRUE, prob = areas)
 
-          g_id1 <- a_gp[id1]
-          g_id2 <- a_gp[id2]
+          g_id1 <- a_gp[ids]
+          g_id2 <- a_gp[!ids]
 
           split.ids1_tgs <- c(split.ids1_all_nogr, g_id1)
           split.ids2_tgs <- c(split.ids2_all_nogr, g_id2)
