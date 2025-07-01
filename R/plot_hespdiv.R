@@ -156,6 +156,8 @@ plot_hespdiv <- function(obj, type = "color",n.loc = FALSE, performance = TRUE,
       base$scales$scales[[1]]$limits <-  range(log(uni.loc.n$n))
       base$scales$scales[[1]]$labels <- round(exp(as.numeric(stats::na.omit(
         base$scales$scales[[1]]$get_breaks() ))))
+      base$scales$scales[[1]]$breaks <- stats::na.omit(
+        exp(base$scales$scales[[1]]$get_breaks() ))
 
     }
 
