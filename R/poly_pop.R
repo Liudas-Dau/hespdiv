@@ -6,7 +6,7 @@
 #' @param obj The hespdiv object used to create the currently active rgl
 #' device with the \code{blok3d} function.
 #' @param height A character value that indicates the height co-ordinate.
-#' @family {function for hespdiv visualization in 3D}
+#' @family HespDiv visualization options
 #' @author Liudas Daumantas
 #' @importFrom pracma poly_center
 #' @importFrom rgl identify3d rgl.ids rgl.pop

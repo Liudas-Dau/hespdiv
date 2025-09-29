@@ -17,10 +17,17 @@ This function allows you to interactively select and remove unwanted polygons
 from a 3D plot created with the \code{blok3d} function.
 }
 \seealso{
-Other {function for hespdiv visualization in 3D}: 
-\code{\link{blok3d}()}
+Other HespDiv visualization options: 
+\code{\link{create_gif}()},
+\code{\link{dendro}()},
+\code{\link{plot.nullhespdiv}()},
+\code{\link{plot_cs_hsa}()},
+\code{\link{plot_hespdiv}()},
+\code{\link{plot_hsa}()},
+\code{\link{plot_hsa_q}()},
+\code{\link{poly_scheme}()}
 }
 \author{
 Liudas Daumantas
 }
-\concept{{function for hespdiv visualization in 3D}}
+\concept{HespDiv visualization options}
