@@ -12,10 +12,10 @@ depend_splits(obj, id)
 \item{id}{id of a split-line}
 }
 \value{
-a list
-\itemize{
-\item{1)}{ dependent split-line ids, if any}
-\item{2)}{ dependent polygon ids}
+a list:
+\enumerate{
+\item Dependent split-line IDs, if any
+\item Dependent polygon IDs
 }
 }
 \description{
