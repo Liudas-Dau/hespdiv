@@ -37,10 +37,10 @@ parameters used in alternative hespdiv calls.
 }
 \seealso{
 Other functions for hespdiv sensitivity analysis: 
+\code{\link{hsa}()},
 \code{\link{hsa_detailed}()},
 \code{\link{hsa_quant}()},
 \code{\link{hsa_sample_constrained}()},
-\code{\link{hsa}()},
 \code{\link{plot_cs_hsa}()},
 \code{\link{plot_hsa}()}
 
@@ -51,7 +51,8 @@ Other HespDiv visualization options:
 \code{\link{plot_cs_hsa}()},
 \code{\link{plot_hespdiv}()},
 \code{\link{plot_hsa}()},
-\code{\link{poly_scheme}()}
+\code{\link{poly_scheme}()},
+\code{\link{polypop}()}
 
 Other functions to evaluate hesdpiv cluster stability: 
 \code{\link{hsa_quant}()}

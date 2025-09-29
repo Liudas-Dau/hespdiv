@@ -77,21 +77,22 @@ If a specific \code{rank} is provided, only that rank is plotted.
 }
 \seealso{
 Other functions for hespdiv sensitivity analysis: 
+\code{\link{hsa}()},
 \code{\link{hsa_detailed}()},
 \code{\link{hsa_quant}()},
 \code{\link{hsa_sample_constrained}()},
-\code{\link{hsa}()},
-\code{\link{plot_hsa_q}()},
-\code{\link{plot_hsa}()}
+\code{\link{plot_hsa}()},
+\code{\link{plot_hsa_q}()}
 
 Other HespDiv visualization options: 
 \code{\link{create_gif}()},
 \code{\link{dendro}()},
 \code{\link{plot.nullhespdiv}()},
 \code{\link{plot_hespdiv}()},
-\code{\link{plot_hsa_q}()},
 \code{\link{plot_hsa}()},
-\code{\link{poly_scheme}()}
+\code{\link{plot_hsa_q}()},
+\code{\link{poly_scheme}()},
+\code{\link{polypop}()}
 }
 \concept{HespDiv visualization options}
 \concept{functions for hespdiv sensitivity analysis}

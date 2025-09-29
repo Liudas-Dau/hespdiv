@@ -20,9 +20,10 @@ Other HespDiv visualization options:
 \code{\link{dendro}()},
 \code{\link{plot_cs_hsa}()},
 \code{\link{plot_hespdiv}()},
-\code{\link{plot_hsa_q}()},
 \code{\link{plot_hsa}()},
-\code{\link{poly_scheme}()}
+\code{\link{plot_hsa_q}()},
+\code{\link{poly_scheme}()},
+\code{\link{polypop}()}
 }
 \author{
 Liudas Daumantas
