@@ -8,21 +8,17 @@
 #' @details
 #' For each polygon in the \code{hespdiv} object, this function draws \code{subsample_factor}
 #' of the data (by default 70%), creating multiple random subsamples (\code{n.runs}).
-#' These are processed in chunks (as given by \code{chunks}), each chunk being
-#' parallelized to manage memory usage. A higher \code{chunks} value reduces the
-#' simultaneous load on memory but can slightly increase total computation time.
+#' These are processed in chunks (as given by \code{chunk_size}) and runs in each chunk being
+#' parallelized to manage memory usage.
 #'
-#' @param obj A \code{hespdiv} object, containing the original data and polygons.
+#' @param obj A \code{hespdiv} object.
 #' @param n.runs Integer. The number of subsampling runs to perform (default: 100).
 #' @param subsample_factor Numeric proportion of data to subsample within each polygon (0 to 1].
 #'   For example, 0.7 means 70% of the data in each polygon are retained.
 #' @param RAM Integer. Approximate amount of RAM in GB to guide how many parallel
 #'   workers to use. The function uses up to 80\% of your available CPU cores
 #'   but also caps the number of workers at \code{RAM}.
-#' @param chunks Integer. Controls how many chunks the \code{n.runs} are split into.
-#'   Increasing this value reduces the number of runs processed simultaneously in
-#'   parallel (helpful if you run out of memory). By default, \code{chunks=1}, meaning
-#'   all runs are processed at once.
+#' @param chunk_size Integer. Determines the number of hespdiv runs to be processed in parallel.
 #' @param load_prop Numeric value (0,1]. Specifies the proportion of available
 #'   CPU cores or RAM to be used for setting up parallel workers. For example,
 #'   \code{load_prop = 0.8} uses 80% of the available resources. If both
@@ -44,7 +40,7 @@
 #' @seealso
 #' \code{\link{hespdiv}} for details on the main function.
 #' \code{\link{hsa}} for alternative hespdiv sensitivity analysis
-#' \code{\link{future.apply}} for parallel processing methods.
+#' \CRANpkg{future.apply}
 #'
 #' @importFrom future.apply future_lapply
 #' @importFrom future plan multisession availableCores
@@ -55,18 +51,17 @@ hsa_sample_constrained <- function(obj,
                                    subsample_factor = 0.7,
                                    RAM = NULL,
                                    load_prop = NULL,
-                                   chunks = 1,
+                                   chunk_size = 8,
                                    workers = NULL) {
   # ---- Extract and Validate Basic Args ----
-  if (!is.numeric(n.runs) || length(n.runs) != 1 || n.runs < 1) {
-    stop("'n.runs' must be a positive integer.")
-  }
   if (!is.numeric(subsample_factor) || subsample_factor <= 0 || subsample_factor > 1) {
     stop("'subsample_factor' must be in the range (0, 1].")
   }
   if (!inherits(obj, "hespdiv")) {
     stop("'obj' must be of class 'hespdiv'.")
   }
+  if (!is.numeric(n.runs) || n.runs < 1 || n.runs %% 1 || length(n.runs) != 1) stop("'n.runs' must be a positive integer.")
+  if (!is.numeric(chunk_size) || chunk_size < 1 || chunk_size %% 1 || length(n.runs) != 1) stop("'chunks' must be a positive integer.")
 
   # Extract call_args AFTER we confirm obj is a hespdiv
   call_args <- obj$call.info$Call_ARGS
@@ -111,7 +106,7 @@ hsa_sample_constrained <- function(obj,
 
     # if RAM is NULL, treat it as infinite
     if (is.null(RAM)) {
-      RAM <- 16
+      RAM <- Inf
     } else {
       if (!is.numeric(RAM) || length(RAM) != 1 || RAM < 1) {
         stop("'RAM' must be a positive number if not NULL.")
@@ -148,8 +143,8 @@ hsa_sample_constrained <- function(obj,
       sample.int(l, size = round(l * subsample_factor), replace = FALSE)
     })
 
-    # Split the runs into chunks
-    run_indices <- split(seq_len(n.runs), ceiling(seq_len(n.runs) / chunks))
+    # Split the runs into chunks of a given size
+    run_indices <- split(seq_len(n.runs), ceiling(seq_len(n.runs) / chunk_size))
 
     # Process each chunk in parallel
     result_list <- lapply(run_indices, function(runs_for_this_chunk) {
@@ -199,7 +194,7 @@ hsa_sample_constrained <- function(obj,
       })
     })
 
-    # Flatten the results from chunks into a single list for this polygon
+    # Flatten the results from chunks into a single list for this polygons
     hespdivs[[i]] <- unlist(result_list, recursive = FALSE)
   }
 
