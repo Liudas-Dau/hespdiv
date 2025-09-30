@@ -7,7 +7,7 @@
 #' for each alternative split-line (which is defined by a start and end coordinate),
 #' the function aggregates identical endpoints and overlays their counts on the plot.
 #'
-#' @param obj An object of class \code{hsa_constrained}, typically the output
+#' @param obj An object of class \code{hsa_constrained}, the output
 #'   of \code{\link{hsa_sample_constrained}}.
 #' @param type An integer indicating the type of plot. Defaults to 1.
 #'   \describe{
@@ -125,7 +125,7 @@ plot_cs_hsa <- function(obj,
     # ---- TYPE = 1 ----
     if (!is.null(basis$polygons.xy) && length(basis$polygons.xy) >= 1) {
       plot(basis$polygons.xy[[1]], type = 'l', col = col_boundary, main = main)
-      points(hsa_cs$Basis$call.info$Call_ARGS$xy.dat,pch=19,cex = 0.25)
+      points(obj$Basis$call.info$Call_ARGS$xy.dat,pch=19,cex = 0.25)
     } else {
       stop("basis$polygons.xy[[1]] is not available for plotting the boundary.")
     }
@@ -170,7 +170,7 @@ plot_cs_hsa <- function(obj,
 
       if (!is.null(basis$polygons.xy) && length(basis$polygons.xy) >= 1) {
         plot(basis$polygons.xy[[1]], type = 'l', col = col_boundary, main = main_txt)
-        points(hsa_cs$Basis$call.info$Call_ARGS$xy.dat,pch=19,cex = 0.25)
+        points(obj$Basis$call.info$Call_ARGS$xy.dat,pch=19,cex = 0.25)
       } else {
         stop("basis$polygons.xy[[1]] is not available for plotting the boundary.")
       }
