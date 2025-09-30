@@ -385,11 +385,11 @@
 #' starting at x=0, y0 and ending at some positive x, y = 0.
 #' The provided polygon can be either closed or open.
 #' @return A list of two values:
-#' [[1]] A data frame containing the coordinates of the extracted polygon part.
+#' `[[1]]` A data frame containing the coordinates of the extracted polygon part.
 #' The returned polygon is open and it is not strictly inside a provided
 #' polygon, since it inherits vertical & right-turning segments that are
 #' directly above or below the split line.
-#' [[2]] -1 or +1 integer indicating the side of the extracted polygon in
+#' `[[2]]` -1 or +1 integer indicating the side of the extracted polygon in
 #' relation to the split line (+1 above, -1 below)
 #' @author Liudas Daumantas
 #' @examples #Creating a data.frame of an irregular polygon
