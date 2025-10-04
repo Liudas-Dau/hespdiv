@@ -10,12 +10,12 @@ hsa_sample_constrained(
   subsample_factor = 0.7,
   RAM = NULL,
   load_prop = NULL,
-  chunks = 1,
+  chunk_size = 8,
   workers = NULL
 )
 }
 \arguments{
-\item{obj}{A \code{hespdiv} object, containing the original data and polygons.}
+\item{obj}{A \code{hespdiv} object.}
 
 \item{n.runs}{Integer. The number of subsampling runs to perform (default: 100).}
 
@@ -33,10 +33,7 @@ CPU cores or RAM to be used for setting up parallel workers. For example,
 be the minimum based on the constraints imposed by both. Defaults to
 \code{0.8} if not provided.}
 
-\item{chunks}{Integer. Controls how many chunks the \code{n.runs} are split into.
-Increasing this value reduces the number of runs processed simultaneously in
-parallel (helpful if you run out of memory). By default, \code{chunks=1}, meaning
-all runs are processed at once.}
+\item{chunk_size}{Integer. Determines the number of hespdiv runs to be processed in parallel.}
 
 \item{workers}{a number of parrallel workers.}
 }
@@ -56,27 +53,26 @@ is used to call \code{hespdiv} with recursion disabled (i.e., single-split only)
 \details{
 For each polygon in the \code{hespdiv} object, this function draws \code{subsample_factor}
 of the data (by default 70\%), creating multiple random subsamples (\code{n.runs}).
-These are processed in chunks (as given by \code{chunks}), each chunk being
-parallelized to manage memory usage. A higher \code{chunks} value reduces the
-simultaneous load on memory but can slightly increase total computation time.
+These are processed in chunks (as given by \code{chunk_size}) and runs in each chunk being
+parallelized to manage memory usage.
 }
 \seealso{
 \code{\link{hespdiv}} for details on the main function.
 \code{\link{hsa}} for alternative hespdiv sensitivity analysis
-\code{\link{future.apply}} for parallel processing methods.
+\CRANpkg{future.apply}
 
 Other functions for hespdiv sensitivity analysis: 
+\code{\link{hsa}()},
 \code{\link{hsa_detailed}()},
 \code{\link{hsa_quant}()},
-\code{\link{hsa}()},
 \code{\link{plot_cs_hsa}()},
-\code{\link{plot_hsa_q}()},
-\code{\link{plot_hsa}()}
+\code{\link{plot_hsa}()},
+\code{\link{plot_hsa_q}()}
 
 Other functions for hespdiv post-prossesing: 
 \code{\link{cross_comp}()},
-\code{\link{hsa_detailed}()},
-\code{\link{hsa}()}
+\code{\link{hsa}()},
+\code{\link{hsa_detailed}()}
 }
 \concept{functions for hespdiv post-prossesing}
 \concept{functions for hespdiv sensitivity analysis}

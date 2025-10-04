@@ -54,10 +54,6 @@ a higher rank polygon might obscure the view. For this reason, the
 \code{polypop(obj,height)} function with the same arguments can be used to
 interactively select unwanted polygons and remove them from a plot.
 }
-\seealso{
-Other {function for hespdiv visualization in 3D}: 
-\code{\link{polypop}()}
-}
 \author{
 Liudas Daumantas
 }

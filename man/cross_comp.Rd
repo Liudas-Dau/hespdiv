@@ -34,9 +34,9 @@ custom methods that like "pielou" rely on variables from other environments with
 }
 \seealso{
 Other functions for hespdiv post-prossesing: 
+\code{\link{hsa}()},
 \code{\link{hsa_detailed}()},
-\code{\link{hsa_sample_constrained}()},
-\code{\link{hsa}()}
+\code{\link{hsa_sample_constrained}()}
 }
 \author{
 Liudas Daumantas

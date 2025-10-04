@@ -18,7 +18,7 @@ plot_cs_hsa(
 )
 }
 \arguments{
-\item{obj}{An object of class \code{hsa_constrained}, typically the output
+\item{obj}{An object of class \code{hsa_constrained}, the output
 of \code{\link{hsa_sample_constrained}}.}
 
 \item{type}{An integer indicating the type of plot. Defaults to 1.
@@ -62,7 +62,9 @@ one or more plots.
 \description{
 Displays the alternative (subsampled) \code{hespdiv} subdivisions and the
 basal (original) \code{hespdiv} subdivision on one or multiple plots,
-illustrating how the split-lines vary across different ranks.
+illustrating how the split-lines vary across different ranks. Additionally,
+for each alternative split-line (which is defined by a start and end coordinate),
+the function aggregates identical endpoints and overlays their counts on the plot.
 }
 \details{
 \itemize{
@@ -73,6 +75,9 @@ plus all basal split-lines of the \code{hespdiv} basis.
 on polygons of a specific rank, drawing alternative lines in the user-specified
 color (with transparency) and the basal line in another color or line width.
 If a specific \code{rank} is provided, only that rank is plotted.
+\item In both cases, after drawing the alternative split-lines the function
+aggregates their endpoints (start and end points) and overlays the count
+at each unique coordinate using \code{text()}.
 }
 }
 \seealso{
