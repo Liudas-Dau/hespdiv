@@ -35,7 +35,6 @@
 #' @importFrom rgl open3d plot3d lines3d polygon3d persp3d points3d text3d
 #' @importFrom pracma poly_center
 #' @family {HespDiv visualization options}
-#' @family {function for hespdiv visualization in 3D}
 #' @author Liudas Daumantas
 #' @export
 blok3d <- function(obj,height = "mean", color.seed=1, lines=TRUE, pnts.col = NULL,
