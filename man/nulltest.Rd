@@ -6,7 +6,7 @@
 \usage{
 nulltest(
   obj,
-  n,
+  n = 999,
   maintain.n = TRUE,
   shuffle.scope = "within",
   shuffle.type = "localities"
