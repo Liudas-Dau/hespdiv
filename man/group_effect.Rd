@@ -4,59 +4,102 @@
 \alias{group_effect}
 \title{Investigate Group Effects on Split-Line Performance}
 \usage{
-group_effect(obj, group, perm.n = 500, maxdif = NULL, plot = TRUE, ...)
+group_effect(obj, group, perm.n = 999, maxdif = NULL, plot = TRUE, ...)
 }
 \arguments{
-\item{obj}{A \code{hespdiv} object containing all necessary components (data, XY coordinates, split-lines, etc.).}
+\item{obj}{A \code{hespdiv} object.}
 
-\item{group}{A factor (or coercible to factor) defining the group of each observation in \code{obj$call.info$Call_ARGS$data}.}
+\item{group}{A factor (or coercible to factor) giving the group label for each observation (row) in
+\code{obj$call.info$Call_ARGS$xy.dat}.}
 
-\item{perm.n}{A positive integer specifying the number of permutations to perform (default is 500).}
+\item{perm.n}{Integer (\eqn{>0}). Number of permutations in the locality-block permutation test. Default \code{999}.}
 
-\item{maxdif}{A numeric value specifying the performance measure when groups are maximally different.
-(Required only if \code{obj$call.info$METHOD$metric} is not one of
-\code{c("pielou", "morisita", "sorensen", "horn.morisita")}. Defaults to 0 for supported metrics.)}
+\item{maxdif}{Numeric. The performance value representing a maximal between-polygons difference for the chosen metric.
+If \code{NULL} and the metric is one of \code{c("pielou","morisita","sorensen","horn.morisita")},
+\code{maxdif} is set automatically. Otherwise, it must be provided.}
 
-\item{plot}{Logical (default \code{TRUE}). Whether to generate and store plot outputs via \code{\link{plot_hespdiv}}.}
+\item{plot}{Logical. If \code{TRUE} (default), stores a \code{\link{plot_hespdiv}} output per group with
+\code{performance = TRUE} and a group-specific subtitle.}
 
-\item{...}{Additional arguments passed to \code{\link{plot_hespdiv}}.
-(\code{obj}, \code{performance}, and \code{subtitle} are preset within this function.)}
+\item{...}{Additional arguments passed to \code{\link{plot_hespdiv}}. Note that \code{obj},
+\code{performance}, and \code{subtitle} are set internally.}
 }
 \value{
-A list containing the following elements:
+A list of class \code{"group_effect"} with elements:
 \itemize{
-\item \code{comp.vals}: A matrix of size \code{(number_of_splits) x (number_of_groups)},
-giving the recomputed performances for each split-line and each group.
-\item \code{elim.comp.vals}: A matrix of performance values when group-specific data is eliminated.
-\item \code{per_perf}: A nested list containing permutation test results for each split-line and group.
-\item \code{n_per_pol}: A data frame with counts of observations in each polygon for each split and group.
-\item \code{plots}: A list of the \code{plot_hespdiv} outputs (one for each group), or \code{NULL} if \code{plot = FALSE}.
+\item \code{within = list(est, delta)} where \code{est} and \code{delta} are \code{[n_splits x n_groups]} matrices;
+\item \code{elim   = list(est, delta)} as above (group removed);
+\item \code{perm   = list(est, delta)} where each is a nested list \code{[[split]][[group]]} of numeric vectors (length \code{perm.n});
+If permutations are uninformative (e.g., one-sided/absent), the corresponding entries are \code{NA}.
+\item \code{baseline}: the original performance vector;
+\item \code{n_per_pol}: \code{data.frame} with columns \code{split.id}, \code{group}, \code{pol.id}, \code{n};
+\item \code{plots}: list of \code{plot_hespdiv} outputs by group (or \code{NULL} if \code{plot = FALSE}).
 }
 }
 \description{
-This function re-evaluates the performance of split-lines within a \code{hespdiv} object,
-separately for each subset defined by a grouping factor. Additionally, it performs permutation tests
-to assess the influence of group membership on split-line performance.
-
-For each level of \code{group}, the function:
+For every level of \code{group}, the function:
 \enumerate{
-\item Subsets the data and coordinates to observations belonging to that group.
-\item Recomputes the performance measure using \code{compare.f} and \code{generalize.f}
-for each split-line in \code{obj}.
-\item Performs permutation tests to evaluate the robustness of group effects.
-\item Updates \code{obj} for that group and calls \code{plot_hespdiv()}, storing the resulting plot (with a group-specific subtitle)
-if \code{plot = TRUE}.
+\item subsets \code{data} and \code{xy.dat} to the focal group's observations;
+\item recomputes split-line performance using \code{compare.f} and \code{generalize.f};
+\item runs two contribution assessments:
+\itemize{
+\item \emph{group-removal}: removes the group's observations and recomputes performance;
+\item \emph{group-permutation (locality-block shuffle)}: shuffles intact within-locality assemblages of the focal group
+among the set of localities where the group occurs within the split’s parent polygons (non-group observations fixed).
+}
+\item optionally re-plots the object for that group via \code{\link{plot_hespdiv}} (with a group-specific subtitle).
 }
 }
+\details{
+Re-evaluates split-line performance within each level of a grouping factor and
+tests how much each group influences the detected split-lines in a \code{hespdiv} object.
+
+\strong{Within-group recomputation (agreement).}
+For each split, the group's observations are partitioned by the two child polygons and
+performance is recomputed as \code{compare.f(generalize.f(pol1), generalize.f(pol2))}.
+If the group's points fall on only one side, \code{within$est} is set to \code{maxdif};
+if absent from both sides, it is \code{NA}.
+
+\strong{Elimination test.}
+All observations of the focal group are removed from both polygons and performance is recomputed on the remaining data.
+If the group's points fall on only one side, \code{elim$est} is computed normally;
+if absent from both sides, it is \code{NA} (if desired, you could identify these cases afterwards from \code{n_per_pol}, changing to baseline performance and zero delta).
+
+\strong{Permutation test (locality-block shuffle).}
+Localities are defined by identical coordinate pairs among the focal group's occurrences.
+For each permutation, whole localities (blocks) are reassigned via a one-to-one mapping within the split’s parent polygons.
+For speed, polygon membership of unique locality coordinates is precomputed once per split and then locality memberships are shuffled in each permutation.
+If the group's points fall on only one side, \code{perm$est} is set to NA;
+if absent from both sides, it is also \code{NA}.
+
+\strong{Baseline and deltas.}
+The baseline vector is \code{baseline <- obj$split.stats$performance}.
+Let \code{maximize <- obj$call.info$Call_ARGS$maximize}.
+Deltas are defined so that \emph{positive values always indicate a positive contributor} (removal/permutation worsens performance):
+\itemize{
+\item if \code{maximize == FALSE} (lower is better; e.g. similarity): \code{delta = est - baseline};
+\item if \code{maximize == TRUE}  (higher is better; e.g. distance):  \code{delta = baseline - est}.
+}
+}
+\section{Notes}{
+
+\itemize{
+\item Localities are defined by exact duplicate coordinate pairs among the group's observations
+(harmonise coordinates upstream if needed).
+\item The locality-block permutation preserves the \emph{number of group-present localities per polygon};
+only identities of the locality blocks are shuffled. The number of group occurrences per side can vary if block sizes differ.
+}
+}
+
 \examples{
-\dontrun{
-  # Suppose we have a hespdiv object called hd_obj and a grouping factor g:
-  result <- group_effect(hd_obj, g, perm.n = 1000, plot = TRUE)
-  # result$comp.vals is the matrix of performance measures
-  # result$elim.comp.vals gives performance values with group data eliminated
-  # result$per_perf contains permutation test results for robustness evaluation
-  # result$n_per_pol gives the counts per polygon for each split, per group
-  # result$plots contains visualizations if plot=TRUE
+# DO NOT RUN:
+# library(HDDATA)
+# group_effect(obj = hd, group = mio_mams$family, plot = FALSE)
 }
+\seealso{
+\code{\link{plot_hespdiv}}
+
+Other functions for hespdiv post-processing: 
+\code{\link{taxon_effect}()}
 }
 \concept{functions for hespdiv post-processing}
