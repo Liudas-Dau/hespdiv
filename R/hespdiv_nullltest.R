@@ -39,7 +39,7 @@
 #' @seealso \code{\link{hespdiv}} for generating split-lines
 #' @export
 
-nulltest <- function(obj, n, maintain.n  = TRUE, shuffle.scope = "within",
+nulltest <- function(obj, n = 999, maintain.n  = TRUE, shuffle.scope = "within",
                      shuffle.type = "localities"){
 
   # Validate shuffle.scope and shuffle.type arguments
@@ -303,20 +303,24 @@ nulltest <- function(obj, n, maintain.n  = TRUE, shuffle.scope = "within",
   ids_with <- 1 : which(cumsums >= quota)[1]
   ids_without <- which(cumsums < quota)
 
-  if (length(ids_without) == 0){ # edge case: first locality has more than qouta
+  if (length(ids_without) == 0){ # edge case: no localities assigned to polygon 1
     assigned_locs <- shuffled_locs[ids_with]
   } else {
-
-    # Measure how close we are to the quota including and excluding the last locality
-    discrepancy_with <- abs(cumsums[cumsums >= quota][1] - quota)
-    discrepancy_without <- abs(cumsums[cumsums < quota][length(cumsums[cumsums < quota])] - quota)
-
-
-    # If it's closer to quota without the last locality, remove it
-    if (discrepancy_without < discrepancy_with) {
+    if (length(ids_with) == length(cumsums)){ # edge case: all localities assigned to polygon 1
       assigned_locs <- shuffled_locs[ids_without]
     } else {
-      assigned_locs <- shuffled_locs[ids_with]
+
+      # Measure how close we are to the quota including and excluding the last locality
+      discrepancy_with <- abs(cumsums[cumsums >= quota][1] - quota)
+      discrepancy_without <- abs(cumsums[cumsums < quota][length(cumsums[cumsums < quota])] - quota)
+
+
+      # If it's closer to quota without the last locality, remove it
+      if (discrepancy_without < discrepancy_with) {
+        assigned_locs <- shuffled_locs[ids_without]
+      } else {
+        assigned_locs <- shuffled_locs[ids_with]
+      }
     }
   }
   # Get the indices of occurrences that belong to assigned localities
