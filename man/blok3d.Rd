@@ -58,4 +58,3 @@ interactively select unwanted polygons and remove them from a plot.
 Liudas Daumantas
 }
 \concept{{HespDiv visualization options}}
-\concept{{function for hespdiv visualization in 3D}}
