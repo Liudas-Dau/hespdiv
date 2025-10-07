@@ -63,6 +63,7 @@
 #' 1 and 2.
 #' @family functions for hespdiv sensitivity analysis
 #' @family functions to evaluate hesdpiv cluster stability
+#' @family functions for hespdiv results post-processing
 #' @author Liudas Daumantas
 #' @importFrom stats quantile density
 #' @importFrom graphics plot hist

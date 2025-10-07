@@ -69,7 +69,7 @@
 #'  be a list of arguments used to produce the call, and the second element will
 #'  contain the error message.
 #' @family functions for hespdiv sensitivity analysis
-#' @family functions for hespdiv post-prossesing
+#' @family functions for hespdiv results post-processing
 #' @export
 hsa <- function(obj,
                 n.runs = 100,

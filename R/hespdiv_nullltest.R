@@ -36,7 +36,7 @@
 #'   \item A matrix/data frame (\code{$null}) containing all null performance values for every split-line across permutations.
 #' }
 #'
-#' @seealso \code{\link{hespdiv}} for generating split-lines
+#' @family functions for hespdiv results post-processing
 #' @export
 
 nulltest <- function(obj, n = 999, maintain.n  = TRUE, shuffle.scope = "within",

@@ -35,11 +35,10 @@
 #' }
 #'
 #' @family functions for hespdiv sensitivity analysis
-#' @family functions for hespdiv post-prossesing
+#' @family functions for hespdiv results post-processing
 #'
 #' @seealso
 #' \code{\link{hespdiv}} for details on the main function.
-#' \code{\link{hsa}} for alternative hespdiv sensitivity analysis
 #' \CRANpkg{future.apply}
 #'
 #' @importFrom future.apply future_lapply

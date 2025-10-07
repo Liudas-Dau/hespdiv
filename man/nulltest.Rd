@@ -55,5 +55,12 @@ Two shuffling types are available:
 For each split-line, the function reports the observed performance, the mean and standard deviation of the permuted (null) performances, an empirical one-sided p-value (proportion of permuted values \emph{as or more extreme} than observed; ties included), and a z-score quantifying departure from the null.
 }
 \seealso{
-\code{\link{hespdiv}} for generating split-lines
+Other functions for hespdiv results post-processing: 
+\code{\link{cross_comp}()},
+\code{\link{hsa}()},
+\code{\link{hsa_detailed}()},
+\code{\link{hsa_quant}()},
+\code{\link{hsa_sample_constrained}()},
+\code{\link{taxon_effect}()}
 }
+\concept{functions for hespdiv results post-processing}

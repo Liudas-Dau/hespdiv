@@ -58,7 +58,6 @@ parallelized to manage memory usage.
 }
 \seealso{
 \code{\link{hespdiv}} for details on the main function.
-\code{\link{hsa}} for alternative hespdiv sensitivity analysis
 \CRANpkg{future.apply}
 
 Other functions for hespdiv sensitivity analysis: 
@@ -69,10 +68,13 @@ Other functions for hespdiv sensitivity analysis:
 \code{\link{plot_hsa}()},
 \code{\link{plot_hsa_q}()}
 
-Other functions for hespdiv post-prossesing: 
+Other functions for hespdiv results post-processing: 
 \code{\link{cross_comp}()},
 \code{\link{hsa}()},
-\code{\link{hsa_detailed}()}
+\code{\link{hsa_detailed}()},
+\code{\link{hsa_quant}()},
+\code{\link{nulltest}()},
+\code{\link{taxon_effect}()}
 }
-\concept{functions for hespdiv post-prossesing}
+\concept{functions for hespdiv results post-processing}
 \concept{functions for hespdiv sensitivity analysis}

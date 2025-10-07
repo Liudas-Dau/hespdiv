@@ -33,12 +33,15 @@ custom methods that like "pielou" rely on variables from other environments with
 'compare.f' function.
 }
 \seealso{
-Other functions for hespdiv post-prossesing: 
+Other functions for hespdiv results post-processing: 
 \code{\link{hsa}()},
 \code{\link{hsa_detailed}()},
-\code{\link{hsa_sample_constrained}()}
+\code{\link{hsa_quant}()},
+\code{\link{hsa_sample_constrained}()},
+\code{\link{nulltest}()},
+\code{\link{taxon_effect}()}
 }
 \author{
 Liudas Daumantas
 }
-\concept{functions for hespdiv post-prossesing}
+\concept{functions for hespdiv results post-processing}

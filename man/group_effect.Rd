@@ -98,8 +98,5 @@ only identities of the locality blocks are shuffled. The number of group occurre
 }
 \seealso{
 \code{\link{plot_hespdiv}}
-
-Other functions for hespdiv post-processing: 
-\code{\link{taxon_effect}()}
 }
 \concept{functions for hespdiv post-processing}
