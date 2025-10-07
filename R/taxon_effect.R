@@ -19,7 +19,7 @@
 #'         \eqn{\Delta = P - P^{-t}}.
 #' }
 #' If a taxon is absent from a split’s parent polygons, elimination is a no-op
-#' and \eqn{\Delta = 0}.
+#' and \eqn{\Delta = NA}.
 #'
 #' @param obj A \code{hespdiv} object.
 #'
@@ -88,7 +88,7 @@ taxon_effect <- function(obj) {
       row1 <- offset_tax + offset_split + 1L
       row2 <- offset_tax + offset_split + 2L
       n_per_pol[row1, ] <- list(split.id, tx, pol_id1, length(ids1_tx))
-      n_per_pol[row2, ] <- list(split.id, tx, ppol_id2, length(ids2_tx))
+      n_per_pol[row2, ] <- list(split.id, tx, pol_id2, length(ids2_tx))
 
       ids1_all <- .get_ids(child_pol1, xy_in_obj)
       ids2_all <- .get_ids(child_pol2, xy_in_obj)

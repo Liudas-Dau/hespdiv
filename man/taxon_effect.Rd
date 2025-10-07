@@ -37,11 +37,9 @@ e.g. similarity), \eqn{\Delta = P^{-t} - P}.
 \eqn{\Delta = P - P^{-t}}.
 }
 If a taxon is absent from a split’s parent polygons, elimination is a no-op
-and \eqn{\Delta = 0}.
+and \eqn{\Delta = NA}.
 }
 \seealso{
-\code{\link{group_effect}} for group-level analyses.
-
 Other functions for hespdiv results post-processing: 
 \code{\link{cross_comp}()},
 \code{\link{hsa}()},
