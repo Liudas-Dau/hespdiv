@@ -72,7 +72,7 @@ nulltest <- function(obj, n = 999, maintain.n  = TRUE, shuffle.scope = "within",
   }
 
   # Define comparison operator depending on whether maximizing or minimizing
-  # comparison value. Checks if random is as-or-more-extreme than observed.
+  # comparison value. Checks if observed (x) is as-or-more-extreme than random under h0 (criteria)
   if (obj$call.info$Call_ARGS$maximize){
     pal <- function(x, criteria){ x >= criteria}
   } else {
@@ -238,7 +238,7 @@ nulltest <- function(obj, n = 999, maintain.n  = TRUE, shuffle.scope = "within",
                       p.val = p.vals)
   stats$z.score.random <- (stats$performance - stats$mean.random)/stats$sd.random
   out <- structure(list(stats = stats, null = comp.vals), class = "nullhespdiv")
-  return(out)
+  return(invisible(out))
 }
 
 #' Shuffle locality positions but preserve within-locality assemblages
