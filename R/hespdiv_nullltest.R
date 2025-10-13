@@ -72,7 +72,7 @@ nulltest <- function(obj, n = 999, maintain.n  = TRUE, shuffle.scope = "within",
   }
 
   # Define comparison operator depending on whether maximizing or minimizing
-  # comparison value. Checks if observed (x) is as-or-more-extreme than random under h0 (criteria)
+  # comparison value. Checks if random is as-or-more-extreme than observed.
   if (obj$call.info$Call_ARGS$maximize){
     pal <- function(x, criteria){ x >= criteria}
   } else {
