@@ -126,11 +126,12 @@ plot_hespdiv <- function(obj, type = "color",n.loc = FALSE, performance = TRUE,
   }
   df$group <- factor(rep(1:length(split.lines),times=npt.in.split))
 
-  base <- ggplot2::ggplot(obj$polygons.xy[[1]],ggplot2::aes_(~x,~y),xlab = 'x', ylab = 'y') +
+  base <- ggplot2::ggplot(obj$polygons.xy[[1]],ggplot2::aes_(~x,~y)) +
     geom_path(data= obj$call.info$Call_ARGS$study.pol,aes_(~x,~y), size=0.5,
                      lineend = "round",linejoin = "round",color = "gray20",alpha = 0.5)+
     geom_path(data= obj$polygons.xy[[1]],ggplot2::aes_(~x,~y), size=0.5,
-              lineend = "round",linejoin = "round",color = 1)
+              lineend = "round",linejoin = "round",color = 1) +
+    ggplot2::labs(x = "x", y = "y")
     if (!is.null(title) | !is.null(subtitle)){
       base <- base + ggplot2::ggtitle(title, subtitle = subtitle)
     }
