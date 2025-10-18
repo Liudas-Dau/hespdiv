@@ -322,7 +322,7 @@ group_effect <- function(obj, group, perm.n = 999, maxdif = NULL, plot = TRUE, .
     if (maximize) d <- -d
     d
   }
-  within_delta <- make_delta(within_est, baseline, maximize)
+  within_delta <- -make_delta(within_est, baseline, maximize)
   elim_delta   <- make_delta(elim_est,   baseline, maximize)
 
   # perm deltas: transform each vector vs the split-specific baseline
