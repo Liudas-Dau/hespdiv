@@ -33,9 +33,10 @@ CPU cores or RAM to be used for setting up parallel workers. For example,
 be the minimum based on the constraints imposed by both. Defaults to
 \code{0.8} if not provided.}
 
-\item{chunk_size}{Integer. Determines the number of hespdiv runs to be processed in parallel.}
+\item{chunk_size}{Integer. Number of runs submitted per batch. Parallelism is
+controlled by \code{workers}; chunking mainly controls memory/queue size.}
 
-\item{workers}{a number of parrallel workers.}
+\item{workers}{A number of parrallel workers. Determines the number of hespdiv runs to be processed in parallel.}
 }
 \value{
 A \code{hsa_constrained} class object, which is a list with two elements:

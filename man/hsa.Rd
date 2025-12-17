@@ -36,100 +36,135 @@ hsa(
   maximize = NULL,
   method = NULL,
   compare.f = NULL,
-  .run.id = NULL
+  .run.id = NULL,
+  parallel = FALSE,
+  RAM = NULL,
+  load_prop = 0.8,
+  chunk_size = n.runs,
+  workers = NULL,
+  future_seed = TRUE
 )
 }
 \arguments{
-\item{obj}{A 'hespdiv' class object.}
+\item{obj}{A \code{hespdiv} class object.}
 
-\item{n.runs}{An integer representing how many alternative hespdiv calls to evaluate.}
+\item{n.runs}{Integer. The number of alternative \code{hespdiv} calls to evaluate.}
 
-\item{data.paired}{A Boolean controlling whether the provided alternative
-values of 'data' are paired with 'xy.dat'.}
+\item{data.paired}{Logical. Controls whether alternative values of \code{data}
+are paired with corresponding elements of \code{xy.dat}.}
 
-\item{display}{A Boolean indicating the value of the "display" argument in
-each hespdiv call.}
+\item{display}{Logical. Controls the value of the \code{display} argument
+in each \code{hespdiv} call.}
 
-\item{images.path}{A path to an existing directory where PNG images of the
-displayed results will be saved. If NULL (default), images won't be saved.}
+\item{images.path}{Character or \code{NULL}. Path to an existing directory
+where PNG images of displayed results will be saved. If \code{NULL}
+(default), images are not saved.}
 
-\item{pnts.col}{the value of the "pnts.col" argument in each hespdiv call.}
+\item{pnts.col}{Value passed to the \code{pnts.col} argument of each
+\code{hespdiv} call.}
 
-\item{data}{A list containing matrices, time-series, lists, data frames,
-vectors, or other data structures.}
+\item{data}{A list of data objects (matrices, data frames, vectors, lists,
+or other supported data structures) used as alternative inputs for
+sensitivity analysis.}
 
-\item{xy.dat, study.pol}{Lists of data frames with two columns: 'x' and 'y'.}
+\item{xy.dat, study.pol}{Lists of data frames with two columns: \code{x} and \code{y}.}
 
-\item{same.n.split, c.fast.optim, use.chull, c.splits}{A Boolean value (if used, should be different from the
-one in the basal hespdiv call).}
+\item{same.n.split, c.fast.optim, use.chull, c.splits}{Logical vectors specifying
+alternative values for corresponding \code{hespdiv} arguments.}
 
-\item{n.split.pts, c.max.iter.no, N.crit, N.loc.crit, c.X.knots, c.Y.knots}{Numeric integer vectors.}
+\item{n.split.pts, c.max.iter.no, N.crit, N.loc.crit, c.X.knots, c.Y.knots}{Integer vectors specifying alternative values for corresponding arguments.}
 
 \item{N.rel.crit, N.loc.rel.crit, S.crit, S.rel.crit}{Numeric vectors with values
 between 0 and 1.}
 
-\item{Q.crit, c.Q.crit, c.crit.improv}{Numeric vectors}
+\item{Q.crit, c.Q.crit, c.crit.improv}{Numeric vectors specifying alternative
+threshold or improvement criteria.}
 
-\item{c.corr.term}{A numeric vector with values between 0.01 and 0.2.}
+\item{c.corr.term}{Numeric vector with values between 0.01 and 0.2.}
 
-\item{generalize.f, compare.f}{Lists of functions.}
+\item{generalize.f, compare.f}{Lists of functions defining custom similarity
+or generalization methods.}
 
-\item{maximize}{A logical vector of the same length as 'compare.f' list.}
+\item{maximize}{Logical vector of the same length as \code{compare.f},
+indicating whether the corresponding similarity metric should be maximized.}
 
-\item{method}{A character vector.}
+\item{method}{Character vector specifying predefined similarity metrics.}
 
-\item{.run.id}{An integer. Runs up to this id will be skipped.}
+\item{.run.id}{Integer. Runs with indices less than or equal to this value
+will be skipped. This can be used to resume an interrupted analysis.}
+
+\item{parallel}{Logical. If \code{TRUE}, runs are evaluated in parallel using
+\pkg{future.apply}. If \code{FALSE} (default), runs are evaluated sequentially.}
+
+\item{RAM}{Integer. Approximate amount of available RAM (in GB) used to limit
+the number of parallel workers when \code{parallel = TRUE}.}
+
+\item{load_prop}{Numeric in (0, 1]. Proportion of available CPU cores to use
+when determining the number of parallel workers automatically. Defaults to 0.8.}
+
+\item{chunk_size}{Integer. Number of runs submitted per batch (chunk) to the
+parallel backend when \code{parallel = TRUE}. Chunking does not affect how
+many runs execute simultaneously (controlled by \code{workers}); it mainly
+limits queue size and memory overhead. Defaults to \code{n.runs}.}
+
+\item{workers}{Integer. Number of parallel workers (CPU cores) to use when
+\code{parallel = TRUE}. At most this many \code{hespdiv} calls will be executed
+simultaneously. If \code{NULL}, the number of workers is determined
+automatically based on \code{RAM} and \code{load_prop}.}
+
+\item{future_seed}{Logical. Passed to \code{future.apply::future_lapply()}.
+If \code{TRUE}, RNG is managed by \pkg{future} to provide parallel-safe,
+reproducible random streams.}
 }
 \value{
-A 'hsa' class object. It is a list of two items:
+An object of class \code{hsa}, containing:
 \describe{
-\item{\bold{Alternatives:}}{ A list containing the produced
-alternative hespdiv objects. }
-\item{\bold{Basis}}{ The basal hespdiv object whose call was modified to produce
-alternative subdivisions.}
+\item{\bold{Alternatives}}{A list of alternative \code{hespdiv} results
+produced during the sensitivity analysis.}
+\item{\bold{Basis}}{The reference \code{hespdiv} object whose arguments
+were perturbed.}
 }
 }
 \description{
-This function is the main function that performs HespDiv sensitivity analysis.
-The function takes a provided hespdiv object as a base and produces a
-desired number of alternative versions by randomly sampling new values for
-its arguments from a provided selection of values for each argument.
+This function performs sensitivity analysis of the \code{hespdiv} method.
+Starting from a reference \code{hespdiv} object, it generates a specified
+number of alternative \code{hespdiv} calls by randomly sampling new values
+for selected arguments from user-provided sets.
 }
 \details{
-\subsection{Difference Between "hsa" And "hsa_detailed"}{
-The major difference between "hsa_detailed" and "hsa" is that the former produces
-all possible hespdiv calls from combinations of the provided hespdiv arguments.
-Therefore, it samples a much smaller segment of the parameter space but more
-densely, requiring much more computation time. Although such behavior may
-be desired in some cases, the "hsa" function is generally more suitable for
-performing hespdiv sensitivity analysis.
+\subsection{Difference Between \code{"hsa"} and other sensitivity analysis functions}{
+The \code{hsa_detailed} function evaluates all combinations of provided
+argument values, resulting in dense sampling of the parameter space at
+substantial computational cost. In contrast, \code{hsa} samples the parameter
+space stochastically and is generally more suitable for exploratory or
+large-scale sensitivity analyses.
 
-Additionally, alternative values for hespdiv arguments in the "hsa_detailed"
-function are provided in lists, whereas in the "hsa" function, they are
-provided in vectors or lists (depending on the argument).
+In \code{hsa_detailed}, alternative argument values are provided as lists,
+whereas in \code{hsa} they are supplied as vectors or lists depending on
+the argument.
+
+The \code{hsa_sample_constrained} function performs non-recursive \code{hespdiv}
+runs for each split-line produced based on different data subsamples. Thus,
+\code{hsa} is more general, as it allows to inspect sensitivity to other arguments.
 }
-\subsection{Paired Arguments}{
-The argument 'data.paired = TRUE' means that in each produced hespdiv
-call, the index that samples lists of 'xy.dat' and 'data' will be the same.
-This way, a different number of observations or entirely different data sets
-can be used for sensitivity analysis. If 'data.paired = FALSE', then the number
-of observations must be kept the same in all provided elements of 'data' and
-'xy.dat' lists. This option allows to add noise to the data or coordinates,
-or shuffle them entirely in order to test the significance of the detected spatial
-structure.
 
-Arguments that define custom methods ('compare.f', 'generalize.f' and
-'maximize') are paired by default. Therefore, their lengths must also be
-the same.
+\subsection{Paired Arguments}{
+When \code{data.paired = TRUE}, the same index is used to sample elements
+of \code{data} and \code{xy.dat}, allowing sensitivity analysis across
+datasets of differing size or composition. When \code{FALSE}, data and
+coordinates are sampled independently, enabling analyses based on noise
+addition or spatial shuffling.
+
+Arguments defining custom methods (\code{compare.f}, \code{generalize.f},
+\code{maximize}) are always treated as paired and must therefore have
+equal lengths.
 }
 }
 \note{
-If a particular call produces a warning or error, a list of length 2
-will be returned for that call. If a warning was produced, the first element
-of the list will hold the created hespdiv object, and the second element
-will contain the warning message. In case of an error, the first element will
-be a list of arguments used to produce the call, and the second element will
-contain the error message.
+If a particular run produces a warning or an error, the corresponding list
+element will contain two components. In case of a warning, these are the
+resulting \code{hespdiv} object and the warning message. In case of an error,
+they are the arguments used for the call and the error message.
 }
 \seealso{
 Other functions for hespdiv sensitivity analysis: 
