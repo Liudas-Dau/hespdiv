@@ -18,14 +18,15 @@
 #' @param RAM Integer. Approximate amount of RAM in GB to guide how many parallel
 #'   workers to use. The function uses up to 80\% of your available CPU cores
 #'   but also caps the number of workers at \code{RAM}.
-#' @param chunk_size Integer. Determines the number of hespdiv runs to be processed in parallel.
+#' @param chunk_size Integer. Number of runs submitted per batch. Parallelism is
+#'   controlled by \code{workers}; chunking mainly controls memory/queue size.
 #' @param load_prop Numeric value (0,1]. Specifies the proportion of available
 #'   CPU cores or RAM to be used for setting up parallel workers. For example,
 #'   \code{load_prop = 0.8} uses 80% of the available resources. If both
 #'   \code{load_prop} and \code{RAM} are provided, the number of workers will
 #'   be the minimum based on the constraints imposed by both. Defaults to
 #'   \code{0.8} if not provided.
-#' @param workers a number of parrallel workers.
+#' @param workers A number of parrallel workers. Determines the number of hespdiv runs to be processed in parallel.
 #'
 #' @return A \code{hsa_constrained} class object, which is a list with two elements:
 #' \itemize{
