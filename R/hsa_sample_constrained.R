@@ -53,8 +53,8 @@ hsa_sample_constrained <- function(obj,
                                    chunk_size = 8,
                                    workers = NULL) {
   # ---- Extract and Validate Basic Args ----
-  if (!is.numeric(subsample_factor) || subsample_factor <= 0 || subsample_factor > 1) {
-    stop("'subsample_factor' must be in the range (0, 1].")
+  if (!is.numeric(subsample_factor) || subsample_factor < 0 || subsample_factor > 1) {
+    stop("'subsample_factor' must be in the range (0, 1).")
   }
   if (!inherits(obj, "hespdiv")) {
     stop("'obj' must be of class 'hespdiv'.")
