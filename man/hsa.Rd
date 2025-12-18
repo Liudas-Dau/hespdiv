@@ -40,7 +40,7 @@ hsa(
   parallel = FALSE,
   RAM = NULL,
   load_prop = 0.8,
-  chunk_size = n.runs,
+  chunk_size = workers * 2,
   workers = NULL,
   future_seed = TRUE
 )
@@ -61,7 +61,8 @@ where PNG images of displayed results will be saved. If \code{NULL}
 (default), images are not saved.}
 
 \item{pnts.col}{Value passed to the \code{pnts.col} argument of each
-\code{hespdiv} call.}
+\code{hespdiv} call. Can be provided as atomic vector,  vector or list of
+vectors.}
 
 \item{data}{A list of data objects (matrices, data frames, vectors, lists,
 or other supported data structures) used as alternative inputs for
@@ -103,9 +104,10 @@ the number of parallel workers when \code{parallel = TRUE}.}
 when determining the number of parallel workers automatically. Defaults to 0.8.}
 
 \item{chunk_size}{Integer. Number of runs submitted per batch (chunk) to the
-parallel backend when \code{parallel = TRUE}. Chunking does not affect how
-many runs execute simultaneously (controlled by \code{workers}); it mainly
-limits queue size and memory overhead. Defaults to \code{n.runs}.}
+parallel backend when \code{parallel = TRUE}. Chunking does not change how
+many runs execute simultaneously (controlled by \code{workers}). Smaller
+values reduce the number of queued futures at once (often lowering RAM
+overhead). Defaults to \code{workers*2}.}
 
 \item{workers}{Integer. Number of parallel workers (CPU cores) to use when
 \code{parallel = TRUE}. At most this many \code{hespdiv} calls will be executed

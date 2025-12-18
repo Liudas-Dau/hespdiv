@@ -24,9 +24,10 @@
 #'   when determining the number of parallel workers automatically. Defaults to 0.8.
 #'
 #' @param chunk_size Integer. Number of runs submitted per batch (chunk) to the
-#'   parallel backend when \code{parallel = TRUE}. Chunking does not affect how
-#'   many runs execute simultaneously (controlled by \code{workers}); it mainly
-#'   limits queue size and memory overhead. Defaults to \code{n.runs}.
+#'   parallel backend when \code{parallel = TRUE}. Chunking does not change how
+#'   many runs execute simultaneously (controlled by \code{workers}). Smaller
+#'   values reduce the number of queued futures at once (often lowering RAM
+#'   overhead). Defaults to \code{workers*2}.
 #'
 #' @param future_seed Logical. Passed to \code{future.apply::future_lapply()}.
 #'   If \code{TRUE}, RNG is managed by \pkg{future} to provide parallel-safe,
@@ -160,9 +161,132 @@ hsa <- function(obj,
                 parallel = FALSE,
                 RAM = NULL,
                 load_prop = 0.8,
-                chunk_size = n.runs,
+                chunk_size = workers*2,
                 workers = NULL,
                 future_seed = TRUE) {
+  eval_one <- function(i, d) {
+
+    if (!is.null(images.path)) {
+      fn <- file.path(images.path, sprintf("hsa_run_%04d.png", i))
+      png(fn)
+      on.exit(dev.off(), add = TRUE)
+    }
+
+    call_args <- quote(
+      hespdiv(
+        data = data,
+        xy.dat = xy.dat,
+        same.n.split = same.n.split,
+        n.split.pts = n.split.pts,
+        generalize.f = generalize.f,
+        maximize = maximize,
+        compare.f = compare.f,
+        method = method,
+        N.crit = N.crit,
+        N.rel.crit = N.rel.crit,
+        N.loc.crit = N.loc.crit,
+        N.loc.rel.crit = N.loc.rel.crit,
+        S.crit = S.crit,
+        S.rel.crit = S.rel.crit,
+        Q.crit = Q.crit,
+        c.splits = c.splits,
+        c.Q.crit = c.Q.crit,
+        c.crit.improv = c.crit.improv,
+        c.X.knots = c.X.knots,
+        c.Y.knots = c.Y.knots,
+        c.max.iter.no = c.max.iter.no,
+        c.fast.optim = c.fast.optim,
+        c.corr.term = c.corr.term,
+        use.chull = use.chull,
+        study.pol = study.pol,
+        tracing = NULL,
+        pnts.col = pnts.col,
+        display = display,
+        pacific.region = pacific.region
+      )
+    )
+
+    env <- list2env(c(d, list(display = display, pacific.region = pacific.region)),
+                    parent = parent.frame())
+
+    out <- tryCatch(
+      eval(call_args, envir = env),
+      warning = function(w) {
+        list(Subdivision = suppressWarnings(eval(call_args, envir = env)),
+             warning = w)
+      },
+      error = function(e) {
+        list(Arguments = as.list(d), error = e)
+      }
+    )
+
+    list(Subdivison = out, Arguments = as.list(d))
+  }
+
+  draw_one <- function(i) {
+    p.id <- sample.int(dat_len, 1)
+
+    local_use_m <- use_m
+    if (m.compete) local_use_m <- sample(0:1, 1, prob = c(length(maximize), length(method)))
+
+    if (!local_use_m) cm.id <- sample.int(len_cm, 1) else cm.id <- NA_integer_
+
+    v1 <- data[[p.id]]
+    v2 <- if (data.paired) xy.dat[[p.id]] else sample(xy.dat, 1)[[1]]
+    v3 <- same.n.split[sample.int(length(same.n.split), 1)]
+    v4 <- n.split.pts[sample.int(length(n.split.pts), 1)]
+    v5 <- .ifelse(!local_use_m, generalize.f[[cm.id]], NULL)
+    v6 <- .ifelse(!local_use_m, maximize[cm.id], NULL)
+    v7 <- .ifelse(!local_use_m, compare.f[[cm.id]], NULL)
+    v8 <- .ifelse(local_use_m, sample(method, 1), NULL)
+    v9 <- N.crit[sample.int(length(N.crit), 1)]
+    v10 <- N.rel.crit[sample.int(length(N.rel.crit), 1)]
+    v11 <- N.loc.crit[sample.int(length(N.loc.crit), 1)]
+    v12 <- N.loc.rel.crit[sample.int(length(N.loc.rel.crit), 1)]
+    v13 <- S.crit[sample.int(length(S.crit), 1)]
+    v14 <- S.rel.crit[sample.int(length(S.rel.crit), 1)]
+    v15 <- .ifelse(local_use_m,
+                   ifelse(v8 == "pielou",
+                          (Q.crit[Q.crit < 1])[
+                            sample.int(length(Q.crit[Q.crit < 1]), 1)
+                          ],
+                          (Q.crit[Q.crit > 0])[
+                            sample.int(length(Q.crit[Q.crit > 0]), 1)
+                          ]),
+                   NULL)
+    v16 <- c.splits[sample.int(length(c.splits), 1)]
+    is.maxim <- ifelse(local_use_m, v8 == "pielou", v6)
+
+    if (is.null(v15)) {
+      v17 <- NULL
+    } else {
+      v17 <- .ifelse(v16,
+                     ifelse(is.maxim, (c.Q.crit[c.Q.crit <= v15])[
+                       sample.int(length(c.Q.crit[c.Q.crit <= v15]), 1)
+                     ],
+                     (c.Q.crit[c.Q.crit >= v15])[
+                       sample.int(length(c.Q.crit[c.Q.crit >= v15]), 1)
+                     ]),
+                     NULL)
+    }
+
+    v18 <- .ifelse(v16, c.crit.improv[sample.int(length(c.crit.improv), 1)], NULL)
+    v19 <- .ifelse(v16, c.X.knots[sample.int(length(c.X.knots), 1)], NULL)
+    v20 <- .ifelse(v16, c.Y.knots[sample.int(length(c.Y.knots), 1)], NULL)
+    v21 <- .ifelse(v16, c.max.iter.no[sample.int(length(c.max.iter.no), 1)], NULL)
+    v22 <- .ifelse(v16, c.fast.optim[sample.int(length(c.fast.optim), 1)], NULL)
+    v23 <- .ifelse(v16, c.corr.term[sample.int(length(c.corr.term), 1)], NULL)
+    v24 <- use.chull[sample.int(length(use.chull), 1)]
+    v25 <- .ifelse(v24, obj$call$Call_ARGS$study.pol, sample(study.pol, 1)[[1]])
+    v26 <- .ifelse(display, .ifelse(is.pnts, pnts.col[[p.id]], pnts.col), NULL)
+
+    list(data=v1, xy.dat=v2, same.n.split=v3, n.split.pts=v4, generalize.f=v5,
+         maximize=v6, compare.f=v7, method=v8, N.crit=v9, N.rel.crit=v10,
+         N.loc.crit=v11, N.loc.rel.crit=v12, S.crit=v13, S.rel.crit=v14,
+         Q.crit=v15, c.splits=v16, c.Q.crit=v17, c.crit.improv=v18,
+         c.X.knots=v19, c.Y.knots=v20, c.max.iter.no=v21, c.fast.optim=v22,
+         c.corr.term=v23, use.chull=v24, study.pol=v25, pnts.col=v26)
+  }
 
   if (!inherits(obj, "hespdiv")) stop("obj should have 'hespdiv' class.")
 
@@ -445,133 +569,6 @@ check.errs <- function(hes.res, .message = TRUE){
     }
   }
   x
-}
-#' evaluate one run given a draw
-#' @noRd
-eval_one <- function(i, d) {
-
-  if (!is.null(images.path)) {
-    fn <- file.path(images.path, sprintf("hsa_run_%04d.png", i))
-    png(fn)
-    on.exit(dev.off(), add = TRUE)
-  }
-
-  call_args <- quote(
-    hespdiv(
-      data = data,
-      xy.dat = xy.dat,
-      same.n.split = same.n.split,
-      n.split.pts = n.split.pts,
-      generalize.f = generalize.f,
-      maximize = maximize,
-      compare.f = compare.f,
-      method = method,
-      N.crit = N.crit,
-      N.rel.crit = N.rel.crit,
-      N.loc.crit = N.loc.crit,
-      N.loc.rel.crit = N.loc.rel.crit,
-      S.crit = S.crit,
-      S.rel.crit = S.rel.crit,
-      Q.crit = Q.crit,
-      c.splits = c.splits,
-      c.Q.crit = c.Q.crit,
-      c.crit.improv = c.crit.improv,
-      c.X.knots = c.X.knots,
-      c.Y.knots = c.Y.knots,
-      c.max.iter.no = c.max.iter.no,
-      c.fast.optim = c.fast.optim,
-      c.corr.term = c.corr.term,
-      use.chull = use.chull,
-      study.pol = study.pol,
-      tracing = NULL,
-      pnts.col = pnts.col,
-      display = display,
-      pacific.region = pacific.region
-    )
-  )
-
-  env <- list2env(c(d, list(display = display, pacific.region = pacific.region)),
-                  parent = parent.frame())
-
-  out <- tryCatch(
-    eval(call_args, envir = env),
-    warning = function(w) {
-      list(Subdivision = suppressWarnings(eval(call_args, envir = env)),
-           warning = w)
-    },
-    error = function(e) {
-      list(Arguments = as.list(d), error = e)
-    }
-  )
-
-  list(Subdivison = out, Arguments = as.list(d))
-}
-
-#' draw arguments for run i
-#' @noRd
-draw_one <- function(i) {
-  p.id <- sample.int(dat_len, 1)
-
-  local_use_m <- use_m
-  if (m.compete) local_use_m <- sample(0:1, 1, prob = c(length(maximize), length(method)))
-
-  if (!local_use_m) cm.id <- sample.int(len_cm, 1) else cm.id <- NA_integer_
-
-  v1 <- data[[p.id]]
-  v2 <- if (data.paired) xy.dat[[p.id]] else sample(xy.dat, 1)[[1]]
-  v3 <- same.n.split[sample.int(length(same.n.split), 1)]
-  v4 <- n.split.pts[sample.int(length(n.split.pts), 1)]
-  v5 <- .ifelse(!local_use_m, generalize.f[[cm.id]], NULL)
-  v6 <- .ifelse(!local_use_m, maximize[cm.id], NULL)
-  v7 <- .ifelse(!local_use_m, compare.f[[cm.id]], NULL)
-  v8 <- .ifelse(local_use_m, sample(method, 1), NULL)
-  v9 <- N.crit[sample.int(length(N.crit), 1)]
-  v10 <- N.rel.crit[sample.int(length(N.rel.crit), 1)]
-  v11 <- N.loc.crit[sample.int(length(N.loc.crit), 1)]
-  v12 <- N.loc.rel.crit[sample.int(length(N.loc.rel.crit), 1)]
-  v13 <- S.crit[sample.int(length(S.crit), 1)]
-  v14 <- S.rel.crit[sample.int(length(S.rel.crit), 1)]
-  v15 <- .ifelse(local_use_m,
-                 ifelse(v8 == "pielou",
-                        (Q.crit[Q.crit < 1])[
-                          sample.int(length(Q.crit[Q.crit < 1]), 1)
-                        ],
-                        (Q.crit[Q.crit > 0])[
-                          sample.int(length(Q.crit[Q.crit > 0]), 1)
-                        ]),
-                 NULL)
-  v16 <- c.splits[sample.int(length(c.splits), 1)]
-  is.maxim <- ifelse(local_use_m, v8 == "pielou", v6)
-
-  if (is.null(v15)) {
-    v17 <- NULL
-  } else {
-    v17 <- .ifelse(v16,
-                   ifelse(is.maxim, (c.Q.crit[c.Q.crit <= v15])[
-                     sample.int(length(c.Q.crit[c.Q.crit <= v15]), 1)
-                   ],
-                   (c.Q.crit[c.Q.crit >= v15])[
-                     sample.int(length(c.Q.crit[c.Q.crit >= v15]), 1)
-                   ]),
-                   NULL)
-  }
-
-  v18 <- .ifelse(v16, c.crit.improv[sample.int(length(c.crit.improv), 1)], NULL)
-  v19 <- .ifelse(v16, c.X.knots[sample.int(length(c.X.knots), 1)], NULL)
-  v20 <- .ifelse(v16, c.Y.knots[sample.int(length(c.Y.knots), 1)], NULL)
-  v21 <- .ifelse(v16, c.max.iter.no[sample.int(length(c.max.iter.no), 1)], NULL)
-  v22 <- .ifelse(v16, c.fast.optim[sample.int(length(c.fast.optim), 1)], NULL)
-  v23 <- .ifelse(v16, c.corr.term[sample.int(length(c.corr.term), 1)], NULL)
-  v24 <- use.chull[sample.int(length(use.chull), 1)]
-  v25 <- .ifelse(v24, obj$call$Call_ARGS$study.pol, sample(study.pol, 1)[[1]])
-  v26 <- .ifelse(display, .ifelse(is.pnts, pnts.col[[p.id]], pnts.col), NULL)
-
-  list(data=v1, xy.dat=v2, same.n.split=v3, n.split.pts=v4, generalize.f=v5,
-       v6=maximize, maximize=v7, method=v8, N.crit=v9, N.rel.crit=v10,
-       N.loc.crit=v11, N.loc.rel.crit=v12, S.crit=v13, S.rel.crit=v14,
-       Q.crit=v15, c.splits=v16, c.Q.crit=v17, c.crit.improv=v18,
-       c.X.knots=v19, c.Y.knots=v20, c.max.iter.no=v21, c.fast.optim=v22,
-       c.corr.term=v23, use.chull=v24, study.pol=v25, is.pnts=v26)
 }
 
 #' @noRd
