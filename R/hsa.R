@@ -289,40 +289,49 @@ hsa <- function(obj,
 
     v1 <- data[[p.id]]
     v2 <- if (data.paired) xy.dat[[p.id]] else sample(xy.dat, 1)[[1]]
-    v3 <- sample(same.n.split, 1)
-    v4 <- sample(n.split.pts, 1)
+    v3 <- same.n.split[sample.int(length(same.n.split), 1)]
+    v4 <- n.split.pts[sample.int(length(n.split.pts), 1)]
     v5 <- .ifelse(!local_use_m, generalize.f[[cm.id]], NULL)
     v6 <- .ifelse(!local_use_m, maximize[cm.id], NULL)
     v7 <- .ifelse(!local_use_m, compare.f[[cm.id]], NULL)
     v8 <- .ifelse(local_use_m, sample(method, 1), NULL)
-    v9 <- sample(N.crit, 1)
-    v10 <- sample(N.rel.crit, 1)
-    v11 <- sample(N.loc.crit, 1)
-    v12 <- sample(N.loc.rel.crit, 1)
-    v13 <- sample(S.crit, 1)
-    v14 <- sample(S.rel.crit, 1)
+    v9 <- N.crit[sample.int(length(N.crit), 1)]
+    v10 <- N.rel.crit[sample.int(length(N.rel.crit), 1)]
+    v11 <- N.loc.crit[sample.int(length(N.loc.crit), 1)]
+    v12 <- N.loc.rel.crit[sample.int(length(N.loc.rel.crit), 1)]
+    v13 <- S.crit[sample.int(length(S.crit), 1)]
+    v14 <- S.rel.crit[sample.int(length(S.rel.crit), 1)]
     v15 <- .ifelse(local_use_m,
-                   ifelse(v8 == "pielou", sample(Q.crit[Q.crit < 1], 1),
-                          sample(Q.crit[Q.crit > 0], 1)),
+                   ifelse(v8 == "pielou",
+                          (Q.crit[Q.crit < 1])[
+                            sample.int(length(Q.crit[Q.crit < 1]), 1)
+                            ],
+                          (Q.crit[Q.crit > 0])[
+                            sample.int(length(Q.crit[Q.crit > 0]), 1)
+                          ]),
                    NULL)
-    v16 <- sample(c.splits, 1)
+    v16 <- c.splits[sample.int(length(c.splits), 1)]
     is.maxim <- ifelse(local_use_m, v8 == "pielou", v6)
 
     if (is.null(v15)) {
       v17 <- NULL
     } else {
       v17 <- .ifelse(v16,
-                     ifelse(is.maxim, sample(c.Q.crit[c.Q.crit <= v15], 1),
-                            sample(c.Q.crit[c.Q.crit >= v15], 1)),
+                     ifelse(is.maxim, (c.Q.crit[c.Q.crit <= v15])[
+                       sample.int(length(c.Q.crit[c.Q.crit <= v15]), 1)
+                     ],
+                     (c.Q.crit[c.Q.crit >= v15])[
+                       sample.int(length(c.Q.crit[c.Q.crit >= v15]), 1)
+                     ]),
                      NULL)
     }
 
-    v18 <- .ifelse(v16, sample(c.crit.improv, 1), NULL)
-    v19 <- .ifelse(v16, sample(c.X.knots, 1), NULL)
-    v20 <- .ifelse(v16, sample(c.Y.knots, 1), NULL)
-    v21 <- .ifelse(v16, sample(c.max.iter.no, 1), NULL)
-    v22 <- .ifelse(v16, sample(c.fast.optim, 1), NULL)
-    v23 <- .ifelse(v16, sample(c.corr.term, 1), NULL)
+    v18 <- .ifelse(v16, c.crit.improv[sample.int(length(c.crit.improv), 1)], NULL)
+    v19 <- .ifelse(v16, c.X.knots[sample.int(length(c.X.knots), 1)], NULL)
+    v20 <- .ifelse(v16, c.Y.knots[sample.int(length(c.Y.knots), 1)], NULL)
+    v21 <- .ifelse(v16, c.max.iter.no[sample.int(length(c.max.iter.no), 1)], NULL)
+    v22 <- .ifelse(v16, c.fast.optim[sample.int(length(c.fast.optim), 1)], NULL)
+    v23 <- .ifelse(v16, c.corr.term[sample.int(length(c.corr.term), 1)], NULL)
     v24 <- sample(0:1, 1, prob = c(length(study.pol), ifelse(any(use.chull), 1, 0)))
     v25 <- .ifelse(v24, obj$call$Call_ARGS$study.pol, sample(study.pol, 1))[[1]]
     v26 <- .ifelse(display, .ifelse(is.pnts, pnts.col[[p.id]], pnts.col)[[1]], NULL)
@@ -393,7 +402,7 @@ hsa <- function(obj,
   }
 
   # =========================
-  # SERIAL PATH (unchanged intent)
+  # SERIAL PATH
   # =========================
   if (!parallel) {
     for (i in active_runs) {
@@ -435,7 +444,7 @@ hsa <- function(obj,
   future::plan(future::multisession, workers = safe_workers)
   options(future.globals.maxSize = 1024^3 * 2)
 
-  # Precompute draws for all runs so workers only evaluate (matches your design)
+  # Precompute draws for all runs so workers only evaluate
   draws <- vector("list", length = n.runs)
   for (i in active_runs) draws[[i]] <- draw_one(i)
 
