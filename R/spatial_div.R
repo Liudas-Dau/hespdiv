@@ -353,9 +353,14 @@
       do.dat <- .slicer(samp.dat, do.ids)
 
       assign(x = "rims" ,value = do.call(c,list(rims,list(up.pol))) ,envir = e)
-      assign(x = "rims" ,value = do.call(c,list(rims,list(do.pol))) ,envir = e)
+
       if (recursive){
         .spatial_div(up.dat,up.xy, root.id = testid)
+      }
+
+      assign(x = "rims" ,value = do.call(c,list(rims,list(do.pol))) ,envir = e)
+
+      if (recursive){
         .spatial_div(do.dat,do.xy, root.id = testid)
       }
 
