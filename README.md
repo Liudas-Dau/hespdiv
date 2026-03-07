@@ -1,6 +1,3 @@
-[![CRAN status](https://www.r-pkg.org/badges/version/hespdiv)](https://cran.r-project.org/package=hespdiv)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.xxxxxxx.svg)](https://doi.org/10.5281/zenodo.xxxxxxx)
-
 # HespDiv
 
 hespdiv is an R package implementing the HespDiv framework for hierarchical spatial data subdivision.
