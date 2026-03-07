@@ -170,6 +170,7 @@ they are the arguments used for the call and the error message.
 }
 \seealso{
 Other functions for hespdiv sensitivity analysis: 
+\code{\link{change_base}()},
 \code{\link{hsa_detailed}()},
 \code{\link{hsa_quant}()},
 \code{\link{hsa_sample_constrained}()},

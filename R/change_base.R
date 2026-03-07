@@ -13,7 +13,7 @@
 #' subdivision.
 #' @return The \code{hsa} class object with a new basal subdivision.
 #' @author Liudas Daumantas
-#' @family {functions for hespdiv sensitivity analysis}
+#' @family functions for hespdiv sensitivity analysis
 #' @export
 change_base <- function(obj, id){
   if (!inherits(obj,"hsa"))

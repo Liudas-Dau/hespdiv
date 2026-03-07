@@ -2,33 +2,43 @@
 #'
 #' @description
 #' For each unique taxon label in \code{obj$call.info$Call_ARGS$data}
-#' (e.g., species, genus), remove all of its occurrences
-#' from both child polygons of every split, recompute split-line performance,
-#' and record both the eliminated value and its difference from the original.
+#' (for example, species or genus), remove all of its occurrences from both
+#' child polygons of every split, recompute split-line performance, and record
+#' both the resulting value and its difference from the original.
 #'
 #' @details
 #' Let \eqn{P} be the split-line performance stored in
-#' \code{obj$split.stats$performance}. For a focal taxon \eqn{t},
-#' we compute \eqn{P^{-t}} by removing all occurrences of \eqn{t}.
-#' We report \eqn{\Delta} so that \eqn{\Delta > 0} always indicates a
-#' **positive contributor** (removal worsens performance):
+#' \code{obj$split.stats$performance}. For a focal taxon \eqn{t}, we compute
+#' \eqn{P^{-t}} by removing all occurrences of \eqn{t}. We report \eqn{\Delta}
+#' so that \eqn{\Delta > 0} always indicates a \strong{positive contributor}
+#' (that is, removal worsens performance):
 #' \itemize{
 #'   \item If \code{obj$call.info$Call_ARGS$maximize = FALSE} (lower is better,
-#'         e.g. similarity), \eqn{\Delta = P^{-t} - P}.
-#'   \item If \code{maximize = TRUE} (higher is better, e.g. distance),
-#'         \eqn{\Delta = P - P^{-t}}.
+#'   for example similarity), \eqn{\Delta = P^{-t} - P}.
+#'   \item If \code{obj$call.info$Call_ARGS$maximize = TRUE} (higher is better,
+#'   for example distance), \eqn{\Delta = P - P^{-t}}.
 #' }
-#' If a taxon is absent from a split’s parent polygons, elimination is a no-op
+#' If a taxon is absent from a split's parent polygons, elimination is a no-op
 #' and \eqn{\Delta = NA}.
 #'
 #' @param obj A \code{hespdiv} object.
 #'
-#' @return A list (\code{"taxon_effect_result"}) with:
-#' \itemize{
-#'   \item \code{elim.comp.vals} \code{[n_splits x n_taxa]}: performance after removing each taxon.
-#'   \item \code{delta}          \code{[n_splits x n_taxa]}: signed contribution \eqn{\Delta} (as above).
-#'   \item \code{n_per_pol}: counts of the focal taxon per split and polygon.
-#'   \item \code{baseline}: the original performance vector.
+#' @return A list of class \code{taxon_effect_result} with:
+#' \describe{
+#'   \item{\code{elim.comp.vals}}{
+#'   Performance after removing each taxon; dimension
+#'   \code{[n_splits x n_taxa]}.
+#'   }
+#'   \item{\code{delta}}{
+#'   Signed contribution \eqn{\Delta} as defined above; dimension
+#'   \code{[n_splits x n_taxa]}.
+#'   }
+#'   \item{\code{n_per_pol}}{
+#'   Counts of the focal taxon per split and polygon.
+#'   }
+#'   \item{\code{baseline}}{
+#'   The original performance vector.
+#'   }
 #' }
 #' @family functions for hespdiv results post-processing
 #' @export

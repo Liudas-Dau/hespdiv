@@ -39,11 +39,14 @@ controlled by \code{workers}; chunking mainly controls memory/queue size.}
 \item{workers}{A number of parrallel workers. Determines the number of hespdiv runs to be processed in parallel.}
 }
 \value{
-A \code{hsa_constrained} class object, which is a list with two elements:
+A \code{hsa_constrained} class object, a list with two elements:
 \itemize{
-\item \strong{Alternatives}: A named list corresponding to each polygon,
-where each entry is another list of \code{hespdiv} results for each subsample run.
-\item \strong{Basis}: The original \code{hespdiv} object (\code{obj}).
+\item \strong{Alternatives}
+A named list corresponding to each polygon where each entry is another
+list of \code{hespdiv} results for each subsample run.
+
+\item \strong{Basis}
+The original \code{hespdiv} object (\code{obj}).
 }
 }
 \description{
@@ -62,6 +65,7 @@ parallelized to manage memory usage.
 \CRANpkg{future.apply}
 
 Other functions for hespdiv sensitivity analysis: 
+\code{\link{change_base}()},
 \code{\link{hsa}()},
 \code{\link{hsa_detailed}()},
 \code{\link{hsa_quant}()},

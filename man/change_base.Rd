@@ -25,7 +25,17 @@ By selecting a new basal subdivision, you can observe how it affects the
 results of polygon object cross-comparison and the stability of hespdiv
 clusters and polygons.
 }
+\seealso{
+Other functions for hespdiv sensitivity analysis: 
+\code{\link{hsa}()},
+\code{\link{hsa_detailed}()},
+\code{\link{hsa_quant}()},
+\code{\link{hsa_sample_constrained}()},
+\code{\link{plot_cs_hsa}()},
+\code{\link{plot_hsa}()},
+\code{\link{plot_hsa_q}()}
+}
 \author{
 Liudas Daumantas
 }
-\concept{{functions for hespdiv sensitivity analysis}}
+\concept{functions for hespdiv sensitivity analysis}

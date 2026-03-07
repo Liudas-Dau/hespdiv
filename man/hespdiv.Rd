@@ -197,73 +197,76 @@ in x-coordinate values at the 180th meridian.}
 Normal users should not modify this parameter.}
 }
 \value{
-The 'hespdiv' class object eith a list with seven elements:
+A \code{hespdiv} object, which is a list with seven elements:
 \describe{
-\item{\code{poly.stats}}{ The data frame containing information about
-hespdiv polygons established by the selected split-lines. Columns of the
-data frame:}
+\item{\code{poly.stats}}{
+A data frame containing information about polygons established by the
+selected split-lines. Its columns are:
 \itemize{
-\item \code{rank} - The rank of a polygon. It corresponds to the rank of the
-split-line that produced the polygon and polygon position in the
-hierarchical structure of the subdivisions.
-\item \code{plot.id} - The ID assigned to the polygon. Corresponds to the
-order within hespdiv analysis in which it was processed.
-\item \code{root.id} - The ID of the parent polygon whose subdivision
+\item \code{rank}: The rank of a polygon. It corresponds to the rank of the
+split-line that produced the polygon and to the polygon's position in the
+hierarchical structure of the subdivision.
+\item \code{plot.id}: The ID assigned to the polygon. It corresponds to the
+order in which the polygon was processed during the \code{hespdiv} analysis.
+\item \code{root.id}: The ID of the parent polygon whose subdivision
 resulted in the current polygon.
-\item \code{n.splits} - The count of straight split-lines that were
-evaluated for comparison values in an attempt to subdivide the polygon.
-This count excludes split-lines that crossed the polygon boundary or did
-not meet area, sample size or location number criteria.
-\item \code{n.obs} - The number of observations (e.g., data points) inside
-the polygon.
-\item \code{mean} - The average comparison value of the straight
-split-lines used in the attempted subdivision of the polygon. This value
-reflects the general spatial heterogeneity of the data
-\item \code{sd} - The standard deviation of the comparison values of the
+\item \code{n.splits}: The number of straight split-lines evaluated in an
+attempt to subdivide the polygon. This count excludes split-lines that crossed
+the polygon boundary or did not meet area, sample size, or location-number criteria.
+\item \code{n.obs}: The number of observations inside the polygon.
+\item \code{mean}: The average comparison value of the straight split-lines
+used in the attempted subdivision of the polygon. This value reflects the
+general spatial heterogeneity of the data.
+\item \code{sd}: The standard deviation of the comparison values of the
 straight split-lines used in the attempted subdivision. It indicates
-the extent of anisotropy or variation in the spatial heterogeneity of
-the data within the polygon.
-\item \code{str.best} - The comparison value of the best straight
-split-line produced within the polygon.
-\item \code{str.z.score} - The z-score of the comparison value of the best
-straight split-line within the polygon. It indicates how outstanding
-the best straight split-line is compared to other evaluated random straight
-subdivisions. Normally, this value should rarely reach extremely low or
-high values (+-2-3) since the comparison values of split-lines are
-spatially autocorrelated.
-\item \code{has.split} - A Boolean indicator (TRUE or FALSE) that shows
-whether a subdivision was established in the polygon.
-\item \code{is.curve} - A Boolean indicator (TRUE or FALSE) that shows
-whether the established subdivision was obtained using a curve.
-If \code{has.split} is FALSE, this column will have an NA value.
-\item \code{crv.best} - The same as \code{str.best} but for nonlinear split-lines.
-\item \code{crv.z.score} - The same as \code{crv.z.score} but for nonlinear
-split-lines.
-\item \code{c.improv} - The improvement in comparison values
-achieved by using nonlinear split-lines over straight split-lines.
+the extent of anisotropy or variation in spatial heterogeneity within the polygon.
+\item \code{str.best}: The comparison value of the best straight split-line
+produced within the polygon.
+\item \code{str.z.score}: The z-score of the comparison value of the best
+straight split-line within the polygon. It indicates how outstanding the best
+straight split-line is relative to other evaluated straight subdivisions.
+\item \code{has.split}: Logical. Indicates whether a subdivision was established
+in the polygon.
+\item \code{is.curve}: Logical. Indicates whether the established subdivision
+was obtained using a curve. If \code{has.split} is \code{FALSE}, this value is \code{NA}.
+\item \code{crv.best}: The same as \code{str.best}, but for nonlinear split-lines.
+\item \code{crv.z.score}: The same as \code{str.z.score}, but for nonlinear split-lines.
+\item \code{c.improv}: The improvement in comparison value achieved by using
+nonlinear split-lines instead of straight split-lines.
 }
-\item{\code{split.stats}}{ A data frame containing information about the
-established split-lines. Columns of this data frame can be interpreted
-the same way as in \code{poly.stats}, expect through the perspective of the
-split-line (e.g. \code{rank} - is the rank of the split-line, not the
-polygon). Additionally, \code{performance} column is the comparison value
-of the split-line, and is the same as \code{str.best} or \code{crv.best} in \code{poly.stats},
-depending on the value of is.curve column. The same applies to the z.score
-column.}
-\item{\code{split.lines}}{ A list containing data frames with the
-coordinates of the established split-lines. The order of split-lines
-in this list corresponds to their order in the \code{split.stats} data frame..}
-\item{\code{polygons.xy}}{ A list containing data frames of the established
-polygons resulting from the split-lines. The order of polygons in this
-list corresponds to their order in the \code{poly.stats} data frame.}
-\item{\code{poly.obj}}{ A list containing the polygons objects (the outputs of the \code{generalize.f}
-function for each polygon). The order of elements in this list corresponds
-to the row order of \code{poly.stats} and the polygon order in \code{polygons.xy}.}
-\item{\code{call.info}}{Information about hespdiv call: method and
-arguments used.}
-\item{\code{str.difs}}{ A list containing comparison values of
-evaluated straight split-lines from each polygon. The elements of this
-list correspond to the rows of \code{poly.stats}.
+}
+\item{\code{split.stats}}{
+A data frame containing information about established split-lines.
+Its columns can be interpreted similarly to those in \code{poly.stats},
+but from the perspective of split-lines rather than polygons. For example,
+\code{rank} is the rank of the split-line, not of the polygon.
+The \code{performance} column contains the comparison value of the split-line
+and corresponds to either \code{str.best} or \code{crv.best} in \code{poly.stats},
+depending on the value of \code{is.curve}. The same applies to the
+\code{z.score} column.
+}
+\item{\code{split.lines}}{
+A list of data frames containing coordinates of established split-lines.
+The order of split-lines in this list corresponds to their order in
+\code{split.stats}.
+}
+\item{\code{polygons.xy}}{
+A list of data frames containing coordinates of polygons established by
+the split-lines. The order of polygons in this list corresponds to their
+order in \code{poly.stats}.
+}
+\item{\code{poly.obj}}{
+A list of polygon objects, that is, outputs of \code{generalize.f} for each polygon.
+The order of elements in this list corresponds to the row order of
+\code{poly.stats} and the polygon order in \code{polygons.xy}.
+}
+\item{\code{call.info}}{
+Information about the \code{hespdiv} call, including the method and arguments used.
+}
+\item{\code{str.difs}}{
+A list containing comparison values of evaluated straight split-lines for
+each polygon. The elements of this list correspond to the rows of
+\code{poly.stats}.
 }
 }
 }
@@ -353,28 +356,34 @@ polygons of various shapes.
 }
 \subsection{Preset Methods}{
 Preset methods and their combinations of \code{compare.f},
-\code{generalize.f} and \code{maximize} arguments:
+\code{generalize.f}, and \code{maximize}:
 \describe{
-\itemize{
-\item "sorensen" - functions calculate Sorensen similarity index
-(Sorensen 1948), maximize = FALSE. Values vary from 0 to 1.
-\item "pielou" - functions calculate the mean proportional decrease in
-Pielou evenness (Pielou 1966) that occurs after polygon subdivision,
-maximize = TRUE. Values vary from 0 to 1.
-\item "morisita" - functions calculate Morista overlap index
-(Morisita 1959), maximize = FALSE. Values vary from 0 to 1.
-\item "horn.morisita" - functions calculate Morista overlap index,
-as modified by Horn (1966), maximize = FALSE. Values vary from 0 to 1.
+\item{\code{"sorensen"}}{
+Functions calculate the Sorensen similarity index
+(Sorensen 1948). \code{maximize = FALSE}. Values vary from 0 to 1.
+}
+\item{\code{"pielou"}}{
+Functions calculate the mean proportional decrease in
+Pielou evenness (Pielou 1966) that occurs after polygon subdivision.
+\code{maximize = TRUE}. Values vary from 0 to 1.
+}
+\item{\code{"morisita"}}{
+Functions calculate the Morisita overlap index
+(Morisita 1959). \code{maximize = FALSE}. Values vary from 0 to 1.
+}
+\item{\code{"horn.morisita"}}{
+Functions calculate the Morisita overlap index, as modified by
+Horn (1966). \code{maximize = FALSE}. Values vary from 0 to 1.
 }
 }
-All the preset methods currently available are specifically designed for
-bioregionalization purposes.These methods necessitate two key inputs: the
-coordinates of fossil taxa occurrences (\code{xy.dat}) and the names or IDs
-of the taxa (\code{data}).These names or IDs should be structured as
+All preset methods currently available are specifically designed for
+bioregionalization purposes. These methods require two key inputs: the
+coordinates of fossil taxon occurrences (\code{xy.dat}) and the names or IDs
+of taxa (\code{data}). These names or IDs should be structured as
 character or numeric vectors, with each element corresponding to a row in the
 \code{xy.dat} data frame. Each method compares fossil communities on
 opposite sides of a split-line, aiming to minimize similarity or
-maximize difference. Their outcome yields biogeographical provinces with a
+maximize difference. The output yields biogeographical provinces with a
 hierarchical structure.
 }
 }
@@ -401,17 +410,15 @@ related to this issue, the recommendation would be to make a small change
 in some of the arguments (e.g., 'n.split.pts') and re-run hespdiv.
 }
 \examples{
-## DO NOT RUN:
-## Preparing fossil assemblage data:
-## loading hespdiv data package that contains fossil mammal occurrence data from US
-# library(HDData)
-# species <- mio_mams$accepted_name # taxa names
-# sp_coords <- data.frame(x = mio_mams$lng, y = mio_mams$lat)
-## Running HespDiv with default arguments
-# h <- hespdiv(data = species, xy.dat = sp_coords, study.pol = us)
-# us is just a polygon of contiguous US for visualization, see str(us)
-# plot_hespdiv(h, n.loc = TRUE)
+\dontrun{
+ library(HDData)
+ species <- mio_mams$accepted_name # taxa names
+ sp_coords <- data.frame(x = mio_mams$lng, y = mio_mams$lat)
 
+ h <- hespdiv(data = species, xy.dat = sp_coords, study.pol = us)
+ us is just a polygon of contiguous US for visualization, see str(us)
+ plot_hespdiv(h, n.loc = TRUE)
+}
 }
 \references{
 Horn, H. S. (1966). Measurement of" overlap" in comparative ecological studies. The American Naturalist, 100(914), 419-424.

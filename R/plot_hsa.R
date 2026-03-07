@@ -16,33 +16,41 @@
 #' @param seperated Boolean. When \code{type} is >= 3, open a new graphical device for each rank?
 #' @param newplot Create a plot in new device?
 #' @return NULL
-#' @details The type parameter determines the type of plot to be generated:
+#' @details The \code{type} parameter determines the type of plot generated:
 #' \describe{
-#' \item{type = 1:}{
-#' Basic plot - Displays the alternative and basal hespdiv subdivisions on the
-#' same plot without split-line ranks or titles.}
-#' \item{type = 2:}{
-#'  Plot with split-line ranks - Includes split-lines ranks in the plot.
-#'  Each split-line is assigned a different line width based on its rank.}
-#'\item{type = 3:}{
-#'  Plot with separate ranks - Generates multiple plots, each representing
-#'  split-line ranks up to a certain value.}
-#'\item{type = 4:}{
-#'  Plot with separate and isolated ranks - Similar to mode 3 but isolates the
-#'  split-line ranks. Generates multiple plots, each representing a
-#'  specific split-line rank.}
-#'}
+#'   \item{\code{1}}{
+#'   Basic plot: displays the alternative and basal hespdiv subdivisions on
+#'   the same plot without split-line ranks or titles.
+#'   }
+#'
+#'   \item{\code{2}}{
+#'   Plot with split-line ranks: includes split-line ranks in the plot.
+#'   Each split-line is assigned a different line width based on its rank.
+#'   }
+#'
+#'   \item{\code{3}}{
+#'   Plot with separate ranks: generates multiple plots, each representing
+#'   split-line ranks up to a certain value.
+#'   }
+#'
+#'   \item{\code{4}}{
+#'   Plot with separate and isolated ranks: similar to mode 3 but isolates
+#'   split-line ranks. Generates multiple plots, each representing a
+#'   specific split-line rank.
+#'   }
+#' }
+#'
+#' If the alternative subdivisions spatially converge but the basal
+#' subdivision lies far from the zone of convergence, you can use
+#' \code{change_base} to select a more representative alternative
+#' subdivision to serve as the basal subdivision. However, you should
+#' verify that the arguments used in that subdivision are appropriate.
 #' @author Liudas Daumantas
-#' @details If the alternative subdivisions spatially converge, but the basal
-#' subdivision lies far from the zone of convergence, then you can use
-#' the \code{change_base} function to select a more representative alternative
-#' subdivision to be used as the basal subdivision. However, you should check
-#' if the arguments used in that subdivision makes sense.
 #' @family functions for hespdiv sensitivity analysis
 #' @family HespDiv visualization options
-#' @note 'newplot' allows to correctly render legend in types 2 and 3, and lines
-#' in general when drawing in an active device (use 'broom' otherwise to delete
-#' devices).
+#' @note \code{newplot} allows the legend to be rendered correctly in
+#' types 2 and 3, and helps with line rendering in general when drawing
+#' in an active device (use \code{broom} otherwise to delete devices).
 #' @importFrom graphics plot lines points
 #' @importFrom scales alpha
 #' @importFrom grDevices dev.new

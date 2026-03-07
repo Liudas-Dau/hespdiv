@@ -28,11 +28,14 @@
 #'   \code{0.8} if not provided.
 #' @param workers A number of parrallel workers. Determines the number of hespdiv runs to be processed in parallel.
 #'
-#' @return A \code{hsa_constrained} class object, which is a list with two elements:
+#' @return A \code{hsa_constrained} class object, a list with two elements:
 #' \itemize{
-#'   \item \strong{Alternatives}: A named list corresponding to each polygon,
-#'         where each entry is another list of \code{hespdiv} results for each subsample run.
-#'   \item \strong{Basis}: The original \code{hespdiv} object (\code{obj}).
+#'   \item \strong{Alternatives}
+#'   A named list corresponding to each polygon where each entry is another
+#'   list of \code{hespdiv} results for each subsample run.
+#'
+#'   \item \strong{Basis}
+#'   The original \code{hespdiv} object (\code{obj}).
 #' }
 #'
 #' @family functions for hespdiv sensitivity analysis

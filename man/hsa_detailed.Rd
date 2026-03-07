@@ -170,6 +170,7 @@ and the second element will contain the error message.
 }
 \seealso{
 Other functions for hespdiv sensitivity analysis: 
+\code{\link{change_base}()},
 \code{\link{hsa}()},
 \code{\link{hsa_quant}()},
 \code{\link{hsa_sample_constrained}()},

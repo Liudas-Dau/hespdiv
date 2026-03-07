@@ -23,9 +23,9 @@ of \code{\link{hsa_sample_constrained}}.}
 
 \item{type}{An integer indicating the type of plot. Defaults to 1.
 \describe{
-\item{\code{type = 1}}{A single plot overlaying all alternative lines
+\item{\code{1}}{A single plot overlaying all alternative lines
 and the basal lines, colored or width-coded by rank.}
-\item{\code{type = 2}}{Multiple plots, each corresponding to a specific
+\item{\code{2}}{Multiple plots, each corresponding to a specific
 rank. Alternative lines are displayed in a user-defined color
 (default \code{"lightyellow3"}), with the basal line highlighted
 in another color.}
@@ -70,18 +70,19 @@ the function aggregates identical endpoints and overlays their counts on the plo
 \itemize{
 \item In \code{type = 1}, the function creates a single plot showing all
 alternative split-lines overlaid on the first polygon boundary,
-plus all basal split-lines of the \code{hespdiv} basis.
+plus all basal split-lines of the \code{hespdiv} basis object.
 \item In \code{type = 2}, the function creates separate plots, each focusing
 on polygons of a specific rank, drawing alternative lines in the user-specified
 color (with transparency) and the basal line in another color or line width.
 If a specific \code{rank} is provided, only that rank is plotted.
 \item In both cases, after drawing the alternative split-lines the function
-aggregates their endpoints (start and end points) and overlays the count
-at each unique coordinate using \code{text()}.
+aggregates their endpoints (start and end coordinates) and overlays the
+count at each unique coordinate using \code{text()}.
 }
 }
 \seealso{
 Other functions for hespdiv sensitivity analysis: 
+\code{\link{change_base}()},
 \code{\link{hsa}()},
 \code{\link{hsa_detailed}()},
 \code{\link{hsa_quant}()},
@@ -90,6 +91,7 @@ Other functions for hespdiv sensitivity analysis:
 \code{\link{plot_hsa_q}()}
 
 Other HespDiv visualization options: 
+\code{\link{blok3d}()},
 \code{\link{create_gif}()},
 \code{\link{dendro}()},
 \code{\link{plot.nullhespdiv}()},

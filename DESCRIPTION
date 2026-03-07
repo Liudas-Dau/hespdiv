@@ -1,9 +1,15 @@
 Package: hespdiv
 Type: Package
-Title: Recursive, hierarchical spatial data partitioning based on manually defined criterias 
-Version: 1.2.5
-Date: 2023-11-06
-Author: Liudas  Daumantas <liudas.daumantas@chgf.vu.lt>
+Title: Hierarchical Spatial Data Subdivision Into Topologically Contiguous Units
+Version: 1.2.6
+Authors@R: c(
+    person(given = "Liudas",
+           family = "Daumantas",
+           role = c("aut", "cre"),
+           email = "liudas.daumantas@chgf.vu.lt"),
+    person(given = "Andrej",
+           family = "Spiridonov",
+           role = "aut"))
 Maintainer: Liudas  Daumantas <liudas.daumantas@chgf.vu.lt>
 Description: Implementation of the HespDiv framework for hierarchical spatial subdivision of geographical occurrence data. The main function 'hespdiv()' performs iterative spatially constrained subdivision of a study area to identify topologically contiguous clusters in geographic space using user-defined or preset subdivision methods. Additional functions provide tools for analysing subdivision results, visualizing hierarchical spatial structures, and evaluating robustness through sensitivity analyses and statistical testing. The methodology is described in Daumantas and Spiridonov (2024) <doi:10.1111/pala.12702>.
 License: GPL-3
@@ -13,7 +19,8 @@ RoxygenNote: 7.3.3
 OS_type: windows
 LazyData: true
 URL: https://doi.org/10.1111/pala.12702,
-     https://github.com/Liudas-Dau/hespdiv
+     https://github.com/Liudas-Dau/hespdiv,
+     https://github.com/Liudas-Dau/hespdiv_data
 Imports: 
   pracma, 
   DescTools, 
@@ -34,6 +41,5 @@ Imports:
   future.apply,
   future,
   rlang
-Remotes: github::Liudas-Dau/hespdiv_data
 Depends: 
     R (>= 4.0)

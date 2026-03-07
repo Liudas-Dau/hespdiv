@@ -34,6 +34,7 @@ option for papers.
 }
 \seealso{
 Other HespDiv visualization options: 
+\code{\link{blok3d}()},
 \code{\link{create_gif}()},
 \code{\link{dendro}()},
 \code{\link{plot.nullhespdiv}()},

@@ -34,7 +34,7 @@
 #' interactively select unwanted polygons and remove them from a plot.
 #' @importFrom rgl open3d plot3d lines3d polygon3d persp3d points3d text3d
 #' @importFrom pracma poly_center
-#' @family {HespDiv visualization options}
+#' @family HespDiv visualization options
 #' @author Liudas Daumantas
 #' @export
 blok3d <- function(obj,height = "mean", color.seed=1, lines=TRUE, pnts.col = NULL,

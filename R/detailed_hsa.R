@@ -75,7 +75,7 @@
 #' comb.args is FALSE, then pick.n.args should be NULL. Using pick.n.args = 1
 #' is the same as setting comb.type to FALSE.
 #'}
-#'\subsection{Paired Arguments}{
+#' \subsection{Paired Arguments}{
 #' If paired is TRUE, the "data" and "xy.dat" elements with the same index are
 #' treated as one value of the same argument. Therefore, the provided lists of
 #' "data" and "xy.dat" should be of the same length. Pairing of "data" and

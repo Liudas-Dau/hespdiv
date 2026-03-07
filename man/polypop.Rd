@@ -18,6 +18,7 @@ from a 3D plot created with the \code{blok3d} function.
 }
 \seealso{
 Other HespDiv visualization options: 
+\code{\link{blok3d}()},
 \code{\link{create_gif}()},
 \code{\link{dendro}()},
 \code{\link{plot.nullhespdiv}()},

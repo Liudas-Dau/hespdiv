@@ -54,7 +54,19 @@ a higher rank polygon might obscure the view. For this reason, the
 \code{polypop(obj,height)} function with the same arguments can be used to
 interactively select unwanted polygons and remove them from a plot.
 }
+\seealso{
+Other HespDiv visualization options: 
+\code{\link{create_gif}()},
+\code{\link{dendro}()},
+\code{\link{plot.nullhespdiv}()},
+\code{\link{plot_cs_hsa}()},
+\code{\link{plot_hespdiv}()},
+\code{\link{plot_hsa}()},
+\code{\link{plot_hsa_q}()},
+\code{\link{poly_scheme}()},
+\code{\link{polypop}()}
+}
 \author{
 Liudas Daumantas
 }
-\concept{{HespDiv visualization options}}
+\concept{HespDiv visualization options}

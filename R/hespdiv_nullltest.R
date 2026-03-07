@@ -22,18 +22,20 @@
 #' @param n Integer. Number of permutations used to form the null distribution.
 #' @param shuffle.scope Character. Either \code{"all"} (shuffle across the full study area) or \code{"within"} (shuffle only within each parent polygon).
 #' @param shuffle.type Character. Either \code{"localities"} (shuffle whole localities, preserving assemblages) or \code{"occurrences"} (shuffle individual occurrences). \code{"localities"} is generally preferred.
-#' @param maintain.n Logical. Only honored when \code{shuffle.scope = "within"} and \code{shuffle.type = "localities"}. If \code{TRUE}, attempts to keep the randomized child polygons’ occurrence counts close to the observed (maximum discrepancy up to \code{max_n/2}, where \code{max_n} is the largest locality size). Ignored otherwise.
+#' @param maintain.n Logical. Only honored when \code{shuffle.scope = "within"} and \code{shuffle.type = "localities"}. If \code{TRUE}, attempts to keep the randomized child polygon occurrence counts close to the observed (maximum discrepancy up to \code{max_n/2}, where \code{max_n} is the largest locality size). Ignored otherwise.
 #'
 #' @return An object of class \code{nullhespdiv}, a list with:
 #' \itemize{
-#'   \item A data frame (\code{$stats}) summarizing, for each split-line:
+#'   \item \code{$stats}, a data frame summarizing each split-line with:
 #'   \itemize{
-#'     \item \code{performance} — observed performance,
-#'     \item \code{mean.random}, \code{sd.random} — mean and SD of null performances,
-#'     \item \code{p.val} — empirical one-sided p-value (ties included),
-#'     \item \code{z.score.random} — standardized effect size.
+#'     \item \code{performance}: observed performance.
+#'     \item \code{mean.random}: mean of null performances.
+#'     \item \code{sd.random}: standard deviation of null performances.
+#'     \item \code{p.val}: empirical one-sided p-value (ties included).
+#'     \item \code{z.score.random}: standardized effect size.
 #'   }
-#'   \item A matrix/data frame (\code{$null}) containing all null performance values for every split-line across permutations.
+#'   \item \code{$null}, a matrix or data frame containing all null performance
+#'   values for every split-line across permutations.
 #' }
 #'
 #' @family functions for hespdiv results post-processing

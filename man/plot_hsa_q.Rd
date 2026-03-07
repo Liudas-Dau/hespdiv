@@ -37,6 +37,7 @@ parameters used in alternative hespdiv calls.
 }
 \seealso{
 Other functions for hespdiv sensitivity analysis: 
+\code{\link{change_base}()},
 \code{\link{hsa}()},
 \code{\link{hsa_detailed}()},
 \code{\link{hsa_quant}()},
@@ -45,6 +46,7 @@ Other functions for hespdiv sensitivity analysis:
 \code{\link{plot_hsa}()}
 
 Other HespDiv visualization options: 
+\code{\link{blok3d}()},
 \code{\link{create_gif}()},
 \code{\link{dendro}()},
 \code{\link{plot.nullhespdiv}()},

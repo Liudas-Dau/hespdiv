@@ -29,8 +29,7 @@ A list of class \code{"group_effect"} with elements:
 \itemize{
 \item \code{within = list(est, delta)} where \code{est} and \code{delta} are \code{[n_splits x n_groups]} matrices;
 \item \code{elim   = list(est, delta)} as above (group removed);
-\item \code{perm   = list(est, delta)} where each is a nested list \code{[[split]][[group]]} of numeric vectors (length \code{perm.n});
-If permutations are uninformative (e.g., one-sided/absent), the corresponding entries are \code{NA}.
+\item \code{perm   = list(est, delta)} where each is a nested list \code{[[split]][[group]]} of numeric vectors (length \code{perm.n}).  If permutations are uninformative (e.g., one-sided/absent), the corresponding entries are \code{NA};
 \item \code{baseline}: the original performance vector;
 \item \code{n_per_pol}: \code{data.frame} with columns \code{split.id}, \code{group}, \code{pol.id}, \code{n};
 \item \code{plots}: list of \code{plot_hespdiv} outputs by group (or \code{NULL} if \code{plot = FALSE}).
@@ -92,9 +91,10 @@ only identities of the locality blocks are shuffled. The number of group occurre
 }
 
 \examples{
-# DO NOT RUN:
-# library(HDDATA)
-# group_effect(obj = hd, group = mio_mams$family, plot = FALSE)
+\dontrun{
+library(HDData)
+group_effect(obj = hd, group = mio_mams$family, plot = FALSE)
+}
 }
 \seealso{
 \code{\link{plot_hespdiv}}

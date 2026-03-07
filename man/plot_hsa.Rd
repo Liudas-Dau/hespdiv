@@ -50,36 +50,44 @@ demonstrate the stability of the basal hespdiv subdivision. This is achieved
 by displaying both alternative and basal hespdiv subdivisions on the same plot.
 }
 \details{
-The type parameter determines the type of plot to be generated:
+The \code{type} parameter determines the type of plot generated:
 \describe{
-\item{type = 1:}{
-Basic plot - Displays the alternative and basal hespdiv subdivisions on the
-same plot without split-line ranks or titles.}
-\item{type = 2:}{
-Plot with split-line ranks - Includes split-lines ranks in the plot.
-Each split-line is assigned a different line width based on its rank.}
-\item{type = 3:}{
-Plot with separate ranks - Generates multiple plots, each representing
-split-line ranks up to a certain value.}
-\item{type = 4:}{
-Plot with separate and isolated ranks - Similar to mode 3 but isolates the
-split-line ranks. Generates multiple plots, each representing a
-specific split-line rank.}
+\item{\code{1}}{
+Basic plot: displays the alternative and basal hespdiv subdivisions on
+the same plot without split-line ranks or titles.
 }
 
-If the alternative subdivisions spatially converge, but the basal
-subdivision lies far from the zone of convergence, then you can use
-the \code{change_base} function to select a more representative alternative
-subdivision to be used as the basal subdivision. However, you should check
-if the arguments used in that subdivision makes sense.
+\item{\code{2}}{
+Plot with split-line ranks: includes split-line ranks in the plot.
+Each split-line is assigned a different line width based on its rank.
+}
+
+\item{\code{3}}{
+Plot with separate ranks: generates multiple plots, each representing
+split-line ranks up to a certain value.
+}
+
+\item{\code{4}}{
+Plot with separate and isolated ranks: similar to mode 3 but isolates
+split-line ranks. Generates multiple plots, each representing a
+specific split-line rank.
+}
+}
+
+If the alternative subdivisions spatially converge but the basal
+subdivision lies far from the zone of convergence, you can use
+\code{change_base} to select a more representative alternative
+subdivision to serve as the basal subdivision. However, you should
+verify that the arguments used in that subdivision are appropriate.
 }
 \note{
-'newplot' allows to correctly render legend in types 2 and 3, and lines
-in general when drawing in an active device (use 'broom' otherwise to delete
-devices).
+\code{newplot} allows the legend to be rendered correctly in
+types 2 and 3, and helps with line rendering in general when drawing
+in an active device (use \code{broom} otherwise to delete devices).
 }
 \seealso{
 Other functions for hespdiv sensitivity analysis: 
+\code{\link{change_base}()},
 \code{\link{hsa}()},
 \code{\link{hsa_detailed}()},
 \code{\link{hsa_quant}()},
@@ -88,6 +96,7 @@ Other functions for hespdiv sensitivity analysis:
 \code{\link{plot_hsa_q}()}
 
 Other HespDiv visualization options: 
+\code{\link{blok3d}()},
 \code{\link{create_gif}()},
 \code{\link{dendro}()},
 \code{\link{plot.nullhespdiv}()},

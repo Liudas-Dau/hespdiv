@@ -63,6 +63,7 @@ If you want to transform similarity to difference externally, before applying de
 }
 \seealso{
 Other HespDiv visualization options: 
+\code{\link{blok3d}()},
 \code{\link{create_gif}()},
 \code{\link{plot.nullhespdiv}()},
 \code{\link{plot_cs_hsa}()},
