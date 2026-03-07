@@ -5,15 +5,7 @@ Version: 1.2.1
 Date: 2023-11-06
 Author: Liudas  Daumantas <liudas.daumantas@chgf.vu.lt>
 Maintainer: Liudas  Daumantas <liudas.daumantas@chgf.vu.lt>
-Description: Implementation of the HespDiv framework for hierarchical
-spatial subdivision of geographical occurrence data. The main function
-'hespdiv()' performs iterative spatially constrained subdivision of a study
-area to identify topologically contiguous clusters in geographic space using
-user-defined or preset subdivision methods. Additional functions provide tools
-for analysing subdivision results, visualizing hierarchical spatial structures,
-and evaluating robustness through sensitivity analyses and statistical testing.
-The methodology is described in Daumantas and Spiridonov (2024)
-<doi:10.1111/pala.12702>.
+Description: Implementation of the HespDiv framework for hierarchical spatial subdivision of geographical occurrence data. The main function 'hespdiv()' performs iterative spatially constrained subdivision of a study area to identify topologically contiguous clusters in geographic space using user-defined or preset subdivision methods. Additional functions provide tools for analysing subdivision results, visualizing hierarchical spatial structures, and evaluating robustness through sensitivity analyses and statistical testing. The methodology is described in Daumantas and Spiridonov (2024) <doi:10.1111/pala.12702>.
 License: GPL-3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
