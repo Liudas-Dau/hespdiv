@@ -30,7 +30,7 @@ Imports:
   stats,
   magick,
   future.apply,
-  future
+  future,
   rlang
 Remotes: github::Liudas-Dau/hespdiv_data
 Depends: 
