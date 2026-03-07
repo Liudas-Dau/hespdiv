@@ -30,8 +30,9 @@
 #' @return A ggplot object.
 #' @importFrom ggrepel geom_label_repel
 #' @importFrom viridis scale_color_viridis
-#' @importFrom ggplot2 aes_ geom_point geom_path guides guide_legend ggtitle scale_size_area guide_colourbar scale_size_continuous theme_set theme element_rect element_blank element_blank
+#' @importFrom ggplot2 aes geom_point geom_path guides guide_legend ggtitle scale_size_area guide_colourbar scale_size_continuous theme_set theme element_rect element_blank element_blank
 #' @importFrom stats aggregate na.omit
+#' @importFrom rlang .data
 #' @details The return ggplot object can be edited as any other ggplot objects
 #' by removing undesired elements, changing theme or overlying the plot
 #' with additional elements.
@@ -126,10 +127,10 @@ plot_hespdiv <- function(obj, type = "color",n.loc = FALSE, performance = TRUE,
   }
   df$group <- factor(rep(1:length(split.lines),times=npt.in.split))
 
-  base <- ggplot2::ggplot(obj$polygons.xy[[1]],ggplot2::aes_(~x,~y)) +
-    geom_path(data= obj$call.info$Call_ARGS$study.pol,aes_(~x,~y), size=0.5,
+  base <- ggplot2::ggplot(obj$polygons.xy[[1]],ggplot2::aes(.data$x,.data$y)) +
+    geom_path(data= obj$call.info$Call_ARGS$study.pol,aes(.data$x,.data$y), size=0.5,
                      lineend = "round",linejoin = "round",color = "gray20",alpha = 0.5)+
-    geom_path(data= obj$polygons.xy[[1]],ggplot2::aes_(~x,~y), size=0.5,
+    geom_path(data= obj$polygons.xy[[1]],ggplot2::aes(.data$x,.data$y), size=0.5,
               lineend = "round",linejoin = "round",color = 1) +
     ggplot2::labs(x = "x", y = "y")
     if (!is.null(title) | !is.null(subtitle)){
@@ -139,14 +140,14 @@ plot_hespdiv <- function(obj, type = "color",n.loc = FALSE, performance = TRUE,
   if (n.loc){
     scale_id <- 2
     if (type == "color"){
-      base <- base + ggplot2::geom_point(data=uni.loc.n,ggplot2::aes_(x=~x,y=~y,size=~n),
+      base <- base + ggplot2::geom_point(data=uni.loc.n,ggplot2::aes(x=.data$x,y=.data$y,size=.data$n),
                                 pch =rep(1,nrow(uni.loc.n)),color = pnts.col) +
         ggplot2::guides(size=ggplot2::guide_legend(title=paste0("Number of", "\nobservations" ,
        "\nin a location"),title.hjust = 0.5,label.position = "left",
        label.hjust = 1))+
         ggplot2::scale_size_area(max_size = 8)
     } else {
-      base <- base + ggplot2::geom_point(data=uni.loc.n,ggplot2::aes_(x=~x,y=~y,color=~n),
+      base <- base + ggplot2::geom_point(data=uni.loc.n,ggplot2::aes(x=.data$x,y=.data$y,color=.data$n),
                                 pch =rep(19,nrow(uni.loc.n)),size =2) +
         viridis::scale_color_viridis(guide ="colourbar",trans = "log") +
         ggplot2::guides(color = ggplot2::guide_colourbar(
@@ -164,17 +165,17 @@ plot_hespdiv <- function(obj, type = "color",n.loc = FALSE, performance = TRUE,
 
   } else {
     scale_id <- 1
-  base <- base + ggplot2::geom_point(data = xy.dat, mapping = ggplot2::aes_(~x,~y),
+  base <- base + ggplot2::geom_point(data = xy.dat, mapping = ggplot2::aes(.data$x,.data$y),
     pch=16,color=pnts.col) +
-    ggplot2::geom_path(data= obj$polygons.xy[[1]],ggplot2::aes_(~x,~y), size=.5,
+    ggplot2::geom_path(data= obj$polygons.xy[[1]],ggplot2::aes(.data$x,.data$y), size=.5,
                            lineend = "round",linejoin = "round")
   }
   if (type == "width"){
     color <- .generate_cols(nrow(split.stats), seed)
     df$color <- rep(color, times=npt.in.split)
     df$size <- size
-    base<-base + ggplot2::geom_path(data = df, ggplot2::aes_(~x,~y,group=~group,
-                                          size = ~size),
+    base<-base + ggplot2::geom_path(data = df, ggplot2::aes(.data$x,.data$y,group=.data$group,
+                                          size = .data$size),
                            color=df$color) +
       ggplot2::scale_size_continuous(range = c(0.5,2))
     size.l <- seq(0.5,2,0.5)
@@ -184,13 +185,13 @@ plot_hespdiv <- function(obj, type = "color",n.loc = FALSE, performance = TRUE,
   } else {
     df$color <- color
     if (performance) {
-    base<-base + ggplot2::geom_path(data = df, aes_(~x,~y,group=~group, color=~color),size = 2) +
+    base<-base + ggplot2::geom_path(data = df, aes(.data$x,.data$y,group=.data$group, color=.data$color),size = 2) +
       viridis::scale_color_viridis(guide ="colourbar") +
       ggplot2::guides(color = ggplot2::guide_colourbar(title = legend_title, title.hjust = 0.5,
                                    label.position = "left",label.hjust = 1))
     } else {
       base<-base + ggplot2::geom_path(
-        data = df, aes_(~x,~y,group=~group, color=~factor(color)), size = 2) +
+        data = df, aes(.data$x,.data$y,group=.data$group, color=.data$factor(color)), size = 2) +
         viridis::scale_color_viridis(labels = levels(factor(color)),
                                      discrete = TRUE) +
         ggplot2::guides(
@@ -248,7 +249,7 @@ plot_hespdiv <- function(obj, type = "color",n.loc = FALSE, performance = TRUE,
     ggplot2::theme(legend.key= ggplot2::element_rect(fill = "white"),
           legend.title = ggplot2::element_text(hjust = 0.5),
           panel.grid = ggplot2::element_blank(),panel.background =
-            ggplot2::element_rect(colour = "black", size=0.5,fill = "white"))
+            ggplot2::element_rect(colour = "black", linewidth=0.5,fill = "white"))
 
   mid.pt <- data.frame(x=numeric(),y=numeric())
   for (a in 1:length(obj$split.lines)){
@@ -260,14 +261,14 @@ plot_hespdiv <- function(obj, type = "color",n.loc = FALSE, performance = TRUE,
         }
   }
   if (is.null(split.stats$p.val)){
-    base<-base + ggrepel::geom_label_repel(data=mid.pt, aes_(~x,~y),alpha=rep(3/5, nrow(mid.pt)),
+    base<-base + ggrepel::geom_label_repel(data=mid.pt, aes(.data$x,.data$y),alpha=rep(3/5, nrow(mid.pt)),
                                   label = paste0(ord,") ",
                                                 round(obj$split.stats[ord,"performance"],2)),
                                   fill  = color, size = 4,
                                   direction="both",fontface='bold',
                                   colour  = rep(1, nrow(mid.pt)))
   } else {
-    base<-base + ggrepel::geom_label_repel(data=mid.pt, aes_(~x,~y),alpha=rep((3/5), (nrow(mid.pt))),
+    base<-base + ggrepel::geom_label_repel(data=mid.pt, aes(.data$x,.data$y),alpha=rep((3/5), (nrow(mid.pt))),
                                   label = paste(ord,") p = ",
                                                 split.stats$p.val,
                                                 "\n  Div. qual. = ",
