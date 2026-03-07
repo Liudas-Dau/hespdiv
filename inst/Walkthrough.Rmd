@@ -332,4 +332,4 @@ I invite you to delve deeper into the world of HespDiv using the functions and t
 
 If you encounter any unfamiliar terms or concepts along the way, I encourage you to refer to the glossary vignette. It provides a comprehensive list of definitions and explanations for the key terminology used in this package.
 
-Thank you for joining me on this journey. I look forward to seeing how you apply these tools in your own analyses and investigations. Happy exploring!
+I look forward to seeing how you apply these tools in your own analyses and investigations. Happy exploring!
