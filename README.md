@@ -4,7 +4,7 @@
 The package provides tools for identifying topologically contiguous spatial clusters and analysing hierarchical regionalization structures in palaeobiogeography and related spatial datasets.
 
 HespDiv represents a suitable framework for identifying hierarchically nested,
-spatially contiguous regions (geobiomes *sensu* Spiridonov & Eldredge(2024)) from taxonomic occurrence data.
+spatially contiguous regions (geobiomes *sensu* Spiridonov & Eldredge (2024)) from taxonomic occurrence data.
 
 The theoretical foundations of HespDiv are laid out in my PhD dissertation (link to be added!) and in:
 
