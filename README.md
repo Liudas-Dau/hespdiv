@@ -1,15 +1,24 @@
 # HespDiv
 
-hespdiv is an R package implementing the HespDiv framework for hierarchical spatial data subdivision.
+`hespdiv` is an R package implementing the **HespDiv framework for hierarchical spatial data subdivision**.
 The package provides tools for identifying topologically contiguous spatial clusters and analysing hierarchical regionalization structures in palaeobiogeography and related spatial datasets.
 
-The methodological framework is described in:
+HespDiv represents a suitable framework for identifying hierarchically nested,
+spatially contiguous regions (geobiomes *sensu* Spiridonov & Eldredge(2024)) from taxonomic occurrence data.
+
+The theoretical foundations of HespDiv are laid out in my PhD dissertation (link to be added) and in:
 
 Daumantas, L. & Spiridonov, A. (2024).
 hespdiv: an R package for spatially constrained, hierarchical and contiguous regionalization in palaeobiogeography.
 Palaeontology, 67(3), e12702.
 https://doi.org/10.1111/pala.12702
-See the 'HespDiv Walkthrough: Case of US Miocene Mammals' vignette for the application example.
+
+Theoretical foundations of the HespDiv are lied out in my Phd dissertation (link to be added!) and in
+
+Spiridonov, A., & Eldredge, N. (2024). 
+The Bretskyan hierarchy, multiscale allopatry, and geobiomes—on the nature of evolutionary things. 
+Paleobiology, 1-20.
+https://doi.org/10.1017/pab.2023.37 
 
 # Installation
 You can install the development version from GitHub:
