@@ -31,13 +31,13 @@ poly_scheme <- function(obj,segment = TRUE, id = TRUE, seed = 1){
   npt.in.split <- as.numeric(lapply(split.lines,nrow))
   df$group <- factor(rep(1:length(split.lines),times=npt.in.split))
 
-  base <- ggplot2::ggplot(obj$polygons.xy[[1]],aes(.data$x,.data$y),xlab = '', ylab = '') +
-    ggplot2::geom_path(data= obj$polygons.xy[[1]],aes(.data$x,.data$y), size=0.5,
+  base <- ggplot2::ggplot(obj$polygons.xy[[1]],aes(.data$x,.data$y)) +
+    ggplot2::geom_path(data= obj$polygons.xy[[1]],aes(.data$x,.data$y), linewidth=0.5,
               lineend = "round",linejoin = "round",color = 1)
   scale_id <- 1
   color <- .generate_cols(nrow(split.stats), seed)
   df$color <- rep(color, times=npt.in.split)
-  base<-base + ggplot2::geom_path(data = df, aes(.data$x,.data$y),group=df$group, color=df$color,size = 1)+
+  base<-base + ggplot2::geom_path(data = df, aes(.data$x,.data$y),group=df$group, color=df$color,linewidth = 1)+
     ggplot2::theme_set(ggplot2::theme_void())  +
     ggplot2::theme(panel.grid = ggplot2::element_blank(),panel.background =
                      ggplot2::element_blank())
@@ -74,7 +74,7 @@ poly_scheme <- function(obj,segment = TRUE, id = TRUE, seed = 1){
                                                       split.stats$plot.id)]))}
   if (id){
     base <- base + ggplot2::geom_text(data=centrai,
-                             aes(x=.data$x1,y=.data$y1,label=.data$obj$poly.stats$plot.id),
+                             aes(x=.data$x1,y=.data$y1,label=obj$poly.stats$plot.id),
                              nudge_y = 1,
                              color=c(1,color[match(obj$poly.stats$root.id[-1],
                                                    split.stats$plot.id)]))}
