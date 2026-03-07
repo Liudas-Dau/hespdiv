@@ -5,13 +5,23 @@ Version: 1.2.0
 Date: 2023-11-06
 Author: Liudas  Daumantas <liudas.daumantas@chgf.vu.lt>
 Maintainer: Liudas  Daumantas <liudas.daumantas@chgf.vu.lt>
-Description: Provides functions for hierarchical data subdivision in space. The main function hespdiv produces topologically contiguous clusters in geographical space based on manually defined or preset subdivision methods. Other function allow further analysis of the results, various visualisation options, as well as means to perform sensitivity analysis. Note that blok3D may only work properly on windows OS.
+Description: Implementation of the HespDiv framework for hierarchical
+spatial subdivision of geographical occurrence data. The main function
+'hespdiv()' performs iterative spatially constrained subdivision of a study
+area to identify topologically contiguous clusters in geographic space using
+user-defined or preset subdivision methods. Additional functions provide tools
+for analysing subdivision results, visualizing hierarchical spatial structures,
+and evaluating robustness through sensitivity analyses and statistical testing.
+The methodology is described in Daumantas and Spiridonov (2024)
+<doi:10.1111/pala.12702>.
 License: GPL-3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 OS_type: windows
 LazyData: true
+URL: https://doi.org/10.1111/pala.12702,
+     https://github.com/Liudas-Dau/hespdiv
 Imports: 
   pracma, 
   DescTools, 
