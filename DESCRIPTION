@@ -1,7 +1,7 @@
 Package: hespdiv
 Type: Package
 Title: Recursive, hierarchical spatial data partitioning based on manually defined criterias 
-Version: 1.2.1
+Version: 1.2.3
 Date: 2023-11-06
 Author: Liudas  Daumantas <liudas.daumantas@chgf.vu.lt>
 Maintainer: Liudas  Daumantas <liudas.daumantas@chgf.vu.lt>
