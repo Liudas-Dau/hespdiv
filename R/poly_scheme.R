@@ -38,7 +38,7 @@ poly_scheme <- function(obj,segment = TRUE, id = TRUE, seed = 1){
   color <- .generate_cols(nrow(split.stats), seed)
   df$color <- rep(color, times=npt.in.split)
   base<-base + ggplot2::geom_path(data = df, aes(.data$x,.data$y),group=df$group, color=df$color,linewidth = 1)+
-    ggplot2::theme_set(ggplot2::theme_void())  +
+    ggplot2::theme_void()  +
     ggplot2::theme(panel.grid = ggplot2::element_blank(),panel.background =
                      ggplot2::element_blank())
   centrai <- as.data.frame(Reduce(rbind,lapply(obj$polygons.xy, FUN = function(o){
