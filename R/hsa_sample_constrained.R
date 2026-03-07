@@ -61,7 +61,7 @@ hsa_sample_constrained <- function(obj,
     stop("'obj' must be of class 'hespdiv'.")
   }
   if (!is.numeric(n.runs) || n.runs < 1 || n.runs %% 1 || length(n.runs) != 1) stop("'n.runs' must be a positive integer.")
-  if (!is.numeric(chunk_size) || chunk_size < 1 || chunk_size %% 1 || length(n.runs) != 1) stop("'chunks' must be a positive integer.")
+  if (!is.numeric(chunk_size) || chunk_size < 1 || chunk_size %% 1 || length(chunk_size) != 1) stop("'chunks' must be a positive integer.")
 
   # Extract call_args AFTER we confirm obj is a hespdiv
   call_args <- obj$call.info$Call_ARGS
