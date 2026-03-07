@@ -31,6 +31,7 @@ Imports:
   magick,
   future.apply,
   future
+  rlang
 Remotes: github::Liudas-Dau/hespdiv_data
 Depends: 
     R (>= 4.0)
