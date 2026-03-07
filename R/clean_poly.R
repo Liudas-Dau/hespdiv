@@ -6,6 +6,7 @@
 #' @author Liudas Daumantas
 #' @noRd
 .clean_poly <- function(xy){
+  xy <- unique(xy)
   id <- numeric()
   for (i in 1:(nrow(xy) - 2)){
     y3 <- .pt_on_line(x1 = xy[i, 1],
@@ -17,6 +18,6 @@
       id <- c(id, i+1)
   }
   if (length(id) > 0)
-    return(xy[-id,])
-  xy
+    return(.close_poly(xy[-id,]))
+  .close_poly(xy)
 }
