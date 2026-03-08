@@ -1,7 +1,7 @@
 Package: hespdiv
 Type: Package
-Title: Hierarchical Spatial Data Subdivision Into Topologically Contiguous Units
-Version: 1.2.6
+Title: Hierarchical Spatial Data Subdivision into Topologically Contiguous Units
+Version: 1.2.7
 Authors@R: c(
     person(given = "Liudas",
            family = "Daumantas",
