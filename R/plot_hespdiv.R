@@ -128,9 +128,9 @@ plot_hespdiv <- function(obj, type = "color",n.loc = FALSE, performance = TRUE,
   df$group <- factor(rep(1:length(split.lines),times=npt.in.split))
 
   base <- ggplot2::ggplot(obj$polygons.xy[[1]],ggplot2::aes(.data$x,.data$y)) +
-    geom_path(data= obj$call.info$Call_ARGS$study.pol,aes(.data$x,.data$y), size=0.5,
+    geom_path(data= obj$call.info$Call_ARGS$study.pol,aes(.data$x,.data$y), linewidth=0.5,
                      lineend = "round",linejoin = "round",color = "gray20",alpha = 0.5)+
-    geom_path(data= obj$polygons.xy[[1]],ggplot2::aes(.data$x,.data$y), size=0.5,
+    geom_path(data= obj$polygons.xy[[1]],ggplot2::aes(.data$x,.data$y), linewidth=0.5,
               lineend = "round",linejoin = "round",color = 1) +
     ggplot2::labs(x = "x", y = "y")
     if (!is.null(title) | !is.null(subtitle)){
@@ -167,7 +167,7 @@ plot_hespdiv <- function(obj, type = "color",n.loc = FALSE, performance = TRUE,
     scale_id <- 1
   base <- base + ggplot2::geom_point(data = xy.dat, mapping = ggplot2::aes(.data$x,.data$y),
     pch=16,color=pnts.col) +
-    ggplot2::geom_path(data= obj$polygons.xy[[1]],ggplot2::aes(.data$x,.data$y), size=.5,
+    ggplot2::geom_path(data= obj$polygons.xy[[1]],ggplot2::aes(.data$x,.data$y), linewidth=.5,
                            lineend = "round",linejoin = "round")
   }
   if (type == "width"){
@@ -175,23 +175,23 @@ plot_hespdiv <- function(obj, type = "color",n.loc = FALSE, performance = TRUE,
     df$color <- rep(color, times=npt.in.split)
     df$size <- size
     base<-base + ggplot2::geom_path(data = df, ggplot2::aes(.data$x,.data$y,group=.data$group,
-                                          size = .data$size),
+                                                            linewidth = .data$size),
                            color=df$color) +
       ggplot2::scale_size_continuous(range = c(0.5,2))
     size.l <- seq(0.5,2,0.5)
-    base <- base + ggplot2::guides(size = ggplot2::guide_legend(override.aes =
+    base <- base + ggplot2::guides(linewidth = ggplot2::guide_legend(override.aes =
                                                 list(size = size.l))) +
-      ggplot2::guides(size=ggplot2::guide_legend(title=legend_title, title.hjust = 0.5))
+      ggplot2::guides(linewidth=ggplot2::guide_legend(title=legend_title, title.hjust = 0.5))
   } else {
     df$color <- color
     if (performance) {
-    base<-base + ggplot2::geom_path(data = df, aes(.data$x,.data$y,group=.data$group, color=.data$color),size = 2) +
+    base<-base + ggplot2::geom_path(data = df, aes(.data$x,.data$y,group=.data$group, color=.data$color),linewidth = 2) +
       viridis::scale_color_viridis(guide ="colourbar") +
       ggplot2::guides(color = ggplot2::guide_colourbar(title = legend_title, title.hjust = 0.5,
                                    label.position = "left",label.hjust = 1))
     } else {
       base<-base + ggplot2::geom_path(
-        data = df, aes(.data$x,.data$y,group=.data$group, color=.data$factor(color)), size = 2) +
+        data = df, aes(.data$x,.data$y,group=.data$group, color=.data$factor(color)), linewidth = 2) +
         viridis::scale_color_viridis(labels = levels(factor(color)),
                                      discrete = TRUE) +
         ggplot2::guides(
