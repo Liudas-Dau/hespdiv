@@ -224,7 +224,7 @@
       dub.id <- which(duplicated(perim_pts[[2]][-nrow(perim_pts[[2]]),]))
       except <- unique(c(
         unlist(apply(pairs_pts[maxid,6:7],2,function(o) which(del.id %in% o))),
-        which(del.id == 1), # kurie prideti taskai yra pirmas taskas arba geriausias
+        if (use.chull) which(del.id == 1), # kurie prideti taskai yra pirmas taskas arba geriausias
         which(apply(perim_pts[[2]][del.id,],1,function(o)
           any(o[1] == perim_pts[[2]][dub.id,1] &
                 o[2] == perim_pts[[2]][dub.id,2]) ))
