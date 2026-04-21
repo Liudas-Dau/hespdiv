@@ -65,7 +65,7 @@
   min_x_id<-split_ids[min_id]
   max_x_id<-split_ids[-min_id]
   ids<-min_x_id:max_x_id
-  if (all(polygon[1,]!=polygon[nrow(polygon),])){
+  if (any(polygon[1,]!=polygon[nrow(polygon),])){
     polygon<-.close_poly(polygon)
   }
   if (trivial_side==T){
