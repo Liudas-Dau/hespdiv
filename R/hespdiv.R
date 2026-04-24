@@ -345,15 +345,66 @@
 #' @references Pielou, E. C. (1966). The measurement of diversity in different types of biological collections. Journal of theoretical biology, 13, 131-144.
 #' @references Sorensen, T. A. (1948). A method of establishing groups of equal amplitude in plant sociology based on similarity of species content and its application to analyses of the vegetation on Danish commons. Biol. Skar., 5, 1-34.
 #' @examples
-#' \dontrun{
-#'  library(HDData)
-#'  species <- mio_mams$accepted_name # taxa names
-#'  sp_coords <- data.frame(x = mio_mams$lng, y = mio_mams$lat)
+#' # Simulated data with a known boundary at x = 0.45 to illustrate boundary detection
 #'
-#'  h <- hespdiv(data = species, xy.dat = sp_coords, study.pol = us)
-#'  us is just a polygon of contiguous US for visualization, see str(us)
-#'  plot_hespdiv(h, n.loc = TRUE)
-#'}
+#' study.area <- data.frame(
+#'   x = c(0, 0.8, 1, 0.6, 0, 0),
+#'   y = c(0, 0, 0.4, 1.1, 1.1, 0)
+#' )
+#'
+#' set.seed(852)
+#' # Simulate 100 occurrence coordinates
+#' N <- 100
+#' xy.dat_arg <- data.frame(
+#'   x = rpois(N, 4) / 10,
+#'   y = rpois(N, 4) / 10
+#' )
+#'
+#' xy.dat_arg <- xy.dat_arg[order(xy.dat_arg$x), ]
+#'
+#' # Simulate a boundary at x = 0.45
+#' n_left <- sum(xy.dat_arg$x < 0.45)
+#'
+#' set.seed(1)
+#' common_data <- letters[1:5]
+#'
+#' left_data <- sample(
+#'   c(common_data, LETTERS[1:10]),
+#'   size = n_left,
+#'   replace = TRUE,
+#'   # common-endemic probability ratio 3:4
+#'   prob = c(rep(3, 5), rep(4, 10))
+#' )
+#'
+#' right_data <- sample(
+#'   c(common_data, LETTERS[11:20]),
+#'   size = N - n_left,
+#'   replace = TRUE,
+#'   # common-endemic probability ratio 3:4
+#'   prob = c(rep(3, 5), rep(4, 10))
+#' )
+#'
+#' data_arg <- c(left_data, right_data)
+#'
+#' # Apply hespdiv
+#' r <- hespdiv(
+#'   data = data_arg,
+#'   xy.dat = xy.dat_arg,
+#'   n.split.pts = 6,  # small value used here for illustration
+#'   method = "sor",   # subdivision minimizing Sorensen-Dice similarity
+#'   S.crit = 0.3,     # minimum area size is 30% of study area
+#'   study.pol = study.area,
+#'   use.chull = FALSE
+#' )
+#'
+#' plot_hespdiv(r) + ggplot2::geom_vline(xintercept = 0.45)
+#'
+#' # Detected split-line performance
+#' r$split.stats$performance
+#'
+#' # Sorensen-Dice similarity across the true simulated boundary
+#' 2 * length(intersect(left_data, right_data)) /
+#'   (length(unique(left_data)) + length(unique(right_data)))
 #' @export
 
 hespdiv<-function(data,
