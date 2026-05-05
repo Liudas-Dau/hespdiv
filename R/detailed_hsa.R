@@ -151,7 +151,7 @@ hsa_detailed <- function(
     display <- FALSE
   if (!is.null(images.path)){
     if (!display)
-      stop(paste0("If you wish to save images, then set 'display' = TRUE"))
+      stop("If you wish to save images, then set 'display' = TRUE", call. = FALSE)
   }
   if (obj$call.info$METHOD$method.type == "preset"){
     obj$call.info$Call_ARGS[which(names(obj$call.info$Call_ARGS)
@@ -506,7 +506,8 @@ hsa_detailed <- function(
       }
     } else {
       if (comb.type == "handpicked"){
-        print(model.names)
+        message(paste(model.names, collapse = "\n"))
+
         message(paste0(
           "\nFrom the vector printed above choose argument combinations ",
           "you would like to test. \nThen type a call that creates a vector of",
@@ -545,7 +546,7 @@ hsa_detailed <- function(
               if (!is.null(selection)){
                 if (any(is.nan(selection) | is.na(selection))) {
                   message("Use of provided indeces produced NA or NaN.")
-                  print(selection)
+                  message(paste(selection, collapse = "\n"))
                   message("Retype the call.")
                 } else {
                   cond <- FALSE
@@ -554,7 +555,7 @@ hsa_detailed <- function(
             } else {
               message("Call is invalid. The output is not a numeric integer ",
                       "vector. Its values is: ")
-              print(modinds)
+              message(paste(modinds, collapse = "\n"))
               message("Retype the call.")
             }
           }
@@ -567,7 +568,7 @@ hsa_detailed <- function(
   }
   model.names <- .clean_names(model.names, obj, hes.names, c.splits, c.pars)
   message("Changes to be made in the basal hespdiv call: ")
-  print(model.names)
+  message(paste(model.names, collapse = "\n"))
 
   l <- length(model.names)
   mods <- vector(mode = "list", length = l)
@@ -702,7 +703,7 @@ hsa_detailed <- function(
 .answer_check <- function(given,NAMES){
   matched.i <- pmatch(tolower(given), tolower(NAMES))
   while(is.na(matched.i)){
-    cat("Invalid input: ", paste0('"', given,'".'),
+    message("Invalid input: ", paste0('"', given,'".'),
         paste0("\nPlease select viable option: "),
         paste(NAMES,collapse = " or ",sep = "'"))
     given <- readline(prompt = "")
