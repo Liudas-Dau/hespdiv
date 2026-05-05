@@ -6,6 +6,9 @@
 #' @param obj The hespdiv object used to create the currently active rgl
 #' device with the \code{blok3d} function.
 #' @param height A character value that indicates the height co-ordinate.
+#' @return No return value. Called for the interactive modification of a
+#' plot created by \code{blok3d}
+#'
 #' @family HespDiv visualization options
 #' @author Liudas Daumantas
 #' @importFrom pracma poly_center
@@ -59,7 +62,7 @@ polypop <- function(obj,height){
 
     ZO <- ZZ[true.ids[OIDS],2]
     LABS <- poly.stats[true.ids[OIDS],"plot.id"]
-    cat("Select the centers of polygons you wish to remove.\n")
+    message("Select the centers of polygons you wish to remove.\n")
     pts <- rgl::identify3d(x=XO, y=YO, z=ZO, labels = LABS)
     if(length(pts)==1) {
       id.start<-basic.id+((pts-1)*5)
@@ -79,9 +82,9 @@ polypop <- function(obj,height){
           ids<-rgl::rgl.ids( type = "shapes", subscene = NA )[ids,1]
           rgl::rgl.pop(type = "lights",id=ids)
         }
-      } else {cat("Nothing was selected\n")}
+      } else {message("Nothing was selected\n")}
     }
 
   }
-  cat("Nothing to remove - there is only one polygon.\n")
+  message("Nothing to remove - there is only one polygon.\n")
 }

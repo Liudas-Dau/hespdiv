@@ -12,6 +12,10 @@ device with the \code{blok3d} function.}
 
 \item{height}{A character value that indicates the height co-ordinate.}
 }
+\value{
+No return value. Called for the interactive modification of a
+plot created by \code{blok3d}
+}
 \description{
 This function allows you to interactively select and remove unwanted polygons
 from a 3D plot created with the \code{blok3d} function.
