@@ -4,12 +4,7 @@
 \alias{create_gif}
 \title{Create a gif of blok3D}
 \usage{
-create_gif(
-  output_file = "rotating_polygons.gif",
-  frames = 90,
-  angle_per_frame = 5,
-  fps = 10
-)
+create_gif(output_file, frames = 90, angle_per_frame = 5, fps = 10)
 }
 \arguments{
 \item{output_file}{name and path of output file}
@@ -19,6 +14,10 @@ create_gif(
 \item{angle_per_frame}{numeric. Angle to rotate per frame in degrees.}
 
 \item{fps}{integer. Frames per second.}
+}
+\value{
+No return value. Called for the side effect of saving
+a GIF of a rotating 3D plot.
 }
 \description{
 Functions creates a gif of rotating polygons displayed in a currently actively rgl device produced with blok3D

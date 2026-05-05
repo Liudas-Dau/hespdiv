@@ -5,16 +5,19 @@
 #' @param frames integer. Number of frames.
 #' @param angle_per_frame numeric. Angle to rotate per frame in degrees.
 #' @param fps integer. Frames per second.
-#' @return NULL
+#' @return No return value. Called for the side effect of saving
+#' a GIF of a rotating 3D plot.
 #' @author Liudas Daumantas
 #' @family HespDiv visualization options
 #' @importFrom rgl par3d rotationMatrix view3d rotate3d rgl.snapshot
 #' @importFrom magick image_read image_animate image_write
 #' @note You can adjust the size of rgl device window to control the size of gif.
 #' @export
-create_gif <- function(output_file = "rotating_polygons.gif",
-                                             frames = 90, angle_per_frame = 5,
+create_gif <- function(output_file, frames = 90, angle_per_frame = 5,
                        fps = 10) {
+
+  oldpar3d <- rgl::par3d(no.readonly = TRUE)
+  on.exit(rgl::par3d(oldpar3d), add = TRUE)
 
   angles <- rep(angle_per_frame * pi / 180, frames)
   # Directory for temporary files
