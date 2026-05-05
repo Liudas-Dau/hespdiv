@@ -20,6 +20,9 @@
 #' @note A much clearer way to visualize polygons is by using the \code{blok3D}
 #' function, with \code{height = "rank"}. However, a 3D plot is less suitable
 #' option for papers.
+#' @examples
+#' poly_scheme(example_hespdiv)
+#'
 #' @export
 poly_scheme <- function(obj,segment = TRUE, id = TRUE, seed = 1){
 
@@ -75,7 +78,7 @@ poly_scheme <- function(obj,segment = TRUE, id = TRUE, seed = 1){
   if (id){
     base <- base + ggplot2::geom_text(data=centrai,
                              aes(x=.data$x1,y=.data$y1,label=obj$poly.stats$plot.id),
-                             nudge_y = 1,
+                             nudge_y = 0.03 * diff(range(obj$polygons.xy[[1]]$y, na.rm = TRUE)),
                              color=c(1,color[match(obj$poly.stats$root.id[-1],
                                                    split.stats$plot.id)]))}
   base

@@ -32,6 +32,10 @@ A much clearer way to visualize polygons is by using the \code{blok3D}
 function, with \code{height = "rank"}. However, a 3D plot is less suitable
 option for papers.
 }
+\examples{
+poly_scheme(example_hespdiv)
+
+}
 \seealso{
 Other HespDiv visualization options: 
 \code{\link{blok3d}()},
