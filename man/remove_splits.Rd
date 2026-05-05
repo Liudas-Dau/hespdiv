@@ -22,39 +22,33 @@ Function returns hespdiv object, without split-lines of
 specified id.
 }
 \examples{
-## DO NOT RUN:
-## Preparing fossil assemblage data:
-## loading hespdiv data package that contains completed hespdiv analysis
-## of fossil mammal occurrence data from US
-# library(HDData)
+\dontrun{
+# This example uses the GitHub-only HDData package:
+# remotes::install_github("Liudas-Dau/hespdiv_data")
 
-## inspect hespdiv object
-# plot_hespdiv(hd)
+library(HDData)
 
-## identify weak splits
-# weak_splits <- which(hd$split.stats$performance >= 0.3)
-## remove weak splits
-# performance_filtered <- remove_splits(obj = hd, split.id = weak_splits)
-# plot_hespdiv(performance_filtered)
+# Inspect the hespdiv object
+plot_hespdiv(hd)
 
-## inspect split-line significance
-# nl
-# plot(HHDATA::nl)
-## identify non-significant split-lines
-# nsig_splits <- which(nl[[1]]$quantile >= 0.05)
-## remove the non-significant split-line
-# sig_filtered <- remove_splits(obj = hd, split.id = nsig_splits)
-# plot_hespdiv(sig_filtered)
+# Remove weak split-lines
+weak_splits <- which(hd$split.stats$performance >= 0.3)
+performance_filtered <- remove_splits(obj = hd, split.id = weak_splits)
+plot_hespdiv(performance_filtered)
 
-## In case non-significant or weak split-line has good dependent split-lines,
-## you may choose to retain them using depend.splits = FALSE.
-## Attempt to remove 2nd split-line, that has dependent split-line (ID 3)
-# unchanged_hd <- remove_splits(obj = hd, split.id = 2, depend = FALSE)
-# plot_hespdiv(unchanged_hd)
+# Remove non-significant split-lines
+plot(nl)
+nsig_splits <- which(nl[[1]]$quantile >= 0.05)
+sig_filtered <- remove_splits(obj = hd, split.id = nsig_splits)
+plot_hespdiv(sig_filtered)
 
-## Alternatively, if you wish to remove non-significant or weak split-lines,
-## even if they have good dependent split-lines, use depend.splits = TRUE.
-## Attempt to remove 2nd split-line, that has dependent split-line (ID 3)
-# changed_hd <- remove_splits(obj = hd, split.id = 2, depend = TRUE)
-# plot_hespdiv(changed_hd)
+# Remove only if a split-line has no dependent split-lines
+unchanged_hd <- remove_splits(obj = hd, split.id = 4, depend.splits = FALSE)
+plot_hespdiv(unchanged_hd)
+
+# Remove the split-lines indicated as well as all other split-lines
+# that structurally depend on them (default behavior)
+changed_hd <- remove_splits(obj = hd, split.id = 4, depend.splits = TRUE)
+plot_hespdiv(changed_hd)
+}
 }
