@@ -24,7 +24,7 @@
 #' @param shuffle.type Character. Either \code{"localities"} (shuffle whole localities, preserving assemblages) or \code{"occurrences"} (shuffle individual occurrences). \code{"localities"} is generally preferred.
 #' @param maintain.n Logical. Only honored when \code{shuffle.scope = "within"} and \code{shuffle.type = "localities"}. If \code{TRUE}, attempts to keep the randomized child polygon occurrence counts close to the observed (maximum discrepancy up to \code{max_n/2}, where \code{max_n} is the largest locality size). Ignored otherwise.
 #'
-#' @return An object of class \code{nullhespdiv}, a list with:
+#' @return Invisibly returns an object of class \code{nullhespdiv}, a list with:
 #' \itemize{
 #'   \item \code{$stats}, a data frame summarizing each split-line with:
 #'   \itemize{
@@ -39,6 +39,14 @@
 #' }
 #'
 #' @family functions for hespdiv results post-processing
+#' @examples
+#' # if split-line is strongly significant, the choice of parameters should not
+#' # matter. For example (look at p-value, z.score.random, sd.random and
+#' # mean.random):
+#' (nulltest(example_hespdiv, maintain.n = FALSE, shuffle.type = "occurrences"))
+#' (nulltest(example_hespdiv, maintain.n = FALSE, shuffle.type = "localities"))
+#' (nulltest(example_hespdiv, maintain.n = TRUE, shuffle.type = "localities"))
+#'
 #' @export
 
 nulltest <- function(obj, n = 999, maintain.n  = TRUE, shuffle.scope = "within",

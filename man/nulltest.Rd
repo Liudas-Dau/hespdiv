@@ -24,7 +24,7 @@ nulltest(
 \item{shuffle.type}{Character. Either \code{"localities"} (shuffle whole localities, preserving assemblages) or \code{"occurrences"} (shuffle individual occurrences). \code{"localities"} is generally preferred.}
 }
 \value{
-An object of class \code{nullhespdiv}, a list with:
+Invisibly returns an object of class \code{nullhespdiv}, a list with:
 \itemize{
 \item \code{$stats}, a data frame summarizing each split-line with:
 \itemize{
@@ -55,6 +55,15 @@ Two shuffling types are available:
 }
 
 For each split-line, the function reports the observed performance, the mean and standard deviation of the permuted (null) performances, an empirical one-sided p-value (proportion of permuted values \emph{as or more extreme} than observed; ties included), and a z-score quantifying departure from the null.
+}
+\examples{
+# if split-line is strongly significant, the choice of parameters should not
+# matter. For example (look at p-value, z.score.random, sd.random and
+# mean.random):
+(nulltest(example_hespdiv, maintain.n = FALSE, shuffle.type = "occurrences"))
+(nulltest(example_hespdiv, maintain.n = FALSE, shuffle.type = "localities"))
+(nulltest(example_hespdiv, maintain.n = TRUE, shuffle.type = "localities"))
+
 }
 \seealso{
 Other functions for hespdiv results post-processing: 
