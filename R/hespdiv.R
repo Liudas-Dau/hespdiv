@@ -117,11 +117,12 @@
 #' study area polygon.
 #' @param use.chull logical. If \code{study.pol} is provided, you can use
 #' \code{use.chull = TRUE} (which is default) to use it only for visualization.
-#' @param tracing a character vector with two elements. The first element
-#' indicates the level of tracing, which can be "best", "main", or "all". The
-#' second element specifies the object to be traced, which can be "curves",
-#' "straight", or "both". By default, when set to NULL, no tracing will be
-#' performed.
+#' @param tracing Optional character vector of length two controlling diagnostic
+#'   tracing output. The first element specifies the tracing level and must be
+#'   one of \code{"best"}, \code{"main"}, or \code{"all"}. The second element
+#'   specifies the traced object and must be one of \code{"curves"},
+#'   \code{"straight"}, or \code{"both"}. The default, \code{NULL}, produces no
+#'   tracing output.
 #' @param pnts.col character or numeric. Specifies the color of observations
 #' in a plot. The argument is used when \code{tracing} is not NULL. If
 #' \code{pnts.col = NULL}, observations will not be displayed.
@@ -397,7 +398,7 @@
 #'   use.chull = FALSE
 #' )
 #'
-#' plot_hespdiv(r) + ggplot2::geom_vline(xintercept = 0.45)
+#' plot_hespdiv(r, n.loc = TRUE) + ggplot2::geom_vline(xintercept = 0.45)
 #'
 #' # Detected split-line performance
 #' r$split.stats$performance

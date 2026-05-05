@@ -174,11 +174,12 @@ study area polygon.}
 \item{use.chull}{logical. If \code{study.pol} is provided, you can use
 \code{use.chull = TRUE} (which is default) to use it only for visualization.}
 
-\item{tracing}{a character vector with two elements. The first element
-indicates the level of tracing, which can be "best", "main", or "all". The
-second element specifies the object to be traced, which can be "curves",
-"straight", or "both". By default, when set to NULL, no tracing will be
-performed.}
+\item{tracing}{Optional character vector of length two controlling diagnostic
+tracing output. The first element specifies the tracing level and must be
+one of \code{"best"}, \code{"main"}, or \code{"all"}. The second element
+specifies the traced object and must be one of \code{"curves"},
+\code{"straight"}, or \code{"both"}. The default, \code{NULL}, produces no
+tracing output.}
 
 \item{pnts.col}{character or numeric. Specifies the color of observations
 in a plot. The argument is used when \code{tracing} is not NULL. If
@@ -410,15 +411,66 @@ related to this issue, the recommendation would be to make a small change
 in some of the arguments (e.g., 'n.split.pts') and re-run hespdiv.
 }
 \examples{
-\dontrun{
- library(HDData)
- species <- mio_mams$accepted_name # taxa names
- sp_coords <- data.frame(x = mio_mams$lng, y = mio_mams$lat)
+# Simulated data with a known boundary at x = 0.45 to illustrate boundary detection
 
- h <- hespdiv(data = species, xy.dat = sp_coords, study.pol = us)
- us is just a polygon of contiguous US for visualization, see str(us)
- plot_hespdiv(h, n.loc = TRUE)
-}
+study.area <- data.frame(
+  x = c(0, 0.8, 1, 0.6, 0, 0),
+  y = c(0, 0, 0.4, 1.1, 1.1, 0)
+)
+
+set.seed(852)
+# Simulate 100 occurrence coordinates
+N <- 100
+xy.dat_arg <- data.frame(
+  x = rpois(N, 4) / 10,
+  y = rpois(N, 4) / 10
+)
+
+xy.dat_arg <- xy.dat_arg[order(xy.dat_arg$x), ]
+
+# Simulate a boundary at x = 0.45
+n_left <- sum(xy.dat_arg$x < 0.45)
+
+set.seed(1)
+common_data <- letters[1:5]
+
+left_data <- sample(
+  c(common_data, LETTERS[1:10]),
+  size = n_left,
+  replace = TRUE,
+  # common-endemic probability ratio 3:4
+  prob = c(rep(3, 5), rep(4, 10))
+)
+
+right_data <- sample(
+  c(common_data, LETTERS[11:20]),
+  size = N - n_left,
+  replace = TRUE,
+  # common-endemic probability ratio 3:4
+  prob = c(rep(3, 5), rep(4, 10))
+)
+
+data_arg <- c(left_data, right_data)
+
+# Apply hespdiv
+r <- hespdiv(
+  data = data_arg,
+  xy.dat = xy.dat_arg,
+  n.split.pts = 6,  # small value used here for illustration
+  method = "sor",   # subdivision minimizing Sorensen-Dice similarity
+  S.crit = 0.3,     # minimum area size is 30\% of study area
+  study.pol = study.area,
+  use.chull = FALSE
+)
+
+plot_hespdiv(r, n.loc = TRUE) + ggplot2::geom_vline(xintercept = 0.45)
+
+# Detected split-line performance
+r$split.stats$performance
+
+# Sorensen-Dice similarity across the true simulated boundary
+2 * length(intersect(left_data, right_data)) /
+  (length(unique(left_data)) + length(unique(right_data)))
 }
 \references{
 Horn, H. S. (1966). Measurement of" overlap" in comparative ecological studies. The American Naturalist, 100(914), 419-424.
