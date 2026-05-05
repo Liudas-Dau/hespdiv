@@ -15,7 +15,7 @@
 #' @param split.col.seed A seed for generating random colors for split lines. Default is NULL.
 #' @param seperated Boolean. When \code{type} is >= 3, open a new graphical device for each rank?
 #' @param newplot Create a plot in new device?
-#' @return NULL
+#' @return No return value, called for plotting sensitivity analysis results.
 #' @details The \code{type} parameter determines the type of plot generated:
 #' \describe{
 #'   \item{\code{1}}{
@@ -59,6 +59,8 @@ plot_hsa <- function(obj, alpha = 0.6, split.col = "gray20", pnts.col = NULL,
                      pol.col = "7", type = 1, basal.col = 2,
                      max.lwd = 3, min.lwd = 0.5, split.col.seed = NULL,
                      newplot = TRUE, seperated = TRUE){
+  oldpar <- graphics::par(no.readonly = TRUE)
+  on.exit(graphics::par(oldpar), add = TRUE)
   if (!inherits(obj,"hsa"))
     stop("'obj' should be of class \"hsa\" (output of 'hsa' or 'hsa_detailed' functions).")
   if ( length(pol.col) > 1){
@@ -85,7 +87,6 @@ plot_hsa <- function(obj, alpha = 0.6, split.col = "gray20", pnts.col = NULL,
     if (newplot) {
       dev.new()
       if (type == 2 | type == 3){
-        op <- graphics::par(no.readonly = TRUE)
         graphics::par(mar=c(5, 4, 4, 8)+0.1, xpd = TRUE)
       }
     }
@@ -134,7 +135,6 @@ plot_hsa <- function(obj, alpha = 0.6, split.col = "gray20", pnts.col = NULL,
           if (rangas !=1)
             grDevices::dev.new()
           if (!(rangas == 1 & newplot)){
-          op <- graphics::par(no.readonly = TRUE)
           graphics::par(mar=c(5, 4, 4, 8)+0.1, xpd = TRUE)}
         }
         title <- paste0("Split-line Rank - up to ", rangas)
@@ -206,9 +206,6 @@ plot_hsa <- function(obj, alpha = 0.6, split.col = "gray20", pnts.col = NULL,
     }
   if (!separate){
     .final_plots(subs, pol.col, max.lwd)
-  }
-  if (type == 2 & newplot){
-    graphics::par(op)
   }
 }
 #' @noRd

@@ -44,6 +44,9 @@ plot_hsa(
 
 \item{seperated}{Boolean. When \code{type} is >= 3, open a new graphical device for each rank?}
 }
+\value{
+No return value, called for plotting sensitivity analysis results.
+}
 \description{
 The function uses hespdiv sensitivity analysis results to visually
 demonstrate the stability of the basal hespdiv subdivision. This is achieved
