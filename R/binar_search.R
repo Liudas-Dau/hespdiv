@@ -20,7 +20,7 @@
  #   stop(print("A numeric vector X must be sorted in increasing order"))
  # }
   if ( x3 < X[l]| x3 > X[h]){
-    stop(print("x3 is not between provided numbers"))
+    stop("`x3` must lie between `X[l]` and `X[h]`.", call. = FALSE)
   }
   return(.recurs(X,l,h,x3))
 }
