@@ -36,6 +36,10 @@
 #' @details The return ggplot object can be edited as any other ggplot objects
 #' by removing undesired elements, changing theme or overlying the plot
 #' with additional elements.
+#' @examples
+#' plot_hespdiv(example_hespdiv)
+#' plot_hespdiv(example_hespdiv, type = "width")
+#' plot_hespdiv(example_hespdiv, n.loc = TRUE)
 #' @author Liudas Daumantas
 #' @family HespDiv visualization options
 #' @export
@@ -245,11 +249,18 @@ plot_hespdiv <- function(obj, type = "color",n.loc = FALSE, performance = TRUE,
     color <- color[split.stats$rank]
     }
   base <- base +
-    ggplot2::theme_set(ggplot2::theme_bw())  +
-    ggplot2::theme(legend.key= ggplot2::element_rect(fill = "white"),
-          legend.title = ggplot2::element_text(hjust = 0.5),
-          panel.grid = ggplot2::element_blank(),panel.background =
-            ggplot2::element_rect(colour = "black", linewidth=0.5,fill = "white"))
+    ggplot2::theme_bw()  +
+    ggplot2::theme(
+      legend.key = ggplot2::element_blank(),
+      legend.background = ggplot2::element_blank(),
+      legend.title = ggplot2::element_text(hjust = 0.5),
+      panel.grid = ggplot2::element_blank(),
+      panel.background = ggplot2::element_rect(
+        colour = "black",
+        linewidth = 0.5,
+        fill = "white"
+      )
+    )
 
   mid.pt <- data.frame(x=numeric(),y=numeric())
   for (a in 1:length(obj$split.lines)){

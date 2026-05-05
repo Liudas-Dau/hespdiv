@@ -63,6 +63,11 @@ The return ggplot object can be edited as any other ggplot objects
 by removing undesired elements, changing theme or overlying the plot
 with additional elements.
 }
+\examples{
+plot_hespdiv(example_hespdiv)
+plot_hespdiv(example_hespdiv, type = "width")
+plot_hespdiv(example_hespdiv, n.loc = TRUE)
+}
 \seealso{
 Other HespDiv visualization options: 
 \code{\link{blok3d}()},
