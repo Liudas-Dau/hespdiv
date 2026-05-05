@@ -34,6 +34,10 @@ displaying observations.}
 \item{obs}{A Boolean value. Do you want observations to be displayed over the top of
 the polygons?}
 }
+\value{
+No return value. Called for the side effect of producing a 3D plot
+using the \pkg{rgl} graphics engine.
+}
 \description{
 This function visualizes HespDiv polygons in 3D space. The height axis
 corresponds to a chosen column from the "poly.stats" data frame.

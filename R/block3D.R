@@ -17,6 +17,8 @@
 #' the polygons?
 #' @param pnts.col A character or numeric vector. Color codes to be used for
 #' displaying observations.
+#' @return No return value. Called for the side effect of producing a 3D plot
+#'   using the \pkg{rgl} graphics engine.
 #' @details
 #' The function opens an rgl device for each column selected from the 'poly.stats'
 #' data frame.
