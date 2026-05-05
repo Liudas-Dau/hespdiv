@@ -2,17 +2,25 @@
 % Please edit documentation in R/plot_nullhespdiv.R
 \name{plot.nullhespdiv}
 \alias{plot.nullhespdiv}
-\title{Plot the results of nullhespdiv object}
+\title{Plot a nullhespdiv object}
 \usage{
 \method{plot}{nullhespdiv}(x, ...)
 }
 \arguments{
-\item{x}{A nullhespdiv class object}
+\item{x}{A \code{nullhespdiv} object.}
 
-\item{...}{other arguments}
+\item{...}{Additional arguments passed to \code{graphics::boxplot()}.}
+}
+\value{
+No return value. Called for the side effect of plotting a
+\code{nullhespdiv} object.
 }
 \description{
-plot method for nullhespdiv class object
+Plot method for a \code{nullhespdiv} object.
+}
+\examples{
+test_results <- nulltest(example_hespdiv)
+plot(test_results)
 }
 \seealso{
 Other HespDiv visualization options: 
