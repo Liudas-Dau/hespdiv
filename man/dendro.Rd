@@ -6,7 +6,6 @@
 \usage{
 dendro(
   obj,
-  type = 1,
   poly.scheme = NULL,
   color = 1,
   performance.col = "blue",
@@ -19,8 +18,6 @@ dendro(
 }
 \arguments{
 \item{obj}{A hespdiv object.}
-
-\item{type}{integer 1 (floating endnodes) or 2 (endnotes at zero distance).}
 
 \item{poly.scheme}{ggplot2 object produced with poly_scheme function. Provide if you want identical colors for polygons in both plots.}
 
@@ -48,18 +45,11 @@ This function displays a dendrogram of polygons produced by hespdiv split-lines.
 If you want to transform similarity to difference externally, before applying dendro, change maximize to TRUE in the call info of obj.
 }
 \examples{
-## DO NOT RUN:
-## display dendrogram
-# dendro(HDData::hd)
-## use the same colors as in poly_scheme
-# scheme <- poly_scheme(HDData::hd, seed = 2)
-# scheme
-# dendro(HDData::hd, scheme, arrange = FALSE)
-## When arranging plots, you may need to experimentally adjust offset.factor.
-# dendro(HDData::hd, scheme, offset.factor = 2)
-## Classical dendrogram
-# dendro(HDData::hd, type = 2)
-## End(Not run)
+scheme <- poly_scheme(example_hespdiv)
+# spatial visualization of polygons:
+scheme
+# dendrogramic visualization of polygons, using colors from 'scheme':
+dendro(example_hespdiv, poly.scheme = scheme, arrange = FALSE, grob = FALSE)
 }
 \seealso{
 Other HespDiv visualization options: 

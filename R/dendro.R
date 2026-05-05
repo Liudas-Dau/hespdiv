@@ -2,7 +2,6 @@
 #'
 #' @description This function displays a dendrogram of polygons produced by hespdiv split-lines. Branch length is proportional to difference. If performance of split-lines is a similarity measure, it is internally converted to difference.
 #' @param obj A hespdiv object.
-#' @param type integer 1 (floating endnodes) or 2 (endnotes at zero distance).
 #' @param poly.scheme ggplot2 object produced with poly_scheme function. Provide if you want identical colors for polygons in both plots.
 #' @param color color vector used for dendrogram nodes and branches.
 #' @param performance.col color vector used for text, displaying difference values between polygons
@@ -13,27 +12,20 @@
 #' @param grob logical. Convert plot to grob? Must be true, if you want to arrange polygon scheme and the dendrogram in a single plot.
 #' @return A `grob` or `TableGrob` object if `grob = TRUE`, otherwise `NULL`.
 #' @importFrom igraph graph_from_data_frame V E ends vcount layout_as_tree
-#' @importFrom gridExtra grid.arrange
+#' @importFrom gridExtra arrangeGrob
 #' @importFrom grid grid.grabExpr grid.draw grid.newpage
 #' @importFrom gridGraphics grid.echo
 #' @author Liudas Daumantas
 #' @note If you want to transform similarity to difference externally, before applying dendro, change maximize to TRUE in the call info of obj.
 #' @family HespDiv visualization options
 #' @examples
-#' ## DO NOT RUN:
-#' ## display dendrogram
-#' # dendro(HDData::hd)
-#' ## use the same colors as in poly_scheme
-#' # scheme <- poly_scheme(HDData::hd, seed = 2)
-#' # scheme
-#' # dendro(HDData::hd, scheme, arrange = FALSE)
-#' ## When arranging plots, you may need to experimentally adjust offset.factor.
-#' # dendro(HDData::hd, scheme, offset.factor = 2)
-#' ## Classical dendrogram
-#' # dendro(HDData::hd, type = 2)
-#' ## End(Not run)
+#' scheme <- poly_scheme(example_hespdiv)
+#' # spatial visualization of polygons:
+#' scheme
+#' # dendrogramic visualization of polygons, using colors from 'scheme':
+#' dendro(example_hespdiv, poly.scheme = scheme, arrange = FALSE, grob = FALSE)
 #' @export
-dendro <- function(obj, type = 1, poly.scheme = NULL, color = 1, performance.col = "blue",
+dendro <- function(obj, poly.scheme = NULL, color = 1, performance.col = "blue",
                    labels.col = 1, offset.factor = 1, arrange = TRUE,
                    grob = TRUE, label.size = 0.5){
   if (arrange & !grob) {
@@ -45,23 +37,27 @@ dendro <- function(obj, type = 1, poly.scheme = NULL, color = 1, performance.col
 
     # Wrapper function to call .base_dendro
     .call_base <- function() {
-      .base_dendro(obj, type = type, poly.scheme = poly.scheme, color = color,
+      .base_dendro(obj, poly.scheme = poly.scheme, color = color,
                    performance.col = performance.col, labels.col = labels.col,
                    offset.factor = offset.factor, label.size = label.size)
     }
 
-    grob <- grid::grid.grabExpr(gridGraphics::grid.echo(
-      .call_base))
+    dendro_grob <- grid::grid.grabExpr(
+      gridGraphics::grid.echo(.call_base),
+      wrap = TRUE,
+      offscreen = TRUE
+    )
 
-    if (arrange & !is.null(poly.scheme)){
-      gridExtra::grid.arrange(grob, poly.scheme, ncol = 1)
+    if (arrange && !is.null(poly.scheme)) {
+      out <- gridExtra::arrangeGrob(dendro_grob, poly.scheme, ncol = 1)
     } else {
-
-      grid::grid.draw(grob)
-      grob
+      out <- dendro_grob
     }
+
+    grid::grid.newpage()
+    grid::grid.draw(out)
   } else {
-    .base_dendro(obj, type = type, poly.scheme = poly.scheme, color = color,
+    .base_dendro(obj, poly.scheme = poly.scheme, color = color,
                  performance.col = performance.col, labels.col = labels.col,
                  offset.factor = offset.factor, label.size)
   }
@@ -70,7 +66,7 @@ dendro <- function(obj, type = 1, poly.scheme = NULL, color = 1, performance.col
 
 # generate the dendrogram using base R graphics
 #' @noRd
-.base_dendro <- function(obj, type = type, poly.scheme = poly.scheme,
+.base_dendro <- function(obj, poly.scheme = poly.scheme,
                          color = color,
                          performance.col = performance.col,
                          labels.col = labels.col,
@@ -147,19 +143,17 @@ dendro <- function(obj, type = 1, poly.scheme = NULL, color = 1, performance.col
   names(y_koords) <- obj$poly.stats$plot.id
   end_node_parents <- sapply(end_nodes_id, .find_pol_parents, obj = obj, simplify = FALSE)
 
-  if (type == 1) {
-    y_koords["1"] <- 0
-    node_parents <- sapply(obj$poly.stats$plot.id[-1], .find_pol_parents, obj = obj)
-    y_koords[as.character(obj$poly.stats$plot.id[-1])] <-
-      unlist(lapply(node_parents, function(ids,obj) {
-        sum(pols$branch_length[which(pols$plot.id %in% ids)])
-      },
-      obj = obj))
+
+  y_koords["1"] <- 0
+  node_parents <- sapply(obj$poly.stats$plot.id[-1], .find_pol_parents, obj = obj)
+  y_koords[as.character(obj$poly.stats$plot.id[-1])] <-
+    unlist(lapply(node_parents, function(ids,obj) {
+      sum(pols$branch_length[which(pols$plot.id %in% ids)])
+    },
+    obj = obj))
 
 
-  } else {
-    y_koords[as.character(end_nodes_id)] <- 0
-  }
+
 
   siblings <- which(duplicated(end_node_parents))
   while(length(siblings) > 0){
@@ -168,26 +162,18 @@ dendro <- function(obj, type = 1, poly.scheme = NULL, color = 1, performance.col
     x_kords[as.character(parent_id)] <-
       (x_kords[as.character(end_nodes_id[siblings])] +
          x_kords[as.character(end_nodes_id[siblings-1])]) / 2
-    if (type != 1) {
-      y_koords[as.character(parent_id)] <-
-        pols$branch_length[pols$plot.id %in% parent_id] +
-        apply(data.frame(y_koords[as.character(end_nodes_id[siblings])],
-                         y_koords[as.character(end_nodes_id[siblings-1])]),1,max)
-    }
+
     end_nodes_id[c(siblings-1)] <- parent_id
     end_nodes_id <- end_nodes_id[-siblings]
     end_node_parents[siblings -1] <- oldparents
     end_node_parents <- end_node_parents[-siblings]
     siblings <- which(duplicated(end_node_parents))
   }
-  if (type == 1 ) {
-    layout <- as.matrix(data.frame(x_kords,-y_koords))
-    ylimit <-  c(min(layout[, 2] - 0.1 * offset.factor * stats::dist(range(layout[, 2]) * 1.1) /
-      length(unique(obj$split.stats$rank))), 0)
-  } else {
-    layout <- as.matrix(data.frame(x_kords,y_koords))
-    ylimit <- c(0, max(y_koords))
-  }
+
+  layout <- as.matrix(data.frame(x_kords,-y_koords))
+  ylimit <-  c(min(layout[, 2] - 0.1 * offset.factor * stats::dist(range(layout[, 2]) * 1.1) /
+                     length(unique(obj$split.stats$rank))), 0)
+
 
   # Step 5: Prepare data for lateral-first edges
   edge_segments <- data.frame(
@@ -262,11 +248,10 @@ dendro <- function(obj, type = 1, poly.scheme = NULL, color = 1, performance.col
   )
 
   rounded_y_ticks <- round(seq(min(layout[, 2]), max(layout[, 2]), length.out = 5), 2)
-  if (type == 1) {
+
   labels <- -rounded_y_ticks
-  } else {
-    labels <- rounded_y_ticks
-  }
+
+
   graphics::axis(
     side = 2,                                # Left-side Y-axis
     at = rounded_y_ticks,                    # Rounded tick positions
