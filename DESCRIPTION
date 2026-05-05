@@ -9,7 +9,14 @@ Authors@R: c(
            email = "liudas.daumantas@chgf.vu.lt"),
     person(given = "Andrej",
            family = "Spiridonov",
-           role = "aut"))
+           role = "aut",
+           ),
+    person("Joseph", "O'Rourke",
+           role = c("ctb", "cph"),
+           comment = "Author and copyright holder of point-in-polygon code in src/pip.c"),
+    person("Min", "Xu",
+           role = "ctb",
+           comment = "Contributor to point-in-polygon code in src/pip.c"))
 Maintainer: Liudas  Daumantas <liudas.daumantas@chgf.vu.lt>
 Description: Implementation of the HespDiv framework for hierarchical spatial subdivision of geographical occurrence data. The main function hespdiv() performs iterative spatially constrained subdivision of a study area to identify topologically contiguous clusters in geographic space using user-defined or preset subdivision methods. Additional functions provide tools for analysing subdivision results, visualizing hierarchical spatial structures, and evaluating robustness through sensitivity analyses and statistical testing. The methodology is described in Daumantas and Spiridonov (2024) <doi:10.1111/pala.12702>.
 License: GPL-3
