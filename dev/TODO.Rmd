@@ -1,0 +1,115 @@
+---
+title: "TODO"
+author: "Liudas"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# TODO
+
+Developer notes for future `hespdiv` development. This file is not part of the CRAN build.
+
+## `hsa.R`: analog-cluster matching
+
+Consider revising the current analog-cluster matching logic if future versions should disallow fusion or splitting of polygons across alternative subdivisions.
+
+### Current logic
+
+The current code identifies, for each base subdivision cluster, the most similar cluster in each alternative subdivision using Jaccard similarity.
+
+```{r hsa_current, eval= FALSE}
+for (basis_pol in 2:length(obj$Basis$polygons.xy)) {
+  b.ids <- .get_ids(
+    obj$Basis$polygons.xy[[basis_pol]],
+    obj$Basis$call.info$Call_ARGS$xy.dat
+  )
+
+  l <- lapply(
+    subs,
+    function(o, bas.ids) {
+      lapply(
+        o$polygons.xy[-1],
+        function(e, dat, bs.ids) {
+          .jaccard.sim(.get_ids(e, dat), bs.ids)
+        },
+        dat = obj$Basis$call.info$Call_ARGS$xy.dat,
+        bs.ids = bas.ids
+      )
+    },
+    b.ids
+  )
+
+  jac.sim[, basis_pol - 1] <- unlist(
+    lapply(l, function(o) max(unlist(o)))
+  )
+
+  connections[, basis_pol - 1] <- unlist(
+    lapply(
+      l,
+      function(o) {
+        as.numeric(names(which.max(unlist(o))))
+      }
+    )
+  )
+}
+```
+### Possible future change
+Current analog matching allows cases where the same alternative cluster is selected as the best analog for more than one base cluster. In the future, consider an alternative matching strategy that detects and resolves such many-to-one matches.
+
+This may be useful if polygon fusion or splitting should be explicitly disallowed when comparing the base subdivision to alternative subdivisions.
+
+```{r hsa_consider,  eval= FALSE}
+bas.ids <- sapply(
+  de$Basis$polygons.xy[-1],
+  function(o, ids) {
+    .get_ids(o, de$Basis$call.info$Call_ARGS$xy.dat)
+  }
+)
+
+for (alt.subs in 2:length(de)) {
+  conn <- matrix(
+    NA,
+    nrow = length(de[[alt.subs]]$polygons.xy) - 1,
+    ncol = length(de$Basis$polygons.xy) - 1
+  )
+
+  colnames(conn) <- names(de$Basis$polygons.xy[-1])
+  rownames(conn) <- names(de[[alt.subs]]$polygons.xy[-1])
+
+  jac.sim <- matrix(
+    NA,
+    nrow = length(de) - 1,
+    ncol = length(de$Basis$polygons.xy) - 1
+  )
+
+  colnames(jac.sim) <- names(de$Basis$polygons.xy[-1])
+  rownames(jac.sim) <- names(de[-1])
+
+  for (alt.pols in 2:length(de[[alt.subs]]$polygons.xy)) {
+    alt.ids <- .get_ids(
+      de[[alt.subs]]$polygons.xy[[alt.pols]],
+      de$Basis$call.info$Call_ARGS$xy.dat
+    )
+
+    conn[alt.pols - 1, ] <- sapply(
+      bas.ids,
+      function(o, ids) {
+        .jaccard.sim(o, ids)
+      },
+      alt.ids
+    )
+  }
+
+  if (any(dup.id <- duplicated(apply(conn, 2, which.max)))) {
+    dup.pols <- unique(apply(conn, 2, which.max)[dup.id])
+
+    for (dup.pol in seq_along(dup.pols)) {
+      # TODO: decide how to handle duplicated best analogs
+    }
+  }
+}
+```

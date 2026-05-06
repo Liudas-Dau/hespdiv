@@ -107,33 +107,6 @@ hsa_quant <- function(obj, probs = c(0.05,0.5,0.95)){
       connections[,basis_pol-1] <- unlist(lapply(l,function(o) as.numeric(names(
         which.max(unlist(o))))))
     }
-    # code to be considered, if fusion/split of polygons would be disallowed
-    # (e.g. alternative subdivision has cluster that is the best analog
-    # for more than 1 basal subdivision cluster) :
-    # bas.ids <- sapply(de$Basis$polygons.xy[-1], function(o,ids){
-    #   .get_ids(o, de$Basis$call.info$Call_ARGS$xy.dat)})
-    # for (alt.subs in 2:length(de)){
-    #   conn <- matrix(NA, nrow = length(de[[alt.subs]]$polygons.xy)-1,
-    #                  ncol = length(de$Basis$polygons.xy) -1 )
-    #   colnames(conn) <- names(de$Basis$polygons.xy[-1])
-    #   rownames(conn) <- names(de[[alt.subs]]$polygons.xy[-1])
-    #   jac.sim <- matrix(NA, nrow = length(de)-1,ncol = length(de$Basis$polygons.xy) -1 )
-    #   colnames(jac.sim) <- names(de$Basis$polygons.xy[-1])
-    #   rownames(jac.sim) <- names(de[-1])
-    #   for (alt.pols in 2:length(de[[alt.subs]]$polygons.xy)){
-    #     alt.ids <- .get_ids(de[[alt.subs]]$polygons.xy[[
-    #       alt.pols]], de$Basis$call.info$Call_ARGS$xy.dat)
-    #     conn[alt.pols-1,] <- sapply(bas.ids, function(o,ids){
-    #       .jaccard.sim(o, ids)
-    #     },alt.ids)
-    #   }
-    #   if (any(dup.id <- duplicated(apply(conn,2,which.max)))){
-    #     dup.pols <- unique(apply(conn,2,which.max)[dup.id])
-    #     for (dup.pol in 1:length(dup.pols)){
-    #
-    #     }
-    #   }
-    # }
 
   structure(list(jaccard.quantiles = apply(jac.sim,2, stats::quantile,
                                  probs = probs),
