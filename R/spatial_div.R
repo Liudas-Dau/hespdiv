@@ -191,10 +191,10 @@
       # sd(any.split) -> anisotropy of heterogeneity
       # if all are equal, then complete randomness: no anisotropy - no splits present
       if( all(any.split==any.split[1]) & length(any.split) > 1  ){
-        message(paste0(c(
-          "All tested splits were of equal quality in polygon "
-          , testid, ". A random split that meets subdivision criteria was",
-          " selected as best.")))
+        message(
+          "All tested splits were of equal quality in polygon ", testid,
+          ". A random split that meets the subdivision criteria was selected as best."
+        )
       }
     } else {
       mean.dif <- NA # negalejom ivertinti ne vieno padalinimo, taigi performance lygu max.
@@ -384,9 +384,11 @@
       c.improv = NA))
       , envir = e)
     if (!is.null(trace.level))
-      cat(paste("No adequate pair of points on perimeter of the polygon.",
-                "\nMaybe too irregular polygon, too detailed subdivisions",
-                "or too low n.pts."))
+      message(
+        "No adequate pair of points on the perimeter of the polygon.\n",
+        "The polygon may be too irregular, subdivisions too detailed, ",
+        "or `n.pts` too low."
+      )
   }
 }
 

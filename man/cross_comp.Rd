@@ -21,16 +21,16 @@ dissimilarity between different hespdiv polygon objects, enabling the
 exploration of spatial relationships and patterns among them.
 }
 \details{
-The \code{cross_comp} function uses the \code{compare.f} function
-from the \code{'obj$call.info$Call_ARGS'} list to perform the
-pairwise  comparisons of the hespdiv polygon objects from the
-\code{'obj$poly.obj'} list, producing a cross-comparison matrix.
+The \code{cross_comp()} function uses the \code{compare.f} function from
+\code{obj$call.info$Call_ARGS} to perform pairwise comparisons of
+\code{hespdiv} polygon objects stored in \code{obj$poly.obj}. The result is
+a cross-comparison matrix.
 }
 \note{
-The polygon cross-comparison functionality is currently not available
-for the "pielou" method. Additionally, the functionality is not supported for the
-custom methods that like "pielou" rely on variables from other environments within the
-'compare.f' function.
+Polygon cross-comparison is currently not available for the \code{"pielou"}
+method. It is also not supported for custom methods whose \code{compare.f}
+function relies on variables from environments other than the function's own
+arguments.
 }
 \seealso{
 Other functions for hespdiv results post-processing: 

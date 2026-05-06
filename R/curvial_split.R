@@ -500,7 +500,10 @@
     #SSk tik tam, kad pasizeti, ar tikrai grizta pati geriausia kreive
     if(length(any.qual)>0){
       if (any(.comp(any.qual,SS[[1]]))){
-        warning("Intermediate curves performed better than the final curve")
+        warning(
+          "Intermediate curves performed better than the final curve.",
+          call. = FALSE
+        )
       }
     }
     return(list(curve.final,SS[[1]]))
@@ -725,7 +728,10 @@
     #SSk tik tam, kad pasizeti, ar tikrai grizta pati geriausia kreive
     if(length(any.qual)>0){
       if (any(.comp(any.qual,SS[[1]]))){
-        warning("Intermediate curves performed better than the final curve")
+        warning(
+          "Intermediate curves performed better than the final curve.",
+          call. = FALSE
+        )
       }
     }
     return(list(curve.final,SS[[1]]))
@@ -775,7 +781,10 @@
   id1 <- c(.get_ids(I.poli, rot.dat.cords), m_ids[[1]])
   id2 <- c(.get_ids(II.poli,rot.dat.cords), m_ids[[2]])
   if (any(duplicated(id1)) | any(duplicated(id2))){
-    warning("duplicated filtered points in curvial splits.")
+    warning(
+      "Duplicated filtered points in curvilinear splits.",
+      call. = FALSE
+    )
   }
   #atliekam plotu palyginima, t.y. padalinimo gerumo ivertinima, jei kreive
   #netenkina minimaliu kriteriju - padalinimo kokybe nuline

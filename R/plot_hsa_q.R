@@ -29,7 +29,10 @@
 #' @export
 plot_hsa_q <- function(obj, hist = FALSE){
   if (!inherits(obj,"hsa_quant"))
-    stop("'obj' should be of class \"hsa_quant\" (output of 'hsa_quant' function).")
+    stop(
+      "`obj` must be an `hsa_quant` object produced by `hsa_quant()`.",
+      call. = FALSE
+    )
 
   jac.sim <- obj[[2]]
   l <- ncol(jac.sim)
@@ -43,7 +46,7 @@ plot_hsa_q <- function(obj, hist = FALSE){
       graphics::plot(stats::density(jac.sim[,i]),
                      main = paste0("Stability of the HespDiv cluster - ",
                                    colnames(jac.sim)[i]), xlim= c(0,1),
-                     xlab = "Jaccard similarity with the 'analogue' clusters")
+                     xlab = "Jaccard similarity with the analogue clusters")
     graphics::layout(1)
   } else {
     n <- 5
@@ -55,7 +58,7 @@ plot_hsa_q <- function(obj, hist = FALSE){
       graphics::hist(jac.sim[,i],
                      main = paste0("Stability of the HespDiv cluster - ",
                                    colnames(jac.sim)[i]),xlim= c(0,1),
-                     xlab = "Jaccard similarity with the 'analogue' clusters")
+                     xlab = "Jaccard similarity with the analogue clusters")
     graphics::layout(1)
   }
 }

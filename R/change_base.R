@@ -17,11 +17,21 @@
 #' @export
 change_base <- function(obj, id){
   if (!inherits(obj,"hsa"))
-    stop("'obj' should be of class \"hsa\" (output of 'hsa' or 'hsa_detailed' functions).")
+    stop(
+      "`obj` should be of class `hsa`, as produced by `hsa()` or `hsa_detailed()`.",
+      call. = FALSE
+    )
   base <- obj[[1]][[id]][[1]]
-  if (is.null(base)) stop("Selected base has no subdivisions")
+  if (is.null(base)) stop("Selected base has no subdivisions.", call. = FALSE)
   obj[[1]][[id]][[1]] <- obj[[2]]
   obj[[1]][[id]][[2]] <- obj[[2]]$call.info$Call_ARGS
-  structure(list(Alternatives = obj[[1]], Basis = base),class = 'hsa')
+
+  structure(
+    list(
+      Alternatives = obj[[1]],
+      Basis = base
+    ),
+    class = "hsa"
+  )
 }
 

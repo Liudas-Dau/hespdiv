@@ -49,7 +49,10 @@ plot_hespdiv <- function(obj, type = "color",n.loc = FALSE, performance = TRUE,
   xy.dat <- obj$call.info$Call_ARGS$xy.dat
   type <- .arg_check("type",type,c("width","color"))
   if (type == "width" & !performance){
-    stop("There is currently no option to display rank using line widths.")
+    stop(
+      "There is currently no option to display rank using line widths.",
+      call. = FALSE
+    )
   }
   if (n.loc){
     xy_df <- xy.dat
@@ -57,21 +60,30 @@ plot_hespdiv <- function(obj, type = "color",n.loc = FALSE, performance = TRUE,
     uni.loc.n <- stats::aggregate(n~., data = xy_df ,FUN = sum)
     uni.loc.n <- uni.loc.n[order(uni.loc.n$n,decreasing = FALSE),]
     if (nrow(uni.loc.n) == nrow(xy_df)){
-      stop("All observations are from unique locations.",
-           " Please use n.loc = FALSE.")
+      n.loc <- FALSE
+      warning(
+        "All observations are from unique locations. Using `n.loc = FALSE`.",
+        call. = FALSE
+      )
     }
     if (type == "color") {
       if (is.null(pnts.col)) {
         pnts.col <- rep(1, nrow(uni.loc.n))
       } else {
         if (length(pnts.col) != nrow(uni.loc.n))
-          stop("Length of pnts.col is not equal to the number of unique ",
-               "locations.")}
+          stop(
+            "Length of `pnts.col` is not equal to the number of unique locations.",
+            call. = FALSE
+          )
+        }
     } else {
       if (!is.null(pnts.col)){
-        stop("Conflincting arguments: pnts.col is not null, when n.loc is TRUE",
-             " and type is 'width'.", "\nCannot add two same",
-             " type (color & color, size & size) aesthetics.")
+        stop(
+          "Conflicting arguments: `pnts.col` is not NULL when `n.loc = TRUE` and ",
+          "`type = \"width\"`.\n",
+          "Cannot map two variables to the same aesthetic.",
+          call. = FALSE
+        )
       }
     }
   } else {
@@ -79,7 +91,10 @@ plot_hespdiv <- function(obj, type = "color",n.loc = FALSE, performance = TRUE,
       pnts.col <- rep(1, nrow(xy.dat))
     } else {
       if (length(pnts.col) != nrow(xy.dat))
-        stop("Length of pnts.col is not equal to the number of observations.")
+        stop(
+          "Length of `pnts.col` is not equal to the number of observations.",
+          call. = FALSE
+        )
     }
   }
 

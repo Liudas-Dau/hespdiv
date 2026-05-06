@@ -16,9 +16,7 @@
 #' .binar_search(X=1:100,x3=50)
 #' @noRd
 .binar_search <- function(X,x3,l=1,h=length(X)){
- # if (is.unsorted(X[l:h])){
- #   stop(print("A numeric vector X must be sorted in increasing order"))
- # }
+
   if ( x3 < X[l]| x3 > X[h]){
     stop("`x3` must lie between `X[l]` and `X[h]`.", call. = FALSE)
   }

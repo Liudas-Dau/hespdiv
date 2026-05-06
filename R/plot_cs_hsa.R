@@ -69,10 +69,10 @@ plot_cs_hsa <- function(obj,
                         alpha_alt = 0.6) {
   # 1) Basic checks
   if (!inherits(obj, "hsa_constrained")) {
-    stop("`obj` must be a 'hsa_constrained' object.")
+    stop("`obj` must be an `hsa_constrained` object.", call. = FALSE)
   }
   if (!type %in% c(1, 2)) {
-    warning("Unsupported 'type' provided; defaulting to type = 1.")
+    warning("Unsupported `type` provided; defaulting to `type = 1`.", call. = FALSE)
     type <- 1
   }
 
@@ -81,10 +81,13 @@ plot_cs_hsa <- function(obj,
   alt_list <- obj$Alternatives
 
   if (!("poly.stats" %in% names(basis))) {
-    stop("The `basis` (obj$Basis) must have 'poly.stats'.")
+    stop("The `basis` object (`obj$Basis`) must have `poly.stats`.", call. = FALSE)
   }
   if (!all(names(alt_list) %in% rownames(basis$poly.stats))) {
-    stop("Mismatch between names(obj$Alternatives) and rownames(basis$poly.stats).")
+    stop(
+      "Mismatch between `names(obj$Alternatives)` and `rownames(basis$poly.stats)`.",
+      call. = FALSE
+    )
   }
 
   ranks <- basis$poly.stats[names(alt_list), "rank"]
@@ -93,7 +96,10 @@ plot_cs_hsa <- function(obj,
   # If a specific rank is provided (for type==2) then use only that rank
   if (type == 2 && !is.null(rank)) {
     if (!rank %in% unique_ranks) {
-      warning(paste("Provided rank", rank, "is not found. Nothing will be plotted."))
+      warning(
+        "Provided rank ", rank, " was not found. Nothing will be plotted.",
+        call. = FALSE
+      )
       return(invisible(NULL))
     }
     unique_ranks <- rank
@@ -127,7 +133,10 @@ plot_cs_hsa <- function(obj,
       plot(basis$polygons.xy[[1]], type = 'l', col = col_boundary, main = main)
       points(obj$Basis$call.info$Call_ARGS$xy.dat,pch=19,cex = 0.25)
     } else {
-      stop("basis$polygons.xy[[1]] is not available for plotting the boundary.")
+      stop(
+        "`basis$polygons.xy[[1]]` is not available for plotting the boundary.",
+        call. = FALSE
+      )
     }
 
     # alt_coords will store the endpoints of each alternative split-line
@@ -172,7 +181,10 @@ plot_cs_hsa <- function(obj,
         plot(basis$polygons.xy[[1]], type = 'l', col = col_boundary, main = main_txt)
         points(obj$Basis$call.info$Call_ARGS$xy.dat,pch=19,cex = 0.25)
       } else {
-        stop("basis$polygons.xy[[1]] is not available for plotting the boundary.")
+        stop(
+          "`basis$polygons.xy[[1]]` is not available for plotting the boundary.",
+          call. = FALSE
+        )
       }
 
       # A) Plot alternative lines for polygons of this rank and collect endpoints

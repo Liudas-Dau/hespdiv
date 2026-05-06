@@ -4,11 +4,11 @@
 #' corresponds to a chosen column from the "poly.stats" data frame.
 #'
 #' @param obj An object of the hespdiv class
-#' @param height A character vector with a default value of 'mean'. Which
-#' information from the "poly.stats" data frame do you want to encode as the
-#' height of the polygons? Options:
-#' "mean", "sd", "best", "z.score", "str.best", "str.z.score","rank". Multiple
-#' values are allowed.
+#' @param height A character vector with default value \code{"mean"}. Determines
+#'   which information from the \code{poly.stats} data frame is encoded as the
+#'   height of the polygons. Options are \code{"mean"}, \code{"sd"},
+#'   \code{"best"}, \code{"z.score"}, \code{"str.best"},
+#'   \code{"str.z.score"}, and \code{"rank"}. Multiple values are allowed.
 #' @param color.seed An integer that controls the colors of the polygons. Change
 #' it to a different number if you want to get a different set of colors.
 #' @param lines A Boolean value. Do you want split-lines to be displayed over
@@ -20,20 +20,21 @@
 #' @return No return value. Called for the side effect of producing a 3D plot
 #'   using the \pkg{rgl} graphics engine.
 #' @details
-#' The function opens an rgl device for each column selected from the 'poly.stats'
-#' data frame.
+#' The function opens an \pkg{rgl} device for each selected column of the
+#' \code{poly.stats} data frame.
 #'
-#' Visualizing the column values of "poly.stats" as polygon height can provide
-#' insight into the spatial heterogeneity of the analyzed data and its spatial
-#' hierarchical structure.
+#' Visualizing values from \code{poly.stats} as polygon height can provide
+#' insight into spatial heterogeneity in the analyzed data and its hierarchical
+#' spatial structure.
 #'
-#' Additionally, the 'height = rank' option provides a more intuitive way to
-#' understand the location of each polygon compared to the poly_scheme function.
+#' The \code{height = "rank"} option provides a more intuitive way to understand
+#' the position of each polygon in the spatial hierarchy than
+#' \code{poly_scheme()}.
 #'
-#' As polygons of higher rank are displayed on top of the lower rank polygons,
-#' a higher rank polygon might obscure the view. For this reason, the
-#' \code{polypop(obj,height)} function with the same arguments can be used to
-#' interactively select unwanted polygons and remove them from a plot.
+#' Because higher-rank polygons are displayed above lower-rank polygons, they may
+#' obscure the view. For this reason, \code{polypop(obj, height)} can be used
+#' with the same arguments to interactively select unwanted polygons and remove
+#' them from the actives plot.
 #' @importFrom rgl open3d plot3d lines3d polygon3d persp3d points3d text3d
 #' @importFrom pracma poly_center
 #' @family HespDiv visualization options

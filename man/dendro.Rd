@@ -46,9 +46,9 @@ If you want to transform similarity to difference externally, before applying de
 }
 \examples{
 scheme <- poly_scheme(example_hespdiv)
-# spatial visualization of polygons:
+# notice the colors in used in scheme:
 scheme
-# dendrogramic visualization of polygons, using colors from 'scheme':
+# Dendrogram visualization of polygons, using colors from scheme
 dendro(example_hespdiv, poly.scheme = scheme, arrange = FALSE, grob = FALSE)
 }
 \seealso{

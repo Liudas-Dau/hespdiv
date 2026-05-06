@@ -62,20 +62,31 @@ plot_hsa <- function(obj, alpha = 0.6, split.col = "gray20", pnts.col = NULL,
   oldpar <- graphics::par(no.readonly = TRUE)
   on.exit(graphics::par(oldpar), add = TRUE)
   if (!inherits(obj,"hsa"))
-    stop("'obj' should be of class \"hsa\" (output of 'hsa' or 'hsa_detailed' functions).")
+    stop(
+      "`obj` must be an `hsa` object produced by `hsa()` or `hsa_detailed()`.",
+      call. = FALSE
+    )
   if ( length(pol.col) > 1){
     if ( length(pol.col) != length(subs)){
-      stop(paste0("Length of colors for study area polygons is not equal to",
-                  "the length of subdivisions"))
+      stop(
+        "Length of colors for study area polygons is not equal to the number of subdivisions.",
+        call. = FALSE
+      )
     }}
   if (newplot & !seperated & type == 3) {
-    stop("Change seperated to TRUE or newplot to FALSE to make all plots visible.")
+    stop(
+      "Change `seperated` to TRUE or `newplot` to FALSE to make all plots visible.",
+      call. = FALSE
+    )
   }
   # Combine the basal and alternative subdivisions
   subs <- c(list(obj$Basis),lapply(obj$Alternatives, function(o) o[[1]]))
   # Check if all alternative subdivisions are NULL
   if (all(il <- sapply(subs[-1], is.null) | sapply(subs[-1],class) != "hespdiv"))
-    stop("All alternative subdivisions are NULL or contained errors/warnings")
+    stop(
+      "All alternative subdivisions are NULL or contain errors or warnings.",
+      call. = FALSE
+    )
   # Remove NULL subdivisions or subdivisions with
   if (any(il))
     subs <- subs[-(which(il) + 1)]
@@ -122,8 +133,11 @@ plot_hsa <- function(obj, alpha = 0.6, split.col = "gray20", pnts.col = NULL,
     if (is.null(split.col.seed)){
     if (length(split.col) < all_ranks[2] ){
       if (length(split.col) != 1)
-        warning(paste0("More split ranks than provided split.col.",
-                     "\nGenerating random colors"))
+        warning(
+          "More split ranks than provided by `split.col`.\n",
+          "Generating random colors.",
+          call. = FALSE
+        )
       split.col <- .generate_cols(all_ranks[2], sample(1:9999,1))
     }} else {
       split.col <- .generate_cols(all_ranks[2], split.col.seed)

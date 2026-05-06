@@ -54,12 +54,18 @@
 .insert_filter_Rows <- function(df, newrows, r) {
   df <- rbind(df,newrows)
   df <- df[order(c(1:(nrow(df)-nrow(newrows)),r+0.5)),]
-  if (dynGet(x = "x3",ifnotfound = stop("ERROR"),minframe = 1,
-             inherits = T) == 0) {
-    df = df[df$x >= 0,] } else {
-      df = df[df$x <= dynGet(x = "x3",ifnotfound = stop("ERROR"),
-                             minframe = 1,inherits = T),]
-    }
+  x3 <- dynGet(
+    x = "x3",
+    ifnotfound = stop("`x3` was not found in the calling environment.", call. = FALSE),
+    minframe = 1,
+    inherits = TRUE
+  )
+
+  if (x3 == 0) {
+    df <- df[df$x >= 0, ]
+  } else {
+    df <- df[df$x <= x3, ]
+  }
   row.names(df) <- 1:nrow(df)
   return(df)
 }

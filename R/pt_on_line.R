@@ -19,7 +19,7 @@
 #' @noRd
 .pt_on_line<-function(x1,x2,y1,y2,x3=NULL,y3=NULL){
   if (is.null(y3) & is.null(x3)){
-    stop("Provide either x3 or y3")
+    stop("Provide either `x3` or `y3`.", call. = FALSE)
   } else {
     if (!is.null(y3) & !is.null(x3)){
       message("Both y3 & x3 is provided, only x3 will be used. Returning a missing y coordinate: ")

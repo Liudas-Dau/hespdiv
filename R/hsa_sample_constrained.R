@@ -58,18 +58,25 @@ hsa_sample_constrained <- function(obj,
                                    workers = NULL) {
   # ---- Extract and Validate Basic Args ----
   if (!is.numeric(subsample_factor) || subsample_factor < 0 || subsample_factor > 1) {
-    stop("'subsample_factor' must be in the range (0, 1).")
+    stop(
+      "`subsample_factor` must be in the interval (0, 1].",
+      call. = FALSE
+    )
   }
   if (!inherits(obj, "hespdiv")) {
-    stop("'obj' must be of class 'hespdiv'.")
+    stop("`obj` must be of class `hespdiv.`", call. = FALSE)
   }
-  if (!is.numeric(n.runs) || n.runs < 1 || n.runs %% 1 || length(n.runs) != 1) stop("'n.runs' must be a positive integer.")
-  if (!is.numeric(chunk_size) || chunk_size < 1 || chunk_size %% 1 || length(chunk_size) != 1) stop("'chunks' must be a positive integer.")
+  if (!is.numeric(n.runs) || n.runs < 1 || n.runs %% 1 || length(n.runs) != 1)
+    stop("`n.runs` must be a positive integer.", call. = FALSE)
+  if (!is.numeric(chunk_size) || chunk_size < 1 || chunk_size %% 1 ||
+      length(chunk_size) != 1)
+    stop("`chunks` must be a positive integer.", call. = FALSE)
 
   # Extract call_args AFTER we confirm obj is a hespdiv
   call_args <- obj$call.info$Call_ARGS
   if (!call_args$same.n.split) {
-    stop("function currently works only when 'same.n.split' is TRUE.")
+    stop("This function currently works only when `same.n.split` is TRUE.",
+         call. = FALSE)
   }
 
   # ---- Extract Core Information ----
@@ -103,7 +110,8 @@ hsa_sample_constrained <- function(obj,
       load_prop <- 0.8
     }
     if (!is.numeric(load_prop) || load_prop <= 0 || load_prop > 1) {
-      stop("'load_prop' must be a numeric in (0,1].")
+      stop("`load_prop` must be a numeric value in the interval (0, 1].",
+           call. = FALSE)
     }
     safe_cores <- max(1, floor(num_cores * load_prop))
 
@@ -112,14 +120,14 @@ hsa_sample_constrained <- function(obj,
       RAM <- Inf
     } else {
       if (!is.numeric(RAM) || length(RAM) != 1 || RAM < 1) {
-        stop("'RAM' must be a positive number if not NULL.")
+        stop("`RAM` must be either NULL or a positive integer", call. = FALSE)
       }
     }
 
     safe_workers <- max(1, min(safe_cores, RAM))
   } else {
     if (!is.numeric(workers) || workers < 1) {
-      stop("'workers' must be a positive number of workers.")
+      stop("`workers` must be a positive integer.", call. = FALSE)
     }
     safe_workers <- workers
   }

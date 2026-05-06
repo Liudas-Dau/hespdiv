@@ -58,14 +58,19 @@ nulltest <- function(obj, n = 999, maintain.n  = TRUE, shuffle.scope = "within",
   shuffle.type <- .arg_check(name = "shuffle.type", given = shuffle.type,
                               NAMES = c("localities", "occurrences"))
 
-  if (isTRUE(maintain.n) && !(identical(shuffle.scope, "within") && identical(shuffle.type, "localities"))) {
-    warning("`maintain.n` is ignored unless shuffle.scope = 'within' and shuffle.type = 'localities'. Disabling it.")
+  if (isTRUE(maintain.n) && !(identical(shuffle.scope, "within") &&
+                              identical(shuffle.type, "localities"))) {
+    warning(
+      "`maintain.n` is ignored unless `shuffle.scope = \"within\"` and ",
+      "`shuffle.type = \"localities\"`. Disabling it.",
+      call. = FALSE
+    )
     maintain.n <- FALSE
   }
 
   # Ensure correct object type
   if (!inherits(obj, "hespdiv"))
-    stop("obj should have 'hespdiv' class.")
+    stop("`obj` must be a `hespdiv` object.", call. = FALSE)
 
   # Extract coordinates and data from object
   coords <- obj$call.info$Call_ARGS$xy.dat

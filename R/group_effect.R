@@ -86,13 +86,20 @@
 #' @export
 group_effect <- function(obj, group, perm.n = 999, maxdif = NULL, plot = TRUE, ...) {
 
-  if (!inherits(obj, "hespdiv")) stop("'obj' must be of class 'hespdiv'")
-  if (length(group) != nrow(obj$call.info$Call_ARGS$xy.dat)) {
-    stop("'group' length must match the number of rows in 'xy.dat'")
+  if (!inherits(obj, "hespdiv")) {
+    stop("`obj` must be a `hespdiv` object.", call. = FALSE)
   }
+
+  if (length(group) != nrow(obj$call.info$Call_ARGS$xy.dat)) {
+    stop(
+      "`group` length must match the number of rows in `xy.dat`.",
+      call. = FALSE
+    )
+  }
+
   if (length(perm.n) != 1L || !is.finite(perm.n) || perm.n < 1 ||
       perm.n %% 1 != 0) {
-    stop("'perm.n' must be a positive integer")
+    stop("`perm.n` must be a positive integer.", call. = FALSE)
   }
   perm.n <- as.integer(perm.n)
 
@@ -101,7 +108,7 @@ group_effect <- function(obj, group, perm.n = 999, maxdif = NULL, plot = TRUE, .
     supported_metrics <- c("pielou", "morisita", "sorensen", "horn.morisita")
     if (obj$call.info$METHOD$metric %in% supported_metrics) {
       if (obj$call.info$METHOD$metric == "pielou") {maxdif <- 1} else {maxdif <- 0}
-    } else stop("Provide 'maxdif' value when using a custom method")
+    } else stop("Argument `maxdif` must be provided when using a custom method.", call. = FALSE)
   }
 
   baseline <- obj$split.stats$performance

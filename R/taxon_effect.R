@@ -43,7 +43,8 @@
 #' @family functions for hespdiv results post-processing
 #' @export
 taxon_effect <- function(obj) {
-  if (!inherits(obj, "hespdiv")) stop("'obj' must be of class 'hespdiv'")
+  if (!inherits(obj, "hespdiv"))
+    stop("`obj` must be a `hespdiv` object.", call. = FALSE)
 
   dat_in_obj <- obj$call.info$Call_ARGS$data
   xy_in_obj  <- obj$call.info$Call_ARGS$xy.dat

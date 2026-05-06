@@ -65,15 +65,16 @@ hespdiv call.}
 \item{images.path}{A path to an existing directory where PNG images of the
 displayed results will be saved. If NULL (default), images won't be saved.}
 
-\item{paired}{Boolean. Are the provided hespdiv arguments 'data' and 'xy.dat'
-paired?}
+\item{paired}{Logical. Are the provided \code{data} and \code{xy.dat}
+arguments paired?}
 
 \item{pnts.col}{The value of the "pnts.col" argument in each hespdiv call.}
 
 \item{data}{A list containing matrices, time-series, lists, data frames,
 vectors, or other data structures.}
 
-\item{xy.dat, study.pol}{Lists of data frames with two columns: 'x' and 'y'.}
+\item{xy.dat, study.pol}{Lists of coordinate data frames. Each data frame
+must contain two columns named \code{x} and \code{y}.}
 
 \item{same.n.split, c.fast.optim, use.chull, c.splits}{Lists with a Boolean value (if used, should be different from the
 one in the basal hespdiv call).}
@@ -88,17 +89,18 @@ one in the basal hespdiv call).}
 
 \item{generalize.f, compare.f}{Lists of functions.}
 
-\item{maximize}{A list of logical values of the same length as 'compare.f' list.}
+\item{maximize}{A list of logical values with the same length as the
+\code{compare.f} list.}
 
 \item{method}{A list of character values.}
 }
 \value{
-A 'hsa' class object. It is a list of two items:
+An object of class \code{hsa}. The object is a list with two elements:
 \describe{
-\item{\bold{Alternatives:}}{ A list containing the produced
-alternative hespdiv objects. }
-\item{\bold{Basis}}{ The basal hespdiv object whose call was modified to produce
-alternative subdivisions.}
+\item{\code{Alternatives}}{A list containing the alternative
+\code{hespdiv} objects produced by the sensitivity analysis.}
+\item{\code{Basis}}{The original \code{hespdiv} object whose call was
+modified to produce the alternative subdivisions.}
 }
 }
 \description{

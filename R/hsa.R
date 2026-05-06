@@ -288,7 +288,7 @@ hsa <- function(obj,
          c.corr.term=v23, use.chull=v24, study.pol=v25, pnts.col=v26)
   }
 
-  if (!inherits(obj, "hespdiv")) stop("obj should have 'hespdiv' class.")
+  if (!inherits(obj, "hespdiv")) stop("`obj` must be a `hespdiv` object.", call. = FALSE)
 
   .check_hsa_arg_structures(
     data = data,
@@ -321,18 +321,21 @@ hsa <- function(obj,
   if (is.null(.run.id)) .run.id <- -1
 
   if (!is.numeric(n.runs) || n.runs < 1 || n.runs %% 1 || length(n.runs) != 1)
-    stop("'n.runs' must be a positive integer.")
+    stop("`n.runs` must be a positive integer.", call. = FALSE)
   if (!is.numeric(chunk_size) || chunk_size < 1 || chunk_size %% 1 || length(chunk_size) != 1)
-    stop("'chunk_size' must be a positive integer.")
+    stop("`chunk_size` must be a positive integer.", call. = FALSE)
 
-  if (!is.null(images.path) && !display) stop("Attemptig to save empty images.")
+  if (!is.null(images.path) && !display) stop("Attempting to save empty images.", call. = FALSE)
   if (!is.null(images.path) && !dir.exists(images.path))
-    stop("'images.path' must be an existing directory.")
+    stop("`images.path` must be an existing directory.", call. = FALSE)
 
   # ---  pairing checks ---
   if (data.paired) {
     if (length(data) != length(xy.dat)) {
-      stop("If 'data' is paired with 'xy.dat', then their lists must be of equal length.")
+      stop(
+        "When `data` and `xy.dat` are paired, their lists must have the same length.",
+        call. = FALSE
+      )
     }
   } else {
     if (!is.null(xy.dat)) xy.len <- length(xy.dat)
@@ -406,7 +409,11 @@ hsa <- function(obj,
   pacific.region <- obj$call.info$Call_ARGS$pacific.region
 
   if (any(!use.chull) & is.null(study.pol) & is.null(obj$call$Call_ARGS$study.pol)) {
-    stop("If any value of 'use.chull' is FALSE, 'study.pol' must be provided when missing in obj.")
+    stop(
+      "`study.pol` must be provided when it is missing in `obj` and any value of ",
+      "`use.chull` is FALSE.",
+      call. = FALSE
+    )
   }
 
   m.compete <- ifelse(is.custom & is.method, TRUE, FALSE)
@@ -456,19 +463,19 @@ hsa <- function(obj,
     num_cores <- future::availableCores()
     if (is.null(load_prop)) load_prop <- 0.8
     if (!is.numeric(load_prop) || load_prop <= 0 || load_prop > 1)
-      stop("'load_prop' must be a numeric in (0,1].")
+      stop("`load_prop` must be a numeric value in the interval (0, 1].", call. = FALSE)
     safe_cores <- max(1, floor(num_cores * load_prop))
 
     if (is.null(RAM)) {
       RAM <- Inf
     } else {
       if (!is.numeric(RAM) || length(RAM) != 1 || RAM < 1)
-        stop("'RAM' must be a positive number if not NULL.")
+        stop("`RAM` must be a positive integer if not NULL.", call. = FALSE)
     }
     safe_workers <- max(1, min(safe_cores, RAM))
   } else {
     if (!is.numeric(workers) || length(workers) != 1 || workers < 1)
-      stop("'workers' must be a positive number.")
+      stop("`workers` must be a positive integer.", call. = FALSE)
     safe_workers <- workers
   }
   message("Using ", safe_workers, " parallel workers.")
@@ -520,8 +527,10 @@ check.warns <- function(hes.res, .message = TRUE){
     ids <- ids[which(unlist(lapply(hes.res[ids],function(o) names(o)[2] ==
                                      "warning")))]
     if (length(ids) > 0) {
-      message(paste0("Warnings were detected in calls: ",
-                     paste(as.character(ids),collapse = ", ")))
+      message(
+        "Warnings were detected in calls: ",
+        paste(as.character(ids), collapse = ", ")
+      )
     } else {
       message("No warnings detected.")
       return(NULL)
@@ -541,8 +550,10 @@ check.errs <- function(hes.res, .message = TRUE){
     ids <- ids[which(unlist(lapply(hes.res[ids],function(o) names(o)[2] ==
                                      "error")))]
     if (length(ids) > 0) {
-      message(paste0("Errors were detected in calls: ",
-                     paste(as.character(ids),collapse = ", ")))
+      message(
+        "Errors were detected in calls: ",
+        paste(as.character(ids), collapse = ", ")
+      )
     } else {
       message("No errors detected.")
       return(NULL)
@@ -585,13 +596,15 @@ check.errs <- function(hes.res, .message = TRUE){
     maximize = NULL,
     method = NULL
 ) {
-  .bad <- function(name, msg) stop(paste0("'", name, "': ", msg), call. = FALSE)
+  .bad <- function(name, msg) {
+    stop(paste0("`", name, "`: ", msg), call. = FALSE)
+  }
 
   .is_intish <- function(x) is.numeric(x) && all(is.finite(x)) && all(x %% 1 == 0)
 
   .chk_list <- function(x, name) {
     if (is.null(x)) return(invisible(TRUE))
-    if (!is.list(x)) .bad(name, "must be a list (or NULL).")
+    if (!is.list(x)) .bad(name, "must be a list or NULL.")
     invisible(TRUE)
   }
 
@@ -605,13 +618,13 @@ check.errs <- function(hes.res, .message = TRUE){
       integer   = .is_intish(x),
       character = is.character(x)
     )
-    if (!ok) .bad(name, paste0("must be a ", type, " vector (or NULL)."))
+    if (!ok) .bad(name, paste0("must be a ", type, " vector or NULL."))
     invisible(TRUE)
   }
 
   .chk_range <- function(x, name, lo, hi) {
     if (is.null(x)) return(invisible(TRUE))
-    if (!is.numeric(x)) .bad(name, "must be a numeric vector (or NULL).")
+    if (!is.numeric(x)) .bad(name, "must be a numeric vector or NULL.")
     if (any(x < lo | x > hi, na.rm = TRUE)) {
       .bad(name, paste0("values must be in [", lo, ", ", hi, "]."))
     }
@@ -620,20 +633,31 @@ check.errs <- function(hes.res, .message = TRUE){
 
   .chk_xy_list <- function(x, name) {
     if (is.null(x)) return(invisible(TRUE))
-    if (!is.list(x)) .bad(name, "must be a list of data.frames (or NULL).")
+    if (!is.list(x)) .bad(name, "must be a list of data.frames or NULL.")
     for (i in seq_along(x)) {
       d <- x[[i]]
-      if (!is.data.frame(d)) .bad(name, paste0("element ", i, " must be a data.frame."))
-      if (ncol(d) != 2) .bad(name, paste0("element ", i, " must have exactly 2 columns: x and y."))
-      if (!all(c("x","y") %in% names(d))) .bad(name, paste0("element ", i, " must have columns named 'x' and 'y'."))
-      if (!is.numeric(d[["x"]]) || !is.numeric(d[["y"]])) .bad(name, paste0("element ", i, " columns 'x' and 'y' must be numeric."))
+      if (!is.data.frame(d)) {
+        .bad(name, paste0("element ", i, " must be a data frame."))
+      }
+
+      if (ncol(d) != 2) {
+        .bad(name, paste0("element ", i, " must have exactly two columns: `x` and `y`."))
+      }
+
+      if (!all(c("x", "y") %in% names(d))) {
+        .bad(name, paste0("element ", i, " must have columns named `x` and `y`."))
+      }
+
+      if (!is.numeric(d[["x"]]) || !is.numeric(d[["y"]])) {
+        .bad(name, paste0("element ", i, " columns `x` and `y` must be numeric."))
+      }
     }
     invisible(TRUE)
   }
 
   .chk_fun_list <- function(x, name) {
     if (is.null(x)) return(invisible(TRUE))
-    if (!is.list(x)) .bad(name, "must be a list of functions (or NULL).")
+    if (!is.list(x)) .bad(name, "must be a list of functions or NULL.")
     if (any(!vapply(x, is.function, logical(1)))) .bad(name, "must contain only functions.")
     invisible(TRUE)
   }
@@ -680,7 +704,14 @@ check.errs <- function(hes.res, .message = TRUE){
   # maximize: logical vector; if compare.f also provided, lengths must match
   .chk_vec_type(maximize, "maximize", "logical")
   if (!is.null(maximize) && !is.null(compare.f) && length(maximize) != length(compare.f)) {
-    .bad("maximize", paste0("must have the same length as 'compare.f' (", length(compare.f), ")."))
+    .bad(
+      "maximize",
+      paste0(
+        "must have the same length as `compare.f` (",
+        length(compare.f),
+        ")."
+      )
+    )
   }
 
   # method: character vector

@@ -1,7 +1,7 @@
 #' Check whether points fall inside a polygon
 #'
-#' This function is identical replica of point.in.poly function
-#' from 'sp' package
+#' This function is an identical replica of the \code{point.in.poly()} function
+#' from the \pkg{sp} package.
 #' @param point.x numeric vector of point x coordinates
 #' @param point.y numeric vector of point y coordinates
 #' @param pol.x numeric vector of polygon x coordinates

@@ -1,17 +1,21 @@
-#' Print the results of hespdiv object
+#' Print a hespdiv object
+#'
+#' @description
+#' Formats and prints the rounded \code{split.stats} data frame from a
+#' \code{hespdiv} object.
 #'
 #' @method print hespdiv
-#' @description  Function formats and prints the rounded split.stats data frame.
-#'  from "hespdiv" class R object.
-#' @param x A hespdiv class object.
-#' @param ... other arguments
-#' @return x
+#' @param x A \code{hespdiv} object.
+#' @param ... Additional arguments, currently ignored.
+#'
+#' @return Invisibly returns \code{x}.
+#'
 #' @author Liudas Daumantas
 #' @export
 print.hespdiv <- function(x, ...){
   dat <- x$split.stats
   if (!inherits(x,"hespdiv"))
-    stop("x should have 'hespdiv' class.")
+    stop("`x` must be a `hespdiv` object.", call. = FALSE)
   if (x$call.info$METHOD$method.type == "custom"){
     type <- "Custom"
     cat(paste0("\n","Information about the split-lines:", "\n\n",type,

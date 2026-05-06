@@ -19,8 +19,8 @@
 #' @param n.combs An integer controlling how many argument value combinations
 #' should be randomly selected from all possible combinations when comb.type
 #' is "random".
-#' @param paired Boolean. Are the provided hespdiv arguments 'data' and 'xy.dat'
-#' paired?
+#' @param paired Logical. Are the provided \code{data} and \code{xy.dat}
+#'   arguments paired?
 #' @param display A Boolean value. The value of the "display" argument in each
 #' hespdiv call.
 #' @param images.path  A path to an existing directory where PNG images of the
@@ -28,7 +28,8 @@
 #' @param pnts.col The value of the "pnts.col" argument in each hespdiv call.
 #' @param data A list containing matrices, time-series, lists, data frames,
 #' vectors, or other data structures.
-#' @param xy.dat,study.pol Lists of data frames with two columns: 'x' and 'y'.
+#' @param xy.dat,study.pol Lists of coordinate data frames. Each data frame
+#'   must contain two columns named \code{x} and \code{y}.
 #' @param same.n.split,c.fast.optim,use.chull,c.splits Lists with a Boolean value (if used, should be different from the
 #' one in the basal hespdiv call).
 #' @param n.split.pts,c.max.iter.no,N.crit,N.loc.crit,c.X.knots,c.Y.knots Lists with integer values.
@@ -36,15 +37,17 @@
 #' @param Q.crit,c.Q.crit,c.crit.improv Lists of numeric values.
 #' @param c.corr.term  A list of numeric values between 0.01 and 0.2.
 #' @param generalize.f,compare.f Lists of functions.
-#' @param maximize A list of logical values of the same length as 'compare.f' list.
+#' @param maximize A list of logical values with the same length as the
+#'   \code{compare.f} list.
 #' @param method A list of character values.
-#' @return A 'hsa' class object. It is a list of two items:
+#' @return
+#' An object of class \code{hsa}. The object is a list with two elements:
 #' \describe{
-#' \item{\bold{Alternatives:}}{ A list containing the produced
-#' alternative hespdiv objects. }
-#' \item{\bold{Basis}}{ The basal hespdiv object whose call was modified to produce
-#' alternative subdivisions.}
-#'   }
+#'   \item{\code{Alternatives}}{A list containing the alternative
+#'   \code{hespdiv} objects produced by the sensitivity analysis.}
+#'   \item{\code{Basis}}{The original \code{hespdiv} object whose call was
+#'   modified to produce the alternative subdivisions.}
+#' }
 #' @importFrom utils combn
 #' @importFrom grDevices dev.off png
 #' @details
@@ -147,47 +150,63 @@ hsa_detailed <- function(
   c.splits <- .to.list(c.splits)
   same.n.split <- .to.list(same.n.split)
   c.fast.optim <- .to.list(c.fast.optim)
-  if (is.null(display))
-    display <- FALSE
-  if (!is.null(images.path)){
-    if (!display)
-      stop("If you wish to save images, then set 'display' = TRUE", call. = FALSE)
-  }
-  if (obj$call.info$METHOD$method.type == "preset"){
-    obj$call.info$Call_ARGS[which(names(obj$call.info$Call_ARGS)
-                                  == "generalize.f")] <- list(NULL)
-    obj$call.info$Call_ARGS[which(names(obj$call.info$Call_ARGS)
-                                  == "compare.f")] <- list(NULL)
-  }
-  if (comb.args & is.null(comb.type)){
-    comb.type <- "all"
-  }
-  if (!comb.args & !is.null(comb.type)){
-    stop(paste0("Check 'comb.args' and 'comb.type' arguments.",
-                "\nArgument 'comb.args' is FALSE, but 'comb.type' is not NULL."
-    ))
-  }
-  if (comb.args) {
-    comb.type <- .arg_check(name = "comb.type", given = comb.type, NAMES =
-                              c("all", "random", "handpicked"))
-    if (comb.type == "random" & (is.null(n.combs) |
-                                 length(n.combs) > 1)) {
-      stop(paste0("Check 'n.combs' and 'n.combs' arguments.",
-                  "\nWhen 'comb.type' is set to 'random'",
-                  ", 'n.combs' should be a numeric integer."))
-
+  if (!is.null(images.path)) {
+    if (!display) {
+      stop("If you wish to save images, set `display = TRUE`.", call. = FALSE)
     }
   }
-  if (!is.null(n.combs)){
-    if (!comb.args)
-      stop(paste0("Check 'comb.args' and 'n.combs' arguments.",
-                  "\nArgument 'comb.args' is FALSE, but 'n.combs' is not NULL."
-      ))
-    if (comb.type != "random")
-      stop(paste0("Check 'comb.type' and 'n.combs' arguments.",
-                  "\nIf 'n.combs' is not NULL, 'comb.type' should be set to",
-                  " 'random'."
-      ))
+
+  if (obj$call.info$METHOD$method.type == "preset") {
+    obj$call.info$Call_ARGS[which(names(obj$call.info$Call_ARGS) ==
+                                    "generalize.f")] <- list(NULL)
+    obj$call.info$Call_ARGS[which(names(obj$call.info$Call_ARGS) ==
+                                    "compare.f")] <- list(NULL)
+  }
+
+  if (comb.args && is.null(comb.type)) {
+    comb.type <- "all"
+  }
+
+  if (!comb.args && !is.null(comb.type)) {
+    stop(
+      "Check `comb.args` and `comb.type` arguments.\n",
+      "`comb.args` is FALSE, but `comb.type` is not NULL.",
+      call. = FALSE
+    )
+  }
+
+  if (comb.args) {
+    comb.type <- .arg_check(
+      name = "comb.type",
+      given = comb.type,
+      NAMES = c("all", "random", "handpicked")
+    )
+
+    if (comb.type == "random" && (is.null(n.combs) || length(n.combs) > 1)) {
+      stop(
+        "Check `n.combs`.\n",
+        "When `comb.type = \"random\"`, `n.combs` should be a single numeric integer.",
+        call. = FALSE
+      )
+    }
+  }
+
+  if (!is.null(n.combs)) {
+    if (!comb.args) {
+      stop(
+        "Check `comb.args` and `n.combs` arguments.\n",
+        "`comb.args` is FALSE, but `n.combs` is not NULL.",
+        call. = FALSE
+      )
+    }
+
+    if (comb.type != "random") {
+      stop(
+        "Check `comb.type` and `n.combs` arguments.\n",
+        "If `n.combs` is not NULL, `comb.type` should be set to \"random\".",
+        call. = FALSE
+      )
+    }
   }
 
   prov.args.names <- ls()[!ls() %in% c("obj", "comb.args","pick.n.args","paired",
@@ -196,16 +215,23 @@ hsa_detailed <- function(
   c.pars <- any(c(!is.null(c.Q.crit),!is.null(c.crit.improv),!is.null(c.X.knots),
                   !is.null(c.Y.knots),!is.null(c.max.iter.no),!is.null(c.fast.optim),
                   !is.null(c.corr.term)))
-  if (is.null(c.splits) & !obj$call.info$Call_ARGS$c.splits & c.pars){
-    stop(paste0("You provide curve generation arguments (starting with 'c.'), ",
-                "but 'c.splits' in the base hespdiv object is FALSE and ",
-                "you do not provide its alternative value",
-                " (c.splits = list(TRUE))."))
+  if (is.null(c.splits) && !obj$call.info$Call_ARGS$c.splits && c.pars) {
+    stop(
+      "Curve-generation arguments starting with `c.` were provided, but ",
+      "`c.splits` is FALSE in the base `hespdiv` object and no alternative ",
+      "value was provided. Use `c.splits = list(TRUE)`.",
+      call. = FALSE
+    )
   }
-  prov.args.l <- sapply(prov.args.names,get,environment())
-  ind <- which(!sapply(prov.args.l,is.null))
-  if(length(ind) == 0) {
-    stop("All provided hespdiv arguments for sensitivity analysis are NULL")
+
+  prov.args.l <- sapply(prov.args.names, get, environment())
+  ind <- which(!sapply(prov.args.l, is.null))
+
+  if (length(ind) == 0) {
+    stop(
+      "All provided `hespdiv` arguments for sensitivity analysis are NULL.",
+      call. = FALSE
+    )
   }
 
   hes.names <- (names(obj$call.info$Call_ARGS)[
@@ -215,23 +241,24 @@ hsa_detailed <- function(
 
   if ("data" %in% hes.names | "xy.dat" %in% hes.names){
 
-    if (is.null(paired) & "data" %in% hes.names & "xy.dat" %in% hes.names){
-      stop(paste0("Argument 'paired' is NULL, but 'data' and 'xy.dat' are",
-                  " provided. \nPlease set 'paired' to either FALSE or TRUE."))
+    if (is.null(paired) && "data" %in% hes.names && "xy.dat" %in% hes.names) {
+      stop(
+        "`paired` is NULL, but both `data` and `xy.dat` were provided.\n",
+        "Please set `paired` to either TRUE or FALSE.",
+        call. = FALSE
+      )
     }
     if ("data" %in% hes.names){
-      if (any(!unlist(lapply(lapply(hes.mods[["data"]],class),identical,
-                             class(obj$call.info$Call_ARGS$data)))) |
-          any(!unlist(lapply(lapply(hes.mods[["data"]],mode),identical,
-                             mode(obj$call.info$Call_ARGS$data))))) {
-        message(paste0("Class or mode of the provided 'data' is different from",
-                       " 'data' in 'obj'.",
-                       " \nAre you sure you wish to continue? \nAnswer Y / N."))
-        answer <- readline(prompt = "")
-        answer <- .answer_check(given = answer,NAMES = c("Yes", "No"))
-        if (answer == 'No'){
-          return(NULL)
-        }
+      if (
+        any(!unlist(lapply(lapply(hes.mods[["data"]], class), identical,
+                           class(obj$call.info$Call_ARGS$data)))) ||
+        any(!unlist(lapply(lapply(hes.mods[["data"]], mode), identical,
+                           mode(obj$call.info$Call_ARGS$data))))
+      ) {
+        warning(
+          "Class or mode of the provided `data` differs from `data` in `obj`.",
+          call. = FALSE
+        )
       }
       dat_lens <- unlist(lapply(hes.mods[["data"]],function(o){
         if (is.data.frame(o) | is.matrix(o)){
@@ -242,63 +269,97 @@ hsa_detailed <- function(
     if ("xy.dat" %in% hes.names){
       xy_lens <- unlist(lapply(hes.mods[["xy.dat"]], nrow))
     }
-    if (paired){
-      if (!("data" %in% hes.names & "xy.dat" %in% hes.names)){
-        stop("Argument 'paired' = TRUE, but 'data' or 'xy.dat' is not provided.")
+    if (paired) {
+      if (!("data" %in% hes.names && "xy.dat" %in% hes.names)) {
+        stop(
+          "`paired = TRUE`, but `data` or `xy.dat` was not provided.",
+          call. = FALSE
+        )
       }
-      if (length(hes.mods[["data"]]) != length(hes.mods[["xy.dat"]])){
-        stop(paste0("Argument 'paired' = TRUE, but 'data' and 'xy.dat' are not",
-                    " of the same lengths"))
+
+      if (length(hes.mods[["data"]]) != length(hes.mods[["xy.dat"]])) {
+        stop(
+          "`paired = TRUE`, but `data` and `xy.dat` do not have the same length.",
+          call. = FALSE
+        )
       }
-      if(!all(dat_lens == xy_lens)){
-        stop(paste0("Argument 'paired' = TRUE, but some pairs of 'data' and",
-                    " 'xy.dat' have different number of observations"))
+
+      if (!all(dat_lens == xy_lens)) {
+        stop(
+          "`paired = TRUE`, but some paired `data` and `xy.dat` elements have ",
+          "different numbers of observations.",
+          call. = FALSE
+        )
       }
 
     } else {
       if ("data" %in% hes.names) {
-        if (!all(dat_lens == nrow(obj$call.info$Call_ARGS$xy.dat))){
-          stop(paste0("Length of some elements of the provided 'data' is not the",
-                      " same as the number of coordinates in 'obj'."))
+        if (!all(dat_lens == nrow(obj$call.info$Call_ARGS$xy.dat))) {
+          stop(
+            "Some elements of the provided `data` do not have the same length as ",
+            "the number of coordinates in `obj`.",
+            call. = FALSE
+          )
         }
       }
-      if ("xy.dat" %in% hes.names){
-        if (!all(xy_lens == nrow(obj$call.info$Call_ARGS$xy.dat))){
-          stop(paste0("Length of some elements of the provided 'xy.dat' is not the",
-                      " same as the number of data points in 'obj'."))
+
+      if ("xy.dat" %in% hes.names) {
+        if (!all(xy_lens == nrow(obj$call.info$Call_ARGS$xy.dat))) {
+          stop(
+            "Some elements of the provided `xy.dat` do not have the same number ",
+            "of rows as the coordinate data in `obj`.",
+            call. = FALSE
+          )
         }
       }
     }
   } else{
 
-    if (!is.null(paired)){
-      stop(paste0("Argument 'paired' is not NULL, but both 'data' and 'xy.dat'",
-                  " were not provided. \nPlease check the input."))
+    if (!is.null(paired)) {
+      stop(
+        "`paired` should only be provided when both `data` and `xy.dat` are provided.",
+        call. = FALSE
+      )
     }
 
   }
 
-  if (!all(unlist(lapply(hes.mods, is.list)) &
-           unlist(lapply(hes.mods, class)) == "list" )){
-    stop("Arguments provided for hespdiv sensitivity analysis should put into lists.")
+  if (!all(unlist(lapply(hes.mods, is.list)) & unlist(lapply(hes.mods, class)) == "list" )){
+    stop(
+      "Arguments provided for `hespdiv` sensitivity analysis should be lists.",
+      call. = FALSE
+    )
   }
-  if ("study.pol" %in% hes.names){
 
-    if ("study.pol" %in% hes.names & obj$call.info$Call_ARGS$use.chull &
-        !"use.chull" %in% hes.names){
-      stop(paste0("If 'use.chull' = TRUE, changes in 'study.pol' can not change",
-                  " the subdivision results.","\nIf you want to test the impact of",
-                  "'study.pol on subdivisions, please provide 'use.chull' = FALSE."))
+  if ("study.pol" %in% hes.names) {
+
+    if (obj$call.info$Call_ARGS$use.chull &&
+        !"use.chull" %in% hes.names) {
+      stop(
+        "If `use.chull = TRUE`, changes in `study.pol` cannot change the ",
+        "subdivision results.\n",
+        "If you want to test the impact of `study.pol` on subdivisions, ",
+        "provide `use.chull = list(FALSE)`.",
+        call. = FALSE
+      )
     }
+
     if (any(unlist(lapply(hes.mods[["study.pol"]], is.null)))){
-      stop(paste0('"study.pol = list(NULL, ...)" is invalid, since NULL polygon',
-                  " values cannot change the results."))
+      stop(
+        "`study.pol = list(NULL, ...)` is invalid because NULL polygon values ",
+        "cannot change the results.",
+        call. = FALSE
+      )
     }
   }
-  if ("method" %in% hes.names){
-    hes.mods[["method"]] <- lapply(hes.mods[["method"]],.arg_check,name =
-                                     "metric", NAMES = names(
-                                       .get_methods()[['biozonation']]))
+
+  if ("method" %in% hes.names) {
+    hes.mods[["method"]] <- lapply(
+      hes.mods[["method"]],
+      .arg_check,
+      name = "metric",
+      NAMES = names(.get_methods()[["biozonation"]])
+    )
   }
   if (is.null(paired)){
     paired <- FALSE
@@ -308,35 +369,51 @@ hsa_detailed <- function(
     org_dataxy <- obj$call.info$Call_ARGS[c("data", "xy.dat")]
     names(org_dataxy) <- NULL
     given_dataxy <- vector(mode = "list", length = length(hes.mods[["data"]]))
-    for (i in seq(length(given_dataxy))) {
-      given_dataxy[[i]] <-  list(hes.mods[["data"]][[i]],
-                                 hes.mods[["xy.dat"]][[i]])
-      if (identical(given_dataxy[[i]],org_dataxy)){
-        stop(paste0("Element ",i," of the paired data and xy.data datasets ",
-                    "is not new (the same as in base hespdiv object)."))
+    for (i in seq_along(given_dataxy)) {
+      given_dataxy[[i]] <- list(
+        hes.mods[["data"]][[i]],
+        hes.mods[["xy.dat"]][[i]]
+      )
+
+      if (identical(given_dataxy[[i]], org_dataxy)) {
+        stop(
+          "Element ", i, " of the paired `data` and `xy.dat` datasets is not new ",
+          "(it is the same as in the base `hespdiv` object).",
+          call. = FALSE
+        )
       }
     }
-    if (any(duplicated(given_dataxy))){
-      stop(paste0("There are duplicated values in paired data and xy.data
-                  arguments. Remove duplicated pairs.'"))
+
+    if (any(duplicated(given_dataxy))) {
+      stop(
+        "There are duplicated paired `data` and `xy.dat` values. ",
+        "Remove duplicated pairs.",
+        call. = FALSE
+      )
     }
   }
 
+
   cond <- c("compare.f", "generalize.f", "maximize") %in% hes.names
-  if (any(cond) & !all(cond)){
-    stop(paste0("If you provide custom method, all required arguments",
-                ' must be provided:"compare.f", "generalize.f", "maximize".',
-                "\nMissing argument(s): ",
-                paste(c("compare.f", "generalize.f", "maximize")[!cond],
-                      collapse = ", ")))
+
+  if (any(cond) && !all(cond)) {
+    stop(
+      "If you provide a custom method, all required arguments must be provided: ",
+      "`compare.f`, `generalize.f`, and `maximize`.\n",
+      "Missing argument(s): ",
+      paste(c("compare.f", "generalize.f", "maximize")[!cond], collapse = ", "),
+      call. = FALSE
+    )
   }
   if (all(cond)){
     if (length(unique(c(
       length(hes.mods[["compare.f"]]),
       length(hes.mods[["generalize.f"]]),
       length(hes.mods[["maximize"]])))) != 1)
-      stop(paste0("Custom method arguments are paired, therefore, ",
-                  "they must have the same number of elements."))
+      stop(
+        "Custom method arguments are paired and must have the same number of elements.",
+        call. = FALSE
+      )
     org_method <-  obj$call.info$Call_ARGS[c("compare.f", "generalize.f",
                                              "maximize")]
     names(org_method) <- NULL
@@ -348,13 +425,19 @@ hsa_detailed <- function(
                                  hes.mods[["maximize"]][[i]])
       if (identical(given_methods[[i]], org_method) &
           !is.null(org_method[[1]])){
-        stop(paste0("Element ",i," of the paired custom method arguments ",
-                    "is not new (the same as in base hespdiv object)."))
+        stop(
+          "Element ", i, " of the paired custom method arguments is not new ",
+          "(it is the same as in the base `hespdiv` object).",
+          call. = FALSE
+        )
       }
     }
     if (any(duplicated(given_methods))){
-      stop(paste0("There are duplicated values in the paired custom method",
-                  " arguments. Remove duplicated custom methods.'"))
+      stop(
+        "There are duplicated values in the paired custom method arguments. ",
+        "Remove duplicated custom methods.",
+        call. = FALSE
+      )
     }
   }
 
@@ -370,22 +453,27 @@ hsa_detailed <- function(
             obj$call.info$Call_ARGS[[var.n]])
         )
       )) {
-        stop(paste0("All provided argument values for sensitivity analysis",
-                    " should be new.","\nAt least one value of the '", var.n,
-                    "' arg. is the same as in the basal hespdiv object \n"))
+        stop(
+          "All provided argument values for sensitivity analysis should be new.\n",
+          "At least one value of `", var.n, "` is the same as in the base `hespdiv` object.",
+          call. = FALSE
+        )
       }
       if(any(duplicated(hes.mods[[var.n]]))){
-        stop(paste0("There are duplicated values in provided '", var.n,
-                    "' argument. Remove duplicated values"))
+        stop(
+          "There are duplicated values in the provided `", var.n,
+          "` argument. Remove duplicated values.",
+          call. = FALSE
+        )
       }
     }
     if (!var.n %in% c("data", "xy.dat", "study.pol")){
       if(any(unlist(lapply(hes.mods[[var.n]], length)) != 1)){
-        stop(paste0(
-          "Some of '", var.n, "' elements have length >1, but should",
-          " be atomic."))
+        stop(
+          "Some elements of `", var.n, "` have length greater than 1, but should be atomic.",
+          call. = FALSE
+        )
       }
-
     }
 
 
@@ -473,8 +561,11 @@ hsa_detailed <- function(
       pick.n.args <- 1:N
     } else {
       if (max(pick.n.args) > N){
-        stop(paste0("Some provided values of 'pick.n.args' are higher then the",
-                    " possible maximum: ",N))
+        stop(
+          "Some provided values of `pick.n.args` are higher than the possible maximum: ",
+          N,
+          call. = FALSE
+        )
       }
     }
     arg.combs <- vector( mode = "list", length = length(pick.n.args))
@@ -487,12 +578,13 @@ hsa_detailed <- function(
     model.names <- unlist(lapply(arg.combs, apply, 1, paste, collapse = " & "))
     if (comb.type == "random") {
       if (n.combs >= length(model.names)){
-        message(paste0(
-          "The required number of argument"," combinations ('n.combs' = ",
-          n.combs,") \nis higher than the number of available argument",
-          " combinations (",length(model.names),").\n",
-          "Do you wish to procced and test all the available combinations?",
-          "\n Choose: Yes or No"))
+        message(
+          "The requested number of argument combinations (`n.combs = ", n.combs,
+          "`) is higher than the number of available argument combinations (",
+          length(model.names), ").\n",
+          "Do you wish to proceed and test all available combinations?\n",
+          "Choose: Yes or No"
+        )
         answer <- readline(prompt = "")
         answer <- .answer_check(given = answer,NAMES = c("Yes", "No"))
         if (answer == 'No'){
@@ -508,10 +600,12 @@ hsa_detailed <- function(
       if (comb.type == "handpicked"){
         message(paste(model.names, collapse = "\n"))
 
-        message(paste0(
-          "\nFrom the vector printed above choose argument combinations ",
-          "you would like to test. \nThen type a call that creates a vector of",
-          " their indeces (i.e. 'c(43:55, 67:68, 101)')"))
+        message(
+          "\nFrom the vector printed above, choose the argument combinations ",
+          "you would like to test.\n",
+          "Then type a call that creates a vector of their indices, ",
+          "e.g. c(43:55, 67:68, 101)."
+        )
         cond <- TRUE
         while(cond) {
           modinds <- readline(prompt = "")
@@ -527,25 +621,35 @@ hsa_detailed <- function(
                                 return(NULL)
                               })
           if (!is.null(modinds)){
-            if (is.numeric(modinds) & length(modinds)>0 & is.vector(modinds) &
-                !is.list(modinds) & all(!is.na(modinds)) &
-                all(!is.nan(modinds))){
-              selection <- tryCatch({model.names[modinds]},
-                                    error = function(cond) {
-                                      message("Use of provided indeces produced error.")
-                                      message(cond)
-                                      message("\nRetype the call.")
-                                      return(NULL)},
-                                    warning = function(cond) {
-                                      message("Use of provided indeces issued a warning.")
-                                      message(cond)
-                                      message("\nRetype the call.")
-                                      return(NULL)
-                                    }
+            if (
+              is.numeric(modinds) &&
+              length(modinds) > 0 &&
+              is.vector(modinds) &&
+              !is.list(modinds) &&
+              all(!is.na(modinds)) &&
+              all(!is.nan(modinds))
+            ) {
+              selection <- tryCatch(
+                {
+                  model.names[modinds]
+                },
+                error = function(cond) {
+                  message("Use of provided indices produced an error.")
+                  message(conditionMessage(cond))
+                  message("\nRetype the call.")
+                  NULL
+                },
+                warning = function(cond) {
+                  message("Use of provided indices issued a warning.")
+                  message(conditionMessage(cond))
+                  message("\nRetype the call.")
+                  NULL
+                }
               )
-              if (!is.null(selection)){
+
+              if (!is.null(selection)) {
                 if (any(is.nan(selection) | is.na(selection))) {
-                  message("Use of provided indeces produced NA or NaN.")
+                  message("Use of provided indices produced NA or NaN values.")
                   message(paste(selection, collapse = "\n"))
                   message("Retype the call.")
                 } else {
@@ -553,8 +657,10 @@ hsa_detailed <- function(
                 }
               }
             } else {
-              message("Call is invalid. The output is not a numeric integer ",
-                      "vector. Its values is: ")
+              message(
+                "Call is invalid. The output is not a numeric integer vector. ",
+                "Its values are:"
+              )
               message(paste(modinds, collapse = "\n"))
               message("Retype the call.")
             }
@@ -567,7 +673,7 @@ hsa_detailed <- function(
     }
   }
   model.names <- .clean_names(model.names, obj, hes.names, c.splits, c.pars)
-  message("Changes to be made in the basal hespdiv call: ")
+  message("Changes to be made in the base hespdiv call: ")
   message(paste(model.names, collapse = "\n"))
 
   l <- length(model.names)
@@ -575,8 +681,10 @@ hsa_detailed <- function(
   names(mods) <- model.names
 
   for (mod.id in 1:l){
-    message(paste0("Calling hespdiv alternative: [",mod.id,"] ",
-                   model.names[mod.id]))
+    message(
+      "Calling `hespdiv()` alternative: [", mod.id, "] ",
+      model.names[mod.id]
+    )
     filt.names <- unlist(
       strsplit(gsub("= | &", "",  model.names[mod.id]), split = " ",
                perl = TRUE))
@@ -656,7 +764,10 @@ hsa_detailed <- function(
       x <- unlist(x)
     }
     if (length(x) > 1){
-      stop("Alternative Boolean hespdiv arguments should only contain one value")
+      stop(
+        "Alternative Boolean `hespdiv` arguments should each contain only one value.",
+        call. = FALSE
+      )
     }
     as.list(x)
   }
@@ -704,8 +815,8 @@ hsa_detailed <- function(
   matched.i <- pmatch(tolower(given), tolower(NAMES))
   while(is.na(matched.i)){
     message("Invalid input: ", paste0('"', given,'".'),
-        paste0("\nPlease select viable option: "),
-        paste(NAMES,collapse = " or ",sep = "'"))
+            paste0("\nPlease select viable option: "),
+            paste(NAMES,collapse = " or ",sep = "'"))
     given <- readline(prompt = "")
     matched.i <- pmatch(tolower(given), tolower(NAMES))
   }

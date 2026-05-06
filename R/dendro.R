@@ -20,17 +20,20 @@
 #' @family HespDiv visualization options
 #' @examples
 #' scheme <- poly_scheme(example_hespdiv)
-#' # spatial visualization of polygons:
+#' # notice the colors in used in scheme:
 #' scheme
-#' # dendrogramic visualization of polygons, using colors from 'scheme':
+#' # Dendrogram visualization of polygons, using colors from scheme
 #' dendro(example_hespdiv, poly.scheme = scheme, arrange = FALSE, grob = FALSE)
 #' @export
 dendro <- function(obj, poly.scheme = NULL, color = 1, performance.col = "blue",
                    labels.col = 1, offset.factor = 1, arrange = TRUE,
                    grob = TRUE, label.size = 0.5){
   if (arrange & !grob) {
-    stop("Can only arrange polygon scheme and dendrogram in a single plot,
-         when dendrogram is grob.")
+    stop(
+      "Can only arrange the polygon scheme and dendrogram in a single plot when ",
+      "`grob = TRUE`.",
+      call. = FALSE
+    )
   }
 
   if (grob) {
@@ -85,7 +88,7 @@ dendro <- function(obj, poly.scheme = NULL, color = 1, performance.col = "blue",
     pols$color <- poly.scheme$layers[[4]]$aes_params$colour
   } else {
     if (is.null(color)){
-      stop("Either poly.scheme or color must be provided")
+      stop("Either `poly.scheme` or `color` must be provided.", call. = FALSE)
     }
     pols$color <- color
   }
