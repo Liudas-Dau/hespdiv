@@ -36,23 +36,23 @@ clusters using hespdiv sensitivity analysis results. It does so by
 calculating Jaccard similarities between the observations of basal
 subdivision clusters and the observations of alternative subdivision
 clusters. For each basal cluster, the function identifies the most similar
-('analog') cluster within each alternative subdivision. The stability of
+analog cluster within each alternative subdivision. The stability of
 each basal cluster can be assessed by examining the distribution of
-similarity values with their corresponding 'analog' clusters. If a highly
+similarity values with their corresponding analog clusters. If a highly
 similar cluster reappears in multiple alternative subdivisions, it
 indicates that the basal cluster is stable.
 }
 \details{
-If a basal subdivision cluster obtains a distribution of high similarity values,
-then it is considered a 'stable' and 'existing' cluster. On the other hand,
-low 'analog' cluster similarity values may signal that a basal cluster is an
-artifact of hespdiv computation.
+If a base subdivision cluster obtains a distribution of high similarity
+values, it is considered stable and existing. Low analog-cluster similarity
+values may indicate that a base cluster is an artifact of the
+\code{hespdiv()} computation.
 
 The more technical description of how \code{hsa_quant} works:
 \describe{
 \item{Obtaining alternative hespdiv clusters:}{ The function filters the \code{xy.dat} coordinates of the basal subdivision using all the polygons of alternative subdivisions, obtaining alternative hespdiv clusters.}
 \item{Quantifying Jaccard similarity:}{ The function measures the Jaccard overlap index between the observations of the basal subdivision clusters and the observations of the alternative clusters. }
-\item{Identification of 'analog' clusters and value assignments:}{ Each basal hespdiv cluster from each alternative subdivision is assigned the ID of the cluster that produced the maximum Jaccard similarity value, along with the corresponding similarity value.}
+\item{Identification of analog clusters and value assignments:}{ Each basal hespdiv cluster from each alternative subdivision is assigned the ID of the cluster that produced the maximum Jaccard similarity value, along with the corresponding similarity value.}
 }
 The purpose of the \code{hsa_quant} function is to address situations where hespdiv
 polygons, despite having different geometry and location, may filter nearly

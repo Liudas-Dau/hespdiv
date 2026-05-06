@@ -2,23 +2,22 @@
 % Please edit documentation in R/cross_comp.R
 \name{cross_comp}
 \alias{cross_comp}
-\title{Calculate polygon object cross-comparison matrix}
+\title{Calculate a polygon-object cross-comparison matrix}
 \usage{
 cross_comp(obj)
 }
 \arguments{
-\item{obj}{A hespdiv class object.}
+\item{obj}{A \code{hespdiv} object.}
 }
 \value{
-A cross-comparison matrix of hespdiv polygon objects.
+A numeric matrix containing pairwise comparison values among the
+\code{hespdiv} polygon objects stored in \code{obj$poly.obj}.
 }
 \description{
-This function computes the cross-comparison matrix of hespdiv polygon objects.
-This matrix can be used as a distance matrix, either in its original form or after
-undergoing a transformation if necessary, for further cluster analysis.
-The matrix provides a quantitative measure of the similarity or
-dissimilarity between different hespdiv polygon objects, enabling the
-exploration of spatial relationships and patterns among them.
+Computes a cross-comparison matrix for polygon objects from a \code{hespdiv}
+object. The matrix quantifies similarity or dissimilarity among polygon
+objects and can be used for further analyses, such as clustering, either
+directly or after transformation.
 }
 \details{
 The \code{cross_comp()} function uses the \code{compare.f} function from

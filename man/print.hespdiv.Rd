@@ -2,21 +2,21 @@
 % Please edit documentation in R/print_hespdiv.R
 \name{print.hespdiv}
 \alias{print.hespdiv}
-\title{Print the results of hespdiv object}
+\title{Print a hespdiv object}
 \usage{
 \method{print}{hespdiv}(x, ...)
 }
 \arguments{
-\item{x}{A hespdiv class object.}
+\item{x}{A \code{hespdiv} object.}
 
-\item{...}{other arguments}
+\item{...}{Additional arguments, currently ignored.}
 }
 \value{
-x
+Invisibly returns \code{x}.
 }
 \description{
-Function formats and prints the rounded split.stats data frame.
-from "hespdiv" class R object.
+Formats and prints the rounded \code{split.stats} data frame from a
+\code{hespdiv} object.
 }
 \author{
 Liudas Daumantas
