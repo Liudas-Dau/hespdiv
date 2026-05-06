@@ -91,10 +91,51 @@ only identities of the locality blocks are shuffled. The number of group occurre
 }
 
 \examples{
-\dontrun{
-library(HDData)
-group_effect(obj = hd, group = mio_mams$family, plot = FALSE)
-}
+data <- example_hespdiv$call.info$Call_ARGS$data
+# See the hespdiv() example; lowercase letters represent widespread taxa:
+endemic_l <- !data \%in\% letters[1:5]
+group <- factor(ifelse(endemic_l, "endemic", "widespread"))
+
+gr_ef <- group_effect(obj = example_hespdiv, group = group, plot = FALSE)
+
+barplot(
+  gr_ef$within$est,
+  main = "Split-line similarity within each group",
+  ylab = "Performance"
+)
+
+barplot(
+  gr_ef$within$delta,
+  main = "Group contribution to similarity within each group",
+  ylab = "Contribution"
+)
+abline(h = 0)
+
+barplot(
+  gr_ef$elim$est,
+  main = "Split-line similarity with group eliminated",
+  ylab = "Performance"
+)
+
+barplot(
+  gr_ef$elim$delta,
+  main = "Group contribution to similarity with group eliminated",
+  ylab = "Contribution"
+)
+abline(h = 0)
+
+boxplot(
+  gr_ef$perm$est$`1`,
+  main = "Split-line similarity with group spatially permuted",
+  ylab = "Performance"
+)
+
+boxplot(
+  gr_ef$perm$delta$`1`,
+  main = "Group contribution to similarity with group spatially permuted",
+  ylab = "Contribution"
+)
+abline(h = 0)
 }
 \seealso{
 \code{\link{plot_hespdiv}}
