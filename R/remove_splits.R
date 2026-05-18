@@ -9,34 +9,32 @@
 #' @param depend.splits logical. Remove split-lines that depend on specified
 #' split-lines? If FALSE, only end-nodes of spatial dendrogram are removed.
 #' @examples
-#' \dontrun{
-#' # This example uses the GitHub-only HDData package:
-#' # remotes::install_github("Liudas-Dau/hespdiv_data")
+#' \donttest{
+#' if (requireNamespace("HDData")) {
 #'
-#' library(HDData)
+#'   # Inspect the hespdiv object
+#'   print(plot_hespdiv(HDData::hd))
 #'
-#' # Inspect the hespdiv object
-#' plot_hespdiv(hd)
+#'   # Remove weak split-lines
+#'   weak_splits <- which(HDData::hd$split.stats$performance >= 0.3)
+#'   performance_filtered <- remove_splits(obj = HDData::hd, split.id = weak_splits)
+#'   print(plot_hespdiv(performance_filtered))
 #'
-#' # Remove weak split-lines
-#' weak_splits <- which(hd$split.stats$performance >= 0.3)
-#' performance_filtered <- remove_splits(obj = hd, split.id = weak_splits)
-#' plot_hespdiv(performance_filtered)
+#'   # Remove non-significant split-lines
+#'   plot(HDData::nl)
+#'   nsig_splits <- which(HDData::nl[[1]]$quantile >= 0.05)
+#'   sig_filtered <- remove_splits(obj = HDData::hd, split.id = nsig_splits)
+#'   print(plot_hespdiv(sig_filtered))
 #'
-#' # Remove non-significant split-lines
-#' plot(nl)
-#' nsig_splits <- which(nl[[1]]$quantile >= 0.05)
-#' sig_filtered <- remove_splits(obj = hd, split.id = nsig_splits)
-#' plot_hespdiv(sig_filtered)
+#'   # Remove only if a split-line has no dependent split-lines
+#'   unchanged_hd <- remove_splits(obj = HDData::hd, split.id = 4, depend.splits = FALSE)
+#'   print(plot_hespdiv(unchanged_hd))
 #'
-#' # Remove only if a split-line has no dependent split-lines
-#' unchanged_hd <- remove_splits(obj = hd, split.id = 4, depend.splits = FALSE)
-#' plot_hespdiv(unchanged_hd)
-#'
-#' # Remove the split-lines indicated as well as all other split-lines
-#' # that structurally depend on them (default behavior)
-#' changed_hd <- remove_splits(obj = hd, split.id = 4, depend.splits = TRUE)
-#' plot_hespdiv(changed_hd)
+#'   # Remove the split-lines indicated as well as all other split-lines
+#'   # that structurally depend on them (default behavior)
+#'   changed_hd <- remove_splits(obj = HDData::hd, split.id = 4, depend.splits = TRUE)
+#'   print(plot_hespdiv(changed_hd))
+#' }
 #' }
 #' @export
 remove_splits <- function(obj, split.id, depend.splits = TRUE) {

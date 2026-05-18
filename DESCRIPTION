@@ -1,7 +1,7 @@
 Package: hespdiv
 Type: Package
 Title: Hierarchical Spatial Data Subdivision into Topologically Contiguous Units
-Version: 1.2.8
+Version: 1.2.9
 Authors@R: c(
     person(given = "Liudas",
            family = "Daumantas",
@@ -48,5 +48,9 @@ Imports:
   future.apply,
   future,
   rlang
+Suggests:
+  HDData
+Additional_repositories:
+  https://github.com/Liudas-Dau/hespdiv_data
 Depends: 
     R (>= 4.0)
