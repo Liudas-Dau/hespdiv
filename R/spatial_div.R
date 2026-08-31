@@ -42,7 +42,9 @@
     S_org <- NULL
   }
 
-  pairs_pts <- .pair_pts(perim_pts[[1]],polygon = perim_pts[[2]])
+  pairs_pts <- .pair_pts(perim_pts[[1]],polygon = perim_pts[[2]],
+                         check.geometry = check.geometry
+                           )
   maxdif <- c.Q.crit # first split minimum quality. P.crit
   any.split <- numeric()
   maxid <- 0

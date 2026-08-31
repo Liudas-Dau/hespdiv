@@ -440,6 +440,7 @@ hespdiv<-function(data,
                   pacific.region = FALSE,
                   .do_recurse = TRUE){
 
+
   if (is.null(xy.dat)){
     if (class(data) %in% c("data.frame", "matrix")){
       if (any(colnames(data) == 'x') & any(colnames(data) == 'y')){
@@ -783,7 +784,11 @@ hespdiv<-function(data,
 
   S.cond <- round(abs(pracma::polyarea(study.pol$x,study.pol$y)) * S.crit,2)
   splits <- numeric()
-
+  if (!c.splits && use.chull) {
+    check.geometry <- FALSE
+  } else {
+    check.geometry <- TRUE
+  }
   e <- environment()
   environment(.spatial_div) <- e
   ### obtaining results:
