@@ -55,6 +55,7 @@
   ID<-1
   i=2
   segment.no<-i
+  segment.no2 <- nrow(polygon)
   x.poly<-x[1]
   y.poly<-y[1]
   lastx<-generated_x_pt
@@ -81,6 +82,15 @@
       lasty<-Y
       lastx<-X
       segment.no<-c(segment.no,i)
+      at_vertex <- abs(X - x[i]) < 1e-12 &&
+        abs(Y - y[i]) < 1e-12
+      if (at_vertex) { # at vertexes point belongs to two segments
+        next.segment <- if (i == nrow(polygon)) 2 else i + 1
+      } else {
+        next.segment <- i
+      }
+
+      segment.no2 <- c(segment.no2, next.segment)
       passed<-0
     } else {
       passed<-passed+m
@@ -92,7 +102,13 @@
     }
   }
 
-  coords<-data.frame(x=generated_x_pt,y=generated_y_pt,ID,segment.no)
+  coords <- data.frame(
+    x = generated_x_pt,
+    y = generated_y_pt,
+    ID,
+    segment.no,
+    segment.no2
+  )
   full.poly<-rbind(data.frame(x.poly,y.poly),data.frame(x.poly=x[i:length(x)],y.poly=y[i:length(x)]))
   return(list(per_pts=coords,full.poly))
 }

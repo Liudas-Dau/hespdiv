@@ -44,8 +44,16 @@
     pairs <- utils::combn(seq_len(nrow(per_pts)), 2)
 
     # Remove pairs whose two points are on the same polygon segment
-    keep <- per_pts[pairs[1, ], 4] != per_pts[pairs[2, ], 4]
-    pairs <- pairs[, keep, drop = FALSE]
+    i1 <- pairs[1, ]
+    i2 <- pairs[2, ]
+
+    same_segment <-
+      per_pts[i1, 4] == per_pts[i2, 4] |
+      per_pts[i1, 4] == per_pts[i2, 5] |
+      per_pts[i1, 5] == per_pts[i2, 4] |
+      per_pts[i1, 5] == per_pts[i2, 5]
+
+    pairs <- pairs[, !same_segment, drop = FALSE]
 
     if (ncol(pairs) == 0) {
       return(data.frame())
