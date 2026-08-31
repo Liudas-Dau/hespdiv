@@ -40,7 +40,6 @@
   # For a convex polygon, a straight line connecting two perimeter points
   # cannot cross outside the polygon.
   if (!check.geometry) {
-    message("No geometry checking")
     pairs <- utils::combn(seq_len(nrow(per_pts)), 2)
 
     # Remove pairs whose two points are on the same polygon segment
